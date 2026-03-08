@@ -18,7 +18,6 @@ out vec4 v_color;
 out highp vec2 v_wall_uv;
 out highp float v_height_m;
 out lowp float v_is_side;
-out highp vec2 v_tile_pos;
 flat out highp float v_ed_flat;
 
 #pragma mapbox: define highp float base
@@ -66,7 +65,6 @@ void main() {
     v_height_m = max(0.0, height - base);
     float height_range = max(height - base, 0.001);
     v_wall_uv = vec2(edgedistance, (elevation - base) / height_range);
-    v_tile_pos = a_pos;
     v_ed_flat = edgedistance;
 
     // Relative luminance (how dark/bright is the surface color?)
