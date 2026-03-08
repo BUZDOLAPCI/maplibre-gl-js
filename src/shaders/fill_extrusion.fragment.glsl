@@ -12,9 +12,9 @@ void main() {
         float num_floors = max(1.0, floor(v_height_m / 3.5));
         float floor_v = fract(v_wall_uv.y * num_floors);
 
-        // Floor band margins (77% window fill — visible floor slabs)
-        float band_b = 0.08;
-        float band_t = 0.85;
+        // Floor band margins (60% window fill — visible floor slabs)
+        float band_b = 0.18;
+        float band_t = 0.78;
         float fw_v = fwidth(floor_v);
         float floor_mask = smoothstep(band_b - fw_v, band_b + fw_v, floor_v)
                          * smoothstep(band_t + fw_v, band_t - fw_v, floor_v);
@@ -25,13 +25,13 @@ void main() {
         float band_mask = mix(1.0, floor_mask, floor_detail);
 
         // Vertical window columns
-        float window_spacing = 250.0;
+        float window_spacing = 400.0;
         float raw_u = (v_wall_uv.x - v_ed_flat) / window_spacing;
         float cell_u = fract(raw_u);
         float fw_u = fwidth(raw_u);
 
-        float win_l = 0.10;
-        float win_r = 0.90;
+        float win_l = 0.18;
+        float win_r = 0.82;
 
         // LOD: at low horizontal resolution, merge columns into continuous bands
         float detail = 1.0 - smoothstep(0.04, 0.12, fw_u);
@@ -47,11 +47,15 @@ void main() {
         float edge_fade = smoothstep(0.0, 30.0, dist_from_prov);
         win_mask *= edge_fade;
 
+        // LOD tint: reduce window color at distance to prevent blue wash
+        float lod_tint = max(detail, floor_detail);
+        win_mask *= lod_tint;
+
         if (win_mask > 0.01) {
             vec2 grid_id = floor(vec2(raw_u, v_wall_uv.y * num_floors));
             float hash = fract(sin(dot(grid_id, vec2(12.9898, 78.233))) * 43758.5453);
 
-            vec3 window_color = vec3(0.59, 0.77, 0.84) + hash * vec3(-0.04, -0.02, 0.02);
+            vec3 window_color = vec3(0.45, 0.72, 0.87) + hash * vec3(-0.04, -0.02, 0.02);
 
             // Diagonal glare — only at high detail (gated to prevent artifacts)
             if (detail > 0.5) {
@@ -61,20 +65,20 @@ void main() {
                 float fw_diag = fwidth(diag);
                 float glare = smoothstep(0.3 - fw_diag, 0.5, diag)
                             * smoothstep(0.7 + fw_diag, 0.5, diag);
-                glare *= 0.35 + hash * 0.1;
+                glare *= 0.40 + hash * 0.12;
                 window_color = mix(window_color, vec3(1.0), glare);
             }
 
             float luminance = dot(v_color.rgb, vec3(0.299, 0.587, 0.114));
             vec3 lit_window = window_color * max(luminance * 1.2, 0.60);
-            fragColor.rgb = mix(fragColor.rgb, lit_window, 0.92 * win_mask);
+            fragColor.rgb = mix(fragColor.rgb, lit_window, 0.85 * win_mask);
         }
     }
 
     // --- Soft edge AO (side faces only) ---
     if (v_is_side > 0.5) {
-        float base_ao = smoothstep(0.0, 0.06, v_wall_uv.y);
-        fragColor.rgb *= mix(0.82, 1.0, base_ao);
+        float base_ao = smoothstep(0.0, 0.10, v_wall_uv.y);
+        fragColor.rgb *= mix(0.86, 1.0, base_ao);
 
         float top_glow = smoothstep(0.92, 1.0, v_wall_uv.y);
         fragColor.rgb *= mix(1.0, 1.06, top_glow);
