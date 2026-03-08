@@ -25,8 +25,8 @@ void main() {
         float cell_u = fract(raw_u);
         float fw_u = fwidth(cell_u);
 
-        float win_l = 0.20;
-        float win_r = 0.80;
+        float win_l = 0.01;
+        float win_r = 0.99;
         float col_mask = smoothstep(win_l - fw_u, win_l + fw_u, cell_u)
                        * smoothstep(win_r + fw_u, win_r - fw_u, cell_u);
 
