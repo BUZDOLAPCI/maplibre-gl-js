@@ -15,6 +15,11 @@ in vec4 a_normal_ed;
 
 
 out vec4 v_color;
+out highp vec2 v_wall_uv;
+out highp float v_height_m;
+out lowp float v_is_side;
+out highp vec2 v_tile_pos;
+flat out highp float v_ed_flat;
 
 #pragma mapbox: define highp float base
 #pragma mapbox: define highp float height
@@ -27,6 +32,7 @@ void main() {
     #pragma mapbox: initialize highp vec4 color
 
     vec3 normal = a_normal_ed.xyz;
+    float edgedistance = a_normal_ed.w;
 
     #ifdef TERRAIN3D
 	    // Raise the "ceiling" of elements by the elevation of the centroid, in meters.
@@ -54,6 +60,14 @@ void main() {
     #else
         gl_Position = u_projection_matrix * vec4(posInTile, elevation, 1.0);
     #endif
+
+    // --- Procedural window data ---
+    v_is_side = (normal.y != 0.0) ? 1.0 : 0.0;
+    v_height_m = max(0.0, height - base);
+    float height_range = max(height - base, 0.001);
+    v_wall_uv = vec2(edgedistance, (elevation - base) / height_range);
+    v_tile_pos = a_pos;
+    v_ed_flat = edgedistance;
 
     // Relative luminance (how dark/bright is the surface color?)
     float colorvalue = color.r * 0.2126 + color.g * 0.7152 + color.b * 0.0722;

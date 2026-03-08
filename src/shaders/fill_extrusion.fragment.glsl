@@ -1,7 +1,67 @@
 in vec4 v_color;
+in highp vec2 v_wall_uv;
+in highp float v_height_m;
+in lowp float v_is_side;
+in highp vec2 v_tile_pos;
+flat in highp float v_ed_flat;
 
 void main() {
     fragColor = v_color;
+
+    // --- Procedural windows on side faces ---
+    if (v_is_side > 0.5 && v_height_m >= 3.0) {
+        float num_floors = max(1.0, floor(v_height_m / 3.0));
+        float floor_v = fract(v_wall_uv.y * num_floors);
+
+        float window_spacing = 250.0;
+        float cell_u = fract((v_wall_uv.x - v_ed_flat) / window_spacing);
+
+        float win_l = 0.01;
+        float win_r = 0.99;
+        float win_b = 0.05;
+        float win_t = 0.70;
+
+        float fw_u = fwidth(cell_u);
+        float fw_v = fwidth(floor_v);
+        float win_mask = smoothstep(win_l - fw_u, win_l + fw_u, cell_u)
+                       * smoothstep(win_r + fw_u, win_r - fw_u, cell_u)
+                       * smoothstep(win_b - fw_v, win_b + fw_v, floor_v)
+                       * smoothstep(win_t + fw_v, win_t - fw_v, floor_v);
+
+        // Face-edge padding: fade windows near building corners
+        float dist_from_prov = abs(v_ed_flat - v_wall_uv.x);
+        float edge_fade = smoothstep(0.0, 30.0, dist_from_prov);
+        win_mask *= edge_fade;
+
+        if (win_mask > 0.01) {
+            float local_u = clamp((cell_u - win_l) / (win_r - win_l), 0.0, 1.0);
+            float local_v = clamp((floor_v - win_b) / (win_t - win_b), 0.0, 1.0);
+
+            vec2 grid_id = floor(vec2((v_wall_uv.x - v_ed_flat) / window_spacing, v_wall_uv.y * num_floors));
+            float hash = fract(sin(dot(grid_id, vec2(12.9898, 78.233))) * 43758.5453);
+
+            vec3 window_color = vec3(0.59, 0.77, 0.84) + hash * vec3(-0.04, -0.02, 0.02);
+
+            float diag = (local_u + local_v) * 0.7;
+            float fw_diag = fwidth(diag);
+            float glare = smoothstep(0.3 - fw_diag, 0.5, diag) * smoothstep(0.7 + fw_diag, 0.5, diag);
+            glare *= 0.35 + hash * 0.1;
+            window_color = mix(window_color, vec3(1.0), glare);
+
+            float luminance = dot(v_color.rgb, vec3(0.299, 0.587, 0.114));
+            vec3 lit_window = window_color * max(luminance * 1.2, 0.5);
+            fragColor.rgb = mix(fragColor.rgb, lit_window, 0.88 * win_mask);
+        }
+    }
+
+    // --- Soft edge AO (side faces only) ---
+    if (v_is_side > 0.5) {
+        float base_ao = smoothstep(0.0, 0.06, v_wall_uv.y);
+        fragColor.rgb *= mix(0.82, 1.0, base_ao);
+
+        float top_glow = smoothstep(0.92, 1.0, v_wall_uv.y);
+        fragColor.rgb *= mix(1.0, 1.06, top_glow);
+    }
 
     #ifdef OVERDRAW_INSPECTOR
         fragColor = vec4(1.0);
