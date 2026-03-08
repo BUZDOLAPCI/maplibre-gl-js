@@ -2,7 +2,6 @@ in vec4 v_color;
 in highp vec2 v_wall_uv;
 in highp float v_height_m;
 in lowp float v_is_side;
-flat in highp float v_ed_flat;
 
 void main() {
     fragColor = v_color;
@@ -24,9 +23,10 @@ void main() {
         float floor_detail = 1.0 - smoothstep(0.15, 0.45, fw_floor);
         float band_mask = mix(1.0, floor_mask, floor_detail);
 
-        // Vertical window columns
+        // Vertical window columns — tile continuously along wall perimeter
+        // (no flat-interpolation anchor; avoids triangle-split artifacts in WebGL2)
         float window_spacing = 600.0;
-        float raw_u = (v_wall_uv.x - v_ed_flat) / window_spacing;
+        float raw_u = v_wall_uv.x / window_spacing;
         float cell_u = fract(raw_u);
         float fw_u = fwidth(raw_u);
 
@@ -41,11 +41,6 @@ void main() {
             detail);
 
         float win_mask = band_mask * col_mask;
-
-        // Face-edge padding: fade windows near building corners
-        float dist_from_prov = abs(v_ed_flat - v_wall_uv.x);
-        float edge_fade = smoothstep(0.0, 60.0, dist_from_prov);
-        win_mask *= edge_fade;
 
         // LOD tint: reduce window color at distance to prevent blue wash
         float lod_tint = max(detail, floor_detail);
