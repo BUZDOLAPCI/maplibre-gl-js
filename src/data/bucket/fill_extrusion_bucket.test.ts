@@ -7,6 +7,7 @@ import {type ZoomHistory} from '../../style/zoom_history';
 import {type BucketParameters} from '../bucket';
 import {type CreateBucketParameters, createPopulateOptions, getFeaturesFromLayer, loadVectorTile} from '../../../test/unit/lib/tile';
 import {type VectorTileLayerLike} from '@maplibre/vt-pbf';
+import Point from '@mapbox/point-geometry';
 
 function createFillExtrusionBucket({id, layout, paint, globalState, availableImages}: CreateBucketParameters): FillExtrusionBucket {
     const layer = new FillExtrusionStyleLayer({
@@ -42,5 +43,22 @@ describe('FillExtrusionBucket', () => {
         expect(bucket.features[0].patterns).toEqual({
             test: {min: 'test-pattern', mid: 'test-pattern', max: 'test-pattern'}
         });
+    });
+
+    test('FillExtrusionBucket side faces keep a shared provoking vertex anchor', () => {
+        const bucket = createFillExtrusionBucket({id: 'test'});
+        const segmentReference = {
+            segment: bucket.segments.prepareSegment(4, bucket.layoutVertexArray, bucket.indexArray)
+        };
+
+        (bucket as any)._generateSideFaces([
+            new Point(0, 0),
+            new Point(10, 0)
+        ], segmentReference);
+
+        expect(Array.from(bucket.indexArray.uint16.slice(0, bucket.indexArray.length * 3))).toStrictEqual([
+            0, 2, 1,
+            2, 3, 1
+        ]);
     });
 });

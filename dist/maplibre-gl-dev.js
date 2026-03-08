@@ -29518,13 +29518,15 @@ class FillExtrusionBucket {
             addVertex$1(this.layoutVertexArray, p2.x, p2.y, perp.x, perp.y, 0, 0, edgeDistance);
             addVertex$1(this.layoutVertexArray, p2.x, p2.y, perp.x, perp.y, 0, 1, edgeDistance);
             const bottomRight = segmentReference.segment.vertexLength;
+            // Keep the same provoking vertex for both wall triangles so flat varyings
+            // like v_ed_flat do not jump across the quad diagonal.
             // ┌──────┐
             // │ 0  1 │ Counter-clockwise winding order.
             // │      │ Triangle 1: 0 => 2 => 1
-            // │ 2  3 │ Triangle 2: 1 => 2 => 3
+            // │ 2  3 │ Triangle 2: 2 => 3 => 1
             // └──────┘
             this.indexArray.emplaceBack(bottomRight, bottomRight + 2, bottomRight + 1);
-            this.indexArray.emplaceBack(bottomRight + 1, bottomRight + 2, bottomRight + 3);
+            this.indexArray.emplaceBack(bottomRight + 2, bottomRight + 3, bottomRight + 1);
             segmentReference.segment.vertexLength += 4;
             segmentReference.segment.primitiveLength += 2;
         }

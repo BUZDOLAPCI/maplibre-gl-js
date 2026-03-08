@@ -289,13 +289,15 @@ export class FillExtrusionBucket implements Bucket {
 
             const bottomRight = segmentReference.segment.vertexLength;
 
+            // Keep the same provoking vertex for both wall triangles so flat varyings
+            // like v_ed_flat do not jump across the quad diagonal.
             // ┌──────┐
             // │ 0  1 │ Counter-clockwise winding order.
             // │      │ Triangle 1: 0 => 2 => 1
-            // │ 2  3 │ Triangle 2: 1 => 2 => 3
+            // │ 2  3 │ Triangle 2: 2 => 3 => 1
             // └──────┘
             this.indexArray.emplaceBack(bottomRight, bottomRight + 2, bottomRight + 1);
-            this.indexArray.emplaceBack(bottomRight + 1, bottomRight + 2, bottomRight + 3);
+            this.indexArray.emplaceBack(bottomRight + 2, bottomRight + 3, bottomRight + 1);
 
             segmentReference.segment.vertexLength += 4;
             segmentReference.segment.primitiveLength += 2;
