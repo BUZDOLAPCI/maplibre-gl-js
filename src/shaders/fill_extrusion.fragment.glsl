@@ -2,6 +2,7 @@ in vec4 v_color;
 in highp vec2 v_wall_uv;
 in highp float v_height_m;
 in lowp float v_is_side;
+flat in highp float v_ed_flat;
 
 void main() {
     fragColor = v_color;
@@ -20,7 +21,7 @@ void main() {
 
         // Vertical window columns — tile using flat edge distance anchor
         float window_spacing = 600.0;
-        float raw_u = v_wall_uv.x / window_spacing;
+        float raw_u = (v_wall_uv.x - v_ed_flat) / window_spacing;
         float cell_u = fract(raw_u);
         float fw_u = fwidth(cell_u);
 
