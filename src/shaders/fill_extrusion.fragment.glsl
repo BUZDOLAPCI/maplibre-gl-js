@@ -2,7 +2,6 @@ in vec4 v_color;
 in highp vec2 v_wall_uv;
 in highp float v_height_m;
 in lowp float v_is_side;
-flat in highp float v_ed_flat;
 
 void main() {
     fragColor = v_color;
@@ -42,13 +41,6 @@ void main() {
             detail);
 
         float win_mask = band_mask * col_mask;
-
-        // Face-edge padding: fade windows near building corners
-        // v_ed_flat picks one face edge per triangle (provoking vertex);
-        // each triangle naturally fades near its own edge, covering both sides.
-        float dist_from_edge = abs(v_wall_uv.x - v_ed_flat);
-        float edge_fade = smoothstep(0.0, 60.0, dist_from_edge);
-        win_mask *= edge_fade;
 
         // LOD tint: reduce window color at distance to prevent blue wash
         float lod_tint = max(detail, floor_detail);
