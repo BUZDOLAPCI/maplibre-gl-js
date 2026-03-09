@@ -8,6 +8,7 @@ import {
 
 import {mat3, vec3} from 'gl-matrix';
 import {extend} from '../../util/util';
+import {cameraDirectionFromPitchBearing} from '../../geo/projection/mercator_utils';
 
 import type {Context} from '../../gl/context';
 import type {Painter} from '../painter';
@@ -21,6 +22,7 @@ export type FillExtrusionUniformsType = {
     'u_lightpos_globe': Uniform3f;
     'u_lightintensity': Uniform1f;
     'u_lightcolor': Uniform3f;
+    'u_camera_dir': Uniform3f;
     'u_vertical_gradient': Uniform1f;
     'u_opacity': Uniform1f;
     'u_fill_translate': Uniform2f;
@@ -31,6 +33,7 @@ export type FillExtrusionPatternUniformsType = {
     'u_lightpos_globe': Uniform3f;
     'u_lightintensity': Uniform1f;
     'u_lightcolor': Uniform3f;
+    'u_camera_dir': Uniform3f;
     'u_height_factor': Uniform1f;
     'u_vertical_gradient': Uniform1f;
     'u_opacity': Uniform1f;
@@ -49,6 +52,7 @@ const fillExtrusionUniforms = (context: Context, locations: UniformLocations): F
     'u_lightpos_globe': new Uniform3f(context, locations.u_lightpos_globe),
     'u_lightintensity': new Uniform1f(context, locations.u_lightintensity),
     'u_lightcolor': new Uniform3f(context, locations.u_lightcolor),
+    'u_camera_dir': new Uniform3f(context, locations.u_camera_dir),
     'u_vertical_gradient': new Uniform1f(context, locations.u_vertical_gradient),
     'u_opacity': new Uniform1f(context, locations.u_opacity),
     'u_fill_translate': new Uniform2f(context, locations.u_fill_translate),
@@ -59,6 +63,7 @@ const fillExtrusionPatternUniforms = (context: Context, locations: UniformLocati
     'u_lightpos_globe': new Uniform3f(context, locations.u_lightpos_globe),
     'u_lightintensity': new Uniform1f(context, locations.u_lightintensity),
     'u_lightcolor': new Uniform3f(context, locations.u_lightcolor),
+    'u_camera_dir': new Uniform3f(context, locations.u_camera_dir),
     'u_vertical_gradient': new Uniform1f(context, locations.u_vertical_gradient),
     'u_height_factor': new Uniform1f(context, locations.u_height_factor),
     'u_opacity': new Uniform1f(context, locations.u_opacity),
@@ -87,6 +92,8 @@ const fillExtrusionUniformValues = (
     }
     vec3.transformMat3(lightPos, lightPos, lightMat);
     const transformedLightPos = painter.transform.transformLightDirection(lightPos);
+    const cameraDirSource = cameraDirectionFromPitchBearing(painter.transform.pitch, painter.transform.bearing);
+    const cameraDir = [cameraDirSource.x, cameraDirSource.y, cameraDirSource.z] as vec3;
 
     const lightColor = light.properties.get('color');
 
@@ -95,6 +102,7 @@ const fillExtrusionUniformValues = (
         'u_lightpos_globe': transformedLightPos,
         'u_lightintensity': light.properties.get('intensity'),
         'u_lightcolor': [lightColor.r, lightColor.g, lightColor.b],
+        'u_camera_dir': cameraDir,
         'u_vertical_gradient': +shouldUseVerticalGradient,
         'u_opacity': opacity,
         'u_fill_translate': translate,

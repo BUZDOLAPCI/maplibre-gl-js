@@ -1,5 +1,6 @@
 uniform vec2 u_texsize;
 uniform float u_fade;
+uniform lowp vec3 u_camera_dir;
 
 uniform sampler2D u_image;
 
