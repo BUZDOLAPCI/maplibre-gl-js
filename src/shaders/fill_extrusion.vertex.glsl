@@ -8,6 +8,7 @@ uniform vec2 u_fill_translate;
 
 in vec2 a_pos;
 in vec4 a_normal_ed;
+in float a_face_width;
 
 #ifdef TERRAIN3D
     in vec2 a_centroid;
@@ -19,6 +20,7 @@ out highp vec2 v_wall_uv;
 out highp float v_height_m;
 out lowp float v_is_side;
 flat out highp float v_ed_flat;
+flat out highp float v_face_width;
 
 #pragma mapbox: define highp float base
 #pragma mapbox: define highp float height
@@ -66,6 +68,7 @@ void main() {
     float height_range = max(height - base, 0.001);
     v_wall_uv = vec2(edgedistance, (elevation - base) / height_range);
     v_ed_flat = edgedistance;
+    v_face_width = a_face_width;
 
     // Relative luminance (how dark/bright is the surface color?)
     float colorvalue = color.r * 0.2126 + color.g * 0.7152 + color.b * 0.0722;

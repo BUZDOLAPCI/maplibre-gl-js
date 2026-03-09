@@ -3,6 +3,7 @@ in highp vec2 v_wall_uv;
 in highp float v_height_m;
 in lowp float v_is_side;
 flat in highp float v_ed_flat;
+flat in highp float v_face_width;
 
 void main() {
     fragColor = v_color;
@@ -19,16 +20,36 @@ void main() {
         float floor_mask = smoothstep(band_b - fw_v, band_b + fw_v, floor_v)
                          * smoothstep(band_t + fw_v, band_t - fw_v, floor_v);
 
-        // Vertical window columns — tile using flat edge distance anchor
+        // Vertical window columns — fit full cells within the wall face so both
+        // facade edges keep padding instead of only the anchor side.
         float window_spacing = 600.0;
-        float raw_u = (v_wall_uv.x - v_ed_flat) / window_spacing;
-        float cell_u = fract(raw_u);
-        float fw_u = fwidth(cell_u);
-
         float win_l = 0.20;
         float win_r = 0.80;
-        float col_mask = smoothstep(win_l - fw_u, win_l + fw_u, cell_u)
-                       * smoothstep(win_r + fw_u, win_r - fw_u, cell_u);
+        float outer_pad_l = win_l * window_spacing;
+        float outer_pad_r = (1.0 - win_r) * window_spacing;
+        float usable_width = max(v_face_width - outer_pad_l - outer_pad_r, 0.0);
+        float column_count = floor(usable_width / window_spacing);
+
+        float col_mask = 0.0;
+        float raw_u = 0.0;
+        float cell_u = 0.0;
+
+        if (column_count > 0.0) {
+            float grid_width = column_count * window_spacing;
+            float grid_origin = outer_pad_l + 0.5 * (usable_width - grid_width);
+            float face_u = v_wall_uv.x - v_ed_flat;
+            float local_u = face_u - grid_origin;
+            float fw_local = fwidth(local_u);
+            float within_columns = smoothstep(-fw_local, fw_local, local_u)
+                                 * smoothstep(grid_width + fw_local, grid_width - fw_local, local_u);
+
+            raw_u = local_u / window_spacing;
+            cell_u = fract(raw_u);
+            float fw_u = fwidth(cell_u);
+            col_mask = within_columns
+                     * smoothstep(win_l - fw_u, win_l + fw_u, cell_u)
+                     * smoothstep(win_r + fw_u, win_r - fw_u, cell_u);
+        }
 
         float win_mask = floor_mask * col_mask;
 

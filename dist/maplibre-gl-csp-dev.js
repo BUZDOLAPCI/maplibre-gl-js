@@ -24674,31 +24674,33 @@ register('StructArrayLayout4i8', StructArrayLayout4i8);
  * Implementation of the StructArray layout:
  * [0] - Int16[2]
  * [4] - Int16[4]
+ * [12] - Int16[1]
  *
  */
-class StructArrayLayout2i4i12 extends StructArray {
+class StructArrayLayout2i4i1i16 extends StructArray {
     _refreshViews() {
         this.uint8 = new Uint8Array(this.arrayBuffer);
         this.int16 = new Int16Array(this.arrayBuffer);
     }
-    emplaceBack(v0, v1, v2, v3, v4, v5) {
+    emplaceBack(v0, v1, v2, v3, v4, v5, v6) {
         const i = this.length;
         this.resize(i + 1);
-        return this.emplace(i, v0, v1, v2, v3, v4, v5);
+        return this.emplace(i, v0, v1, v2, v3, v4, v5, v6);
     }
-    emplace(i, v0, v1, v2, v3, v4, v5) {
-        const o2 = i * 6;
+    emplace(i, v0, v1, v2, v3, v4, v5, v6) {
+        const o2 = i * 8;
         this.int16[o2 + 0] = v0;
         this.int16[o2 + 1] = v1;
         this.int16[o2 + 2] = v2;
         this.int16[o2 + 3] = v3;
         this.int16[o2 + 4] = v4;
         this.int16[o2 + 5] = v5;
+        this.int16[o2 + 6] = v6;
         return i;
     }
 }
-StructArrayLayout2i4i12.prototype.bytesPerElement = 12;
-register('StructArrayLayout2i4i12', StructArrayLayout2i4i12);
+StructArrayLayout2i4i1i16.prototype.bytesPerElement = 16;
+register('StructArrayLayout2i4i1i16', StructArrayLayout2i4i1i16);
 /**
  * @internal
  * Implementation of the StructArray layout:
@@ -25498,7 +25500,7 @@ class CircleLayoutArray extends StructArrayLayout2i4 {
 }
 class FillLayoutArray extends StructArrayLayout2i4 {
 }
-class FillExtrusionLayoutArray extends StructArrayLayout2i4i12 {
+class FillExtrusionLayoutArray extends StructArrayLayout2i4i1i16 {
 }
 class HeatmapLayoutArray extends StructArrayLayout2i4 {
 }
@@ -29731,6 +29733,7 @@ class FillStyleLayer extends StyleLayer {
 const layout$2 = createLayout([
     { name: 'a_pos', components: 2, type: 'Int16' },
     { name: 'a_normal_ed', components: 4, type: 'Int16' },
+    { name: 'a_face_width', components: 1, type: 'Int16' },
 ], 4);
 const centroidAttributes = createLayout([
     { name: 'a_centroid', components: 2, type: 'Int16' }
@@ -30125,14 +30128,16 @@ function readTile(tag, layers, pbf) {
 
 const EARCUT_MAX_RINGS = 500;
 const FACTOR = Math.pow(2, 13);
-function addVertex$1(vertexArray, x, y, nx, ny, nz, t, e) {
+function addVertex$1(vertexArray, x, y, nx, ny, nz, t, e, faceWidth = 0) {
     vertexArray.emplaceBack(
     // a_pos
     x, y, 
     // a_normal_ed: 3-component normal and 1-component edgedistance
     Math.floor(nx * FACTOR) * 2 + t, ny * FACTOR * 2, nz * FACTOR * 2, 
     // edgedistance (used for wrapping patterns around extrusion sides)
-    Math.round(e));
+    Math.round(e), 
+    // wall-face width for centering facade columns with equal outer padding
+    Math.round(faceWidth));
 }
 class FillExtrusionBucket {
     constructor(options) {
@@ -30287,11 +30292,11 @@ class FillExtrusionBucket {
             const dist = p2.dist(p1);
             if (edgeDistance + dist > 32768)
                 edgeDistance = 0;
-            addVertex$1(this.layoutVertexArray, p1.x, p1.y, perp.x, perp.y, 0, 0, edgeDistance);
-            addVertex$1(this.layoutVertexArray, p1.x, p1.y, perp.x, perp.y, 0, 1, edgeDistance);
+            addVertex$1(this.layoutVertexArray, p1.x, p1.y, perp.x, perp.y, 0, 0, edgeDistance, dist);
+            addVertex$1(this.layoutVertexArray, p1.x, p1.y, perp.x, perp.y, 0, 1, edgeDistance, dist);
             edgeDistance += dist;
-            addVertex$1(this.layoutVertexArray, p2.x, p2.y, perp.x, perp.y, 0, 0, edgeDistance);
-            addVertex$1(this.layoutVertexArray, p2.x, p2.y, perp.x, perp.y, 0, 1, edgeDistance);
+            addVertex$1(this.layoutVertexArray, p2.x, p2.y, perp.x, perp.y, 0, 0, edgeDistance, dist);
+            addVertex$1(this.layoutVertexArray, p2.x, p2.y, perp.x, perp.y, 0, 1, edgeDistance, dist);
             const bottomRight = segmentReference.segment.vertexLength;
             // Keep the same provoking vertex for both wall triangles so flat varyings
             // like v_ed_flat do not jump across the quad diagonal.
@@ -49517,10 +49522,10 @@ var fillPatternFrag = '#ifdef GL_ES\nprecision highp float;\n#endif\nuniform vec
 var fillPatternVert = 'uniform vec2 u_pixel_coord_upper;uniform vec2 u_pixel_coord_lower;uniform vec3 u_scale;uniform vec2 u_fill_translate;in vec2 a_pos;out vec2 v_pos_a;out vec2 v_pos_b;\n#pragma mapbox: define lowp float opacity\n#pragma mapbox: define lowp vec4 pattern_from\n#pragma mapbox: define lowp vec4 pattern_to\n#pragma mapbox: define lowp float pixel_ratio_from\n#pragma mapbox: define lowp float pixel_ratio_to\nvoid main() {\n#pragma mapbox: initialize lowp float opacity\n#pragma mapbox: initialize mediump vec4 pattern_from\n#pragma mapbox: initialize mediump vec4 pattern_to\n#pragma mapbox: initialize lowp float pixel_ratio_from\n#pragma mapbox: initialize lowp float pixel_ratio_to\nvec2 pattern_tl_a=pattern_from.xy;vec2 pattern_br_a=pattern_from.zw;vec2 pattern_tl_b=pattern_to.xy;vec2 pattern_br_b=pattern_to.zw;float tileZoomRatio=u_scale.x;float fromScale=u_scale.y;float toScale=u_scale.z;vec2 display_size_a=(pattern_br_a-pattern_tl_a)/pixel_ratio_from;vec2 display_size_b=(pattern_br_b-pattern_tl_b)/pixel_ratio_to;gl_Position=projectTile(a_pos+u_fill_translate,a_pos);v_pos_a=get_pattern_pos(u_pixel_coord_upper,u_pixel_coord_lower,fromScale*display_size_a,tileZoomRatio,a_pos);v_pos_b=get_pattern_pos(u_pixel_coord_upper,u_pixel_coord_lower,toScale*display_size_b,tileZoomRatio,a_pos);}';
 
 // This file is generated. Edit build/generate-shaders.ts, then run `npm run codegen`.
-var fillExtrusionFrag = 'in vec4 v_color;in highp vec2 v_wall_uv;in highp float v_height_m;in lowp float v_is_side;flat in highp float v_ed_flat;void main() {fragColor=v_color;if (v_is_side > 0.5 && v_height_m >=3.1) {float num_floors=max(1.0,floor(v_height_m/3.0));float floor_v=fract(v_wall_uv.y*num_floors);float band_b=0.18;float band_t=0.78;float fw_v=fwidth(floor_v);float floor_mask=smoothstep(band_b-fw_v,band_b+fw_v,floor_v)*smoothstep(band_t+fw_v,band_t-fw_v,floor_v);float window_spacing=600.0;float raw_u=(v_wall_uv.x-v_ed_flat)/window_spacing;float cell_u=fract(raw_u);float fw_u=fwidth(cell_u);float win_l=0.20;float win_r=0.80;float col_mask=smoothstep(win_l-fw_u,win_l+fw_u,cell_u)*smoothstep(win_r+fw_u,win_r-fw_u,cell_u);float win_mask=floor_mask*col_mask;if (win_mask > 0.01) {vec2 grid_id=floor(vec2(raw_u,v_wall_uv.y*num_floors));float hash=fract(sin(dot(grid_id,vec2(12.9898,78.233)))*43758.5453);vec3 window_color=vec3(0.55,0.78,0.90)+hash*vec3(-0.04,-0.02,0.02);float local_u=clamp((cell_u-win_l)/(win_r-win_l),0.0,1.0);float local_v=clamp((floor_v-band_b)/(band_t-band_b),0.0,1.0);float diag=(local_u+local_v)*0.7;float fw_diag=fwidth(diag);float glare=smoothstep(0.3-fw_diag,0.5,diag)*smoothstep(0.7+fw_diag,0.5,diag);glare*=0.20+hash*0.08;window_color=mix(window_color,vec3(1.0),glare);float luminance=dot(v_color.rgb,vec3(0.299,0.587,0.114));vec3 lit_window=window_color*max(luminance*1.2,0.60);fragColor.rgb=mix(fragColor.rgb,lit_window,0.88*win_mask);}}if (v_is_side > 0.5) {float base_ao=smoothstep(0.0,0.10,v_wall_uv.y);fragColor.rgb*=mix(0.86,1.0,base_ao);float top_glow=smoothstep(0.92,1.0,v_wall_uv.y);fragColor.rgb*=mix(1.0,1.06,top_glow);}\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\n}';
+var fillExtrusionFrag = 'in vec4 v_color;in highp vec2 v_wall_uv;in highp float v_height_m;in lowp float v_is_side;flat in highp float v_ed_flat;flat in highp float v_face_width;void main() {fragColor=v_color;if (v_is_side > 0.5 && v_height_m >=3.1) {float num_floors=max(1.0,floor(v_height_m/3.0));float floor_v=fract(v_wall_uv.y*num_floors);float band_b=0.18;float band_t=0.78;float fw_v=fwidth(floor_v);float floor_mask=smoothstep(band_b-fw_v,band_b+fw_v,floor_v)*smoothstep(band_t+fw_v,band_t-fw_v,floor_v);float window_spacing=600.0;float win_l=0.20;float win_r=0.80;float outer_pad_l=win_l*window_spacing;float outer_pad_r=(1.0-win_r)*window_spacing;float usable_width=max(v_face_width-outer_pad_l-outer_pad_r,0.0);float column_count=floor(usable_width/window_spacing);float col_mask=0.0;float raw_u=0.0;float cell_u=0.0;if (column_count > 0.0) {float grid_width=column_count*window_spacing;float grid_origin=outer_pad_l+0.5*(usable_width-grid_width);float face_u=v_wall_uv.x-v_ed_flat;float local_u=face_u-grid_origin;float fw_local=fwidth(local_u);float within_columns=smoothstep(-fw_local,fw_local,local_u)*smoothstep(grid_width+fw_local,grid_width-fw_local,local_u);raw_u=local_u/window_spacing;cell_u=fract(raw_u);float fw_u=fwidth(cell_u);col_mask=within_columns*smoothstep(win_l-fw_u,win_l+fw_u,cell_u)*smoothstep(win_r+fw_u,win_r-fw_u,cell_u);}float win_mask=floor_mask*col_mask;if (win_mask > 0.01) {vec2 grid_id=floor(vec2(raw_u,v_wall_uv.y*num_floors));float hash=fract(sin(dot(grid_id,vec2(12.9898,78.233)))*43758.5453);vec3 window_color=vec3(0.55,0.78,0.90)+hash*vec3(-0.04,-0.02,0.02);float local_u=clamp((cell_u-win_l)/(win_r-win_l),0.0,1.0);float local_v=clamp((floor_v-band_b)/(band_t-band_b),0.0,1.0);float diag=(local_u+local_v)*0.7;float fw_diag=fwidth(diag);float glare=smoothstep(0.3-fw_diag,0.5,diag)*smoothstep(0.7+fw_diag,0.5,diag);glare*=0.20+hash*0.08;window_color=mix(window_color,vec3(1.0),glare);float luminance=dot(v_color.rgb,vec3(0.299,0.587,0.114));vec3 lit_window=window_color*max(luminance*1.2,0.60);fragColor.rgb=mix(fragColor.rgb,lit_window,0.88*win_mask);}}if (v_is_side > 0.5) {float base_ao=smoothstep(0.0,0.10,v_wall_uv.y);fragColor.rgb*=mix(0.86,1.0,base_ao);float top_glow=smoothstep(0.92,1.0,v_wall_uv.y);fragColor.rgb*=mix(1.0,1.06,top_glow);}\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\n}';
 
 // This file is generated. Edit build/generate-shaders.ts, then run `npm run codegen`.
-var fillExtrusionVert = 'uniform vec3 u_lightcolor;uniform lowp vec3 u_lightpos;uniform lowp vec3 u_lightpos_globe;uniform lowp float u_lightintensity;uniform float u_vertical_gradient;uniform lowp float u_opacity;uniform vec2 u_fill_translate;in vec2 a_pos;in vec4 a_normal_ed;\n#ifdef TERRAIN3D\nin vec2 a_centroid;\n#endif\nout vec4 v_color;out highp vec2 v_wall_uv;out highp float v_height_m;out lowp float v_is_side;flat out highp float v_ed_flat;\n#pragma mapbox: define highp float base\n#pragma mapbox: define highp float height\n#pragma mapbox: define highp vec4 color\nvoid main() {\n#pragma mapbox: initialize highp float base\n#pragma mapbox: initialize highp float height\n#pragma mapbox: initialize highp vec4 color\nvec3 normal=a_normal_ed.xyz;float edgedistance=a_normal_ed.w;\n#ifdef TERRAIN3D\nfloat height_terrain3d_offset=get_elevation(a_centroid);float base_terrain3d_offset=height_terrain3d_offset-(base > 0.0 ? 0.0 : 10.0);\n#else\nfloat height_terrain3d_offset=0.0;float base_terrain3d_offset=0.0;\n#endif\nbase=max(0.0,base)+base_terrain3d_offset;height=max(0.0,height)+height_terrain3d_offset;float t=mod(normal.x,2.0);float elevation=t > 0.0 ? height : base;vec2 posInTile=a_pos+u_fill_translate;\n#ifdef GLOBE\nvec3 spherePos=projectToSphere(posInTile,a_pos);gl_Position=interpolateProjectionFor3D(posInTile,spherePos,elevation);\n#else\ngl_Position=u_projection_matrix*vec4(posInTile,elevation,1.0);\n#endif\nv_is_side=(normal.y !=0.0) ? 1.0 : 0.0;v_height_m=max(0.0,height-base);float height_range=max(height-base,0.001);v_wall_uv=vec2(edgedistance,(elevation-base)/height_range);v_ed_flat=edgedistance;float colorvalue=color.r*0.2126+color.g*0.7152+color.b*0.0722;v_color=vec4(0.0,0.0,0.0,1.0);vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);color+=ambientlight;vec3 normalForLighting=normal/16384.0;float directional=clamp(dot(normalForLighting,u_lightpos),0.0,1.0);\n#ifdef GLOBE\nmat3 rotMatrix=globeGetRotationMatrix(spherePos);normalForLighting=rotMatrix*normalForLighting;directional=mix(directional,clamp(dot(normalForLighting,u_lightpos_globe),0.0,1.0),u_projection_transition);\n#endif\ndirectional=mix((1.0-u_lightintensity),max((1.0-colorvalue+u_lightintensity),1.0),directional);if (normal.y !=0.0) {directional*=((1.0-u_vertical_gradient)+(u_vertical_gradient*clamp((t+base)*pow(height/150.0,0.5),mix(0.7,0.98,1.0-u_lightintensity),1.0)));}v_color.r+=clamp(color.r*directional*u_lightcolor.r,mix(0.0,0.3,1.0-u_lightcolor.r),1.0);v_color.g+=clamp(color.g*directional*u_lightcolor.g,mix(0.0,0.3,1.0-u_lightcolor.g),1.0);v_color.b+=clamp(color.b*directional*u_lightcolor.b,mix(0.0,0.3,1.0-u_lightcolor.b),1.0);v_color*=u_opacity;}';
+var fillExtrusionVert = 'uniform vec3 u_lightcolor;uniform lowp vec3 u_lightpos;uniform lowp vec3 u_lightpos_globe;uniform lowp float u_lightintensity;uniform float u_vertical_gradient;uniform lowp float u_opacity;uniform vec2 u_fill_translate;in vec2 a_pos;in vec4 a_normal_ed;in float a_face_width;\n#ifdef TERRAIN3D\nin vec2 a_centroid;\n#endif\nout vec4 v_color;out highp vec2 v_wall_uv;out highp float v_height_m;out lowp float v_is_side;flat out highp float v_ed_flat;flat out highp float v_face_width;\n#pragma mapbox: define highp float base\n#pragma mapbox: define highp float height\n#pragma mapbox: define highp vec4 color\nvoid main() {\n#pragma mapbox: initialize highp float base\n#pragma mapbox: initialize highp float height\n#pragma mapbox: initialize highp vec4 color\nvec3 normal=a_normal_ed.xyz;float edgedistance=a_normal_ed.w;\n#ifdef TERRAIN3D\nfloat height_terrain3d_offset=get_elevation(a_centroid);float base_terrain3d_offset=height_terrain3d_offset-(base > 0.0 ? 0.0 : 10.0);\n#else\nfloat height_terrain3d_offset=0.0;float base_terrain3d_offset=0.0;\n#endif\nbase=max(0.0,base)+base_terrain3d_offset;height=max(0.0,height)+height_terrain3d_offset;float t=mod(normal.x,2.0);float elevation=t > 0.0 ? height : base;vec2 posInTile=a_pos+u_fill_translate;\n#ifdef GLOBE\nvec3 spherePos=projectToSphere(posInTile,a_pos);gl_Position=interpolateProjectionFor3D(posInTile,spherePos,elevation);\n#else\ngl_Position=u_projection_matrix*vec4(posInTile,elevation,1.0);\n#endif\nv_is_side=(normal.y !=0.0) ? 1.0 : 0.0;v_height_m=max(0.0,height-base);float height_range=max(height-base,0.001);v_wall_uv=vec2(edgedistance,(elevation-base)/height_range);v_ed_flat=edgedistance;v_face_width=a_face_width;float colorvalue=color.r*0.2126+color.g*0.7152+color.b*0.0722;v_color=vec4(0.0,0.0,0.0,1.0);vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);color+=ambientlight;vec3 normalForLighting=normal/16384.0;float directional=clamp(dot(normalForLighting,u_lightpos),0.0,1.0);\n#ifdef GLOBE\nmat3 rotMatrix=globeGetRotationMatrix(spherePos);normalForLighting=rotMatrix*normalForLighting;directional=mix(directional,clamp(dot(normalForLighting,u_lightpos_globe),0.0,1.0),u_projection_transition);\n#endif\ndirectional=mix((1.0-u_lightintensity),max((1.0-colorvalue+u_lightintensity),1.0),directional);if (normal.y !=0.0) {directional*=((1.0-u_vertical_gradient)+(u_vertical_gradient*clamp((t+base)*pow(height/150.0,0.5),mix(0.7,0.98,1.0-u_lightintensity),1.0)));}v_color.r+=clamp(color.r*directional*u_lightcolor.r,mix(0.0,0.3,1.0-u_lightcolor.r),1.0);v_color.g+=clamp(color.g*directional*u_lightcolor.g,mix(0.0,0.3,1.0-u_lightcolor.g),1.0);v_color.b+=clamp(color.b*directional*u_lightcolor.b,mix(0.0,0.3,1.0-u_lightcolor.b),1.0);v_color*=u_opacity;}';
 
 // This file is generated. Edit build/generate-shaders.ts, then run `npm run codegen`.
 var fillExtrusionPatternFrag = 'uniform vec2 u_texsize;uniform float u_fade;uniform sampler2D u_image;in vec2 v_pos_a;in vec2 v_pos_b;in vec4 v_lighting;\n#pragma mapbox: define lowp float base\n#pragma mapbox: define lowp float height\n#pragma mapbox: define lowp vec4 pattern_from\n#pragma mapbox: define lowp vec4 pattern_to\n#pragma mapbox: define lowp float pixel_ratio_from\n#pragma mapbox: define lowp float pixel_ratio_to\nvoid main() {\n#pragma mapbox: initialize lowp float base\n#pragma mapbox: initialize lowp float height\n#pragma mapbox: initialize mediump vec4 pattern_from\n#pragma mapbox: initialize mediump vec4 pattern_to\n#pragma mapbox: initialize lowp float pixel_ratio_from\n#pragma mapbox: initialize lowp float pixel_ratio_to\nvec2 pattern_tl_a=pattern_from.xy;vec2 pattern_br_a=pattern_from.zw;vec2 pattern_tl_b=pattern_to.xy;vec2 pattern_br_b=pattern_to.zw;vec2 imagecoord=mod(v_pos_a,1.0);vec2 pos=mix(pattern_tl_a/u_texsize,pattern_br_a/u_texsize,imagecoord);vec4 color1=texture(u_image,pos);vec2 imagecoord_b=mod(v_pos_b,1.0);vec2 pos2=mix(pattern_tl_b/u_texsize,pattern_br_b/u_texsize,imagecoord_b);vec4 color2=texture(u_image,pos2);vec4 mixedColor=mix(color1,color2,u_fade);fragColor=mixedColor*v_lighting;\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\n}';

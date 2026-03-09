@@ -8,6 +8,7 @@ import {type BucketParameters} from '../bucket';
 import {type CreateBucketParameters, createPopulateOptions, getFeaturesFromLayer, loadVectorTile} from '../../../test/unit/lib/tile';
 import {type VectorTileLayerLike} from '@maplibre/vt-pbf';
 import Point from '@mapbox/point-geometry';
+import fillExtrusionLayout from './fill_extrusion_attributes';
 
 function createFillExtrusionBucket({id, layout, paint, globalState, availableImages}: CreateBucketParameters): FillExtrusionBucket {
     const layer = new FillExtrusionStyleLayer({
@@ -60,5 +61,18 @@ describe('FillExtrusionBucket', () => {
             0, 2, 1,
             2, 3, 1
         ]);
+
+        const faceWidthOffset = fillExtrusionLayout.members.find((member) => member.name === 'a_face_width')!.offset / Int16Array.BYTES_PER_ELEMENT;
+        const edgeDistanceOffset = fillExtrusionLayout.members.find((member) => member.name === 'a_normal_ed')!.offset / Int16Array.BYTES_PER_ELEMENT + 3;
+        const stride = bucket.layoutVertexArray.bytesPerElement / Int16Array.BYTES_PER_ELEMENT;
+        const faceWidths = Array.from({length: bucket.layoutVertexArray.length}, (_, index) =>
+            bucket.layoutVertexArray.int16[index * stride + faceWidthOffset]
+        );
+        const edgeDistances = Array.from({length: bucket.layoutVertexArray.length}, (_, index) =>
+            bucket.layoutVertexArray.int16[index * stride + edgeDistanceOffset]
+        );
+
+        expect(faceWidths).toStrictEqual([10, 10, 10, 10]);
+        expect(edgeDistances).toStrictEqual([0, 0, 10, 10]);
     });
 });

@@ -37,7 +37,7 @@ import type {VectorTileLayerLike} from '@maplibre/vt-pbf';
 
 const FACTOR = Math.pow(2, 13);
 
-function addVertex(vertexArray, x, y, nx, ny, nz, t, e) {
+function addVertex(vertexArray, x, y, nx, ny, nz, t, e, faceWidth = 0) {
     vertexArray.emplaceBack(
         // a_pos
         x,
@@ -47,7 +47,9 @@ function addVertex(vertexArray, x, y, nx, ny, nz, t, e) {
         ny * FACTOR * 2,
         nz * FACTOR * 2,
         // edgedistance (used for wrapping patterns around extrusion sides)
-        Math.round(e)
+        Math.round(e),
+        // wall-face width for centering facade columns with equal outer padding
+        Math.round(faceWidth)
     );
 }
 
@@ -279,13 +281,13 @@ export class FillExtrusionBucket implements Bucket {
             const dist = p2.dist(p1);
             if (edgeDistance + dist > 32768) edgeDistance = 0;
 
-            addVertex(this.layoutVertexArray, p1.x, p1.y, perp.x, perp.y, 0, 0, edgeDistance);
-            addVertex(this.layoutVertexArray, p1.x, p1.y, perp.x, perp.y, 0, 1, edgeDistance);
+            addVertex(this.layoutVertexArray, p1.x, p1.y, perp.x, perp.y, 0, 0, edgeDistance, dist);
+            addVertex(this.layoutVertexArray, p1.x, p1.y, perp.x, perp.y, 0, 1, edgeDistance, dist);
 
             edgeDistance += dist;
 
-            addVertex(this.layoutVertexArray, p2.x, p2.y, perp.x, perp.y, 0, 0, edgeDistance);
-            addVertex(this.layoutVertexArray, p2.x, p2.y, perp.x, perp.y, 0, 1, edgeDistance);
+            addVertex(this.layoutVertexArray, p2.x, p2.y, perp.x, perp.y, 0, 0, edgeDistance, dist);
+            addVertex(this.layoutVertexArray, p2.x, p2.y, perp.x, perp.y, 0, 1, edgeDistance, dist);
 
             const bottomRight = segmentReference.segment.vertexLength;
 

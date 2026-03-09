@@ -220,12 +220,12 @@ declare class StructArrayLayout3i6 extends StructArray {
 	emplaceBack(v0: number, v1: number, v2: number): number;
 	emplace(i: number, v0: number, v1: number, v2: number): number;
 }
-declare class StructArrayLayout2i4i12 extends StructArray {
+declare class StructArrayLayout2i4i1i16 extends StructArray {
 	uint8: Uint8Array;
 	int16: Int16Array;
 	_refreshViews(): void;
-	emplaceBack(v0: number, v1: number, v2: number, v3: number, v4: number, v5: number): number;
-	emplace(i: number, v0: number, v1: number, v2: number, v3: number, v4: number, v5: number): number;
+	emplaceBack(v0: number, v1: number, v2: number, v3: number, v4: number, v5: number, v6: number): number;
+	emplace(i: number, v0: number, v1: number, v2: number, v3: number, v4: number, v5: number, v6: number): number;
 }
 declare class StructArrayLayout2i4ub8 extends StructArray {
 	uint8: Uint8Array;
@@ -477,7 +477,7 @@ declare class CircleLayoutArray extends StructArrayLayout2i4 {
 }
 declare class FillLayoutArray extends StructArrayLayout2i4 {
 }
-declare class FillExtrusionLayoutArray extends StructArrayLayout2i4i12 {
+declare class FillExtrusionLayoutArray extends StructArrayLayout2i4i1i16 {
 }
 declare class LineLayoutArray extends StructArrayLayout2i4ub8 {
 }

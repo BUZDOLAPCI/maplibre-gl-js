@@ -24060,31 +24060,33 @@ register('StructArrayLayout4i8', StructArrayLayout4i8);
  * Implementation of the StructArray layout:
  * [0] - Int16[2]
  * [4] - Int16[4]
+ * [12] - Int16[1]
  *
  */
-class StructArrayLayout2i4i12 extends StructArray {
+class StructArrayLayout2i4i1i16 extends StructArray {
     _refreshViews() {
         this.uint8 = new Uint8Array(this.arrayBuffer);
         this.int16 = new Int16Array(this.arrayBuffer);
     }
-    emplaceBack(v0, v1, v2, v3, v4, v5) {
+    emplaceBack(v0, v1, v2, v3, v4, v5, v6) {
         const i = this.length;
         this.resize(i + 1);
-        return this.emplace(i, v0, v1, v2, v3, v4, v5);
+        return this.emplace(i, v0, v1, v2, v3, v4, v5, v6);
     }
-    emplace(i, v0, v1, v2, v3, v4, v5) {
-        const o2 = i * 6;
+    emplace(i, v0, v1, v2, v3, v4, v5, v6) {
+        const o2 = i * 8;
         this.int16[o2 + 0] = v0;
         this.int16[o2 + 1] = v1;
         this.int16[o2 + 2] = v2;
         this.int16[o2 + 3] = v3;
         this.int16[o2 + 4] = v4;
         this.int16[o2 + 5] = v5;
+        this.int16[o2 + 6] = v6;
         return i;
     }
 }
-StructArrayLayout2i4i12.prototype.bytesPerElement = 12;
-register('StructArrayLayout2i4i12', StructArrayLayout2i4i12);
+StructArrayLayout2i4i1i16.prototype.bytesPerElement = 16;
+register('StructArrayLayout2i4i1i16', StructArrayLayout2i4i1i16);
 /**
  * @internal
  * Implementation of the StructArray layout:
@@ -24884,7 +24886,7 @@ class CircleLayoutArray extends StructArrayLayout2i4 {
 }
 class FillLayoutArray extends StructArrayLayout2i4 {
 }
-class FillExtrusionLayoutArray extends StructArrayLayout2i4i12 {
+class FillExtrusionLayoutArray extends StructArrayLayout2i4i1i16 {
 }
 class HeatmapLayoutArray extends StructArrayLayout2i4 {
 }
@@ -29117,6 +29119,7 @@ class FillStyleLayer extends StyleLayer {
 const layout$2 = createLayout([
     { name: 'a_pos', components: 2, type: 'Int16' },
     { name: 'a_normal_ed', components: 4, type: 'Int16' },
+    { name: 'a_face_width', components: 1, type: 'Int16' },
 ], 4);
 const centroidAttributes = createLayout([
     { name: 'a_centroid', components: 2, type: 'Int16' }
@@ -29511,14 +29514,16 @@ function readTile(tag, layers, pbf) {
 
 const EARCUT_MAX_RINGS = 500;
 const FACTOR = Math.pow(2, 13);
-function addVertex$1(vertexArray, x, y, nx, ny, nz, t, e) {
+function addVertex$1(vertexArray, x, y, nx, ny, nz, t, e, faceWidth = 0) {
     vertexArray.emplaceBack(
     // a_pos
     x, y, 
     // a_normal_ed: 3-component normal and 1-component edgedistance
     Math.floor(nx * FACTOR) * 2 + t, ny * FACTOR * 2, nz * FACTOR * 2, 
     // edgedistance (used for wrapping patterns around extrusion sides)
-    Math.round(e));
+    Math.round(e), 
+    // wall-face width for centering facade columns with equal outer padding
+    Math.round(faceWidth));
 }
 class FillExtrusionBucket {
     constructor(options) {
@@ -29673,11 +29678,11 @@ class FillExtrusionBucket {
             const dist = p2.dist(p1);
             if (edgeDistance + dist > 32768)
                 edgeDistance = 0;
-            addVertex$1(this.layoutVertexArray, p1.x, p1.y, perp.x, perp.y, 0, 0, edgeDistance);
-            addVertex$1(this.layoutVertexArray, p1.x, p1.y, perp.x, perp.y, 0, 1, edgeDistance);
+            addVertex$1(this.layoutVertexArray, p1.x, p1.y, perp.x, perp.y, 0, 0, edgeDistance, dist);
+            addVertex$1(this.layoutVertexArray, p1.x, p1.y, perp.x, perp.y, 0, 1, edgeDistance, dist);
             edgeDistance += dist;
-            addVertex$1(this.layoutVertexArray, p2.x, p2.y, perp.x, perp.y, 0, 0, edgeDistance);
-            addVertex$1(this.layoutVertexArray, p2.x, p2.y, perp.x, perp.y, 0, 1, edgeDistance);
+            addVertex$1(this.layoutVertexArray, p2.x, p2.y, perp.x, perp.y, 0, 0, edgeDistance, dist);
+            addVertex$1(this.layoutVertexArray, p2.x, p2.y, perp.x, perp.y, 0, 1, edgeDistance, dist);
             const bottomRight = segmentReference.segment.vertexLength;
             // Keep the same provoking vertex for both wall triangles so flat varyings
             // like v_ed_flat do not jump across the quad diagonal.
