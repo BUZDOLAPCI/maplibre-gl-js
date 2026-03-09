@@ -5,6 +5,7 @@ in lowp float v_is_side;
 flat in highp float v_ed_flat;
 flat in highp float v_face_width;
 flat in mediump vec3 v_wall_normal;
+flat in highp vec2 v_base_pos;
 
 uniform lowp vec3 u_camera_dir;
 
@@ -61,8 +62,9 @@ void main() {
 
         if (win_mask > 0.01) {
             vec2 grid_id = floor(vec2(raw_u, v_wall_uv.y * num_floors));
-            float hash = fract(sin(dot(grid_id, vec2(12.9898, 78.233))) * 43758.5453);
-            float hash2 = fract(sin(dot(grid_id + 19.37, vec2(39.3468, 11.1351))) * 24634.6345);
+            float face_seed = dot(v_base_pos, vec2(0.1031, 0.1030));
+            float hash = fract(sin(dot(grid_id, vec2(12.9898, 78.233)) + face_seed * 5.7831) * 43758.5453);
+            float hash2 = fract(sin(dot(grid_id + 19.37, vec2(39.3468, 11.1351)) + face_seed * 3.1427) * 24634.6345);
 
             vec3 palette_a = vec3(0.57, 0.82, 0.95);
             vec3 palette_b = vec3(0.70, 0.87, 0.98);
