@@ -59,16 +59,16 @@ void main() {
             float hash = fract(sin(dot(grid_id, vec2(12.9898, 78.233))) * 43758.5453);
             float hash2 = fract(sin(dot(grid_id + 19.37, vec2(39.3468, 11.1351))) * 24634.6345);
 
-            vec3 palette_a = vec3(0.64, 0.88, 0.95);
-            vec3 palette_b = vec3(0.70, 0.84, 0.97);
-            vec3 palette_c = vec3(0.60, 0.85, 0.95);
-            vec3 palette_d = vec3(0.74, 0.90, 0.96);
+            vec3 palette_a = vec3(0.57, 0.82, 0.95);
+            vec3 palette_b = vec3(0.70, 0.87, 0.98);
+            vec3 palette_c = vec3(0.63, 0.79, 0.94);
+            vec3 palette_d = vec3(0.80, 0.92, 0.99);
             vec3 palette_base = mix(
                 mix(palette_a, palette_b, step(0.25, hash)),
                 mix(palette_c, palette_d, step(0.75, hash)),
                 step(0.50, hash)
             );
-            vec3 window_color = palette_base + (hash2 - 0.5) * vec3(0.025, 0.018, 0.020);
+            vec3 window_color = clamp(palette_base + (hash2 - 0.5) * vec3(0.055, 0.034, 0.038), 0.0, 1.0);
 
             float local_u = clamp((cell_u * window_spacing) / window_width, 0.0, 1.0);
             float local_v = clamp((floor_v - band_b) / (band_t - band_b), 0.0, 1.0);
@@ -76,23 +76,23 @@ void main() {
             // Keep the diagonal read as a broad reflected wash, mirrored to run
             // from top-right toward bottom-left.
             float streak_axis = (1.0 - local_u) * 0.72 + local_v * 0.92;
-            float streak_center = 0.78 + (hash2 - 0.5) * 0.10;
-            float streak_width = 0.22;
+            float streak_center = 0.77 + (hash2 - 0.5) * 0.12;
+            float streak_width = 0.26;
             float streak_dist = abs(streak_axis - streak_center);
             float fw_streak = fwidth(streak_axis);
-            float streak = 1.0 - smoothstep(streak_width - fw_streak, streak_width + 0.16 + fw_streak, streak_dist);
-            float streak_gradient = 0.60 * local_v + 0.40 * (1.0 - local_u);
-            window_color *= 0.94 + streak_gradient * 0.08;
-            window_color = mix(window_color, vec3(0.96, 0.98, 1.0), streak * (0.06 + hash * 0.03));
+            float streak = 1.0 - smoothstep(streak_width - fw_streak, streak_width + 0.22 + fw_streak, streak_dist);
+            float streak_gradient = 0.58 * local_v + 0.42 * (1.0 - local_u);
+            window_color *= 0.90 + streak_gradient * 0.14;
+            window_color = mix(window_color, vec3(0.97, 0.985, 1.0), streak * (0.11 + hash * 0.04));
 
             float facing = clamp(abs(dot(normalize(v_wall_normal), normalize(u_camera_dir))), 0.0, 1.0);
-            float grazing = pow(1.0 - facing, 2.2);
-            float specular = grazing * (0.18 + hash2 * 0.06);
-            window_color = mix(window_color, vec3(0.97, 0.99, 1.0), specular);
+            float grazing = pow(1.0 - facing, 1.65);
+            float specular = min(grazing * (0.32 + hash2 * 0.12), 0.52);
+            window_color = mix(window_color, vec3(0.985, 0.995, 1.0), specular);
 
             float luminance = dot(v_color.rgb, vec3(0.299, 0.587, 0.114));
-            vec3 lit_window = window_color * max(luminance * 1.15, 0.68);
-            lit_window *= 1.0 + 0.10 * grazing;
+            vec3 lit_window = window_color * max(luminance * 1.18, 0.70);
+            lit_window *= 1.0 + 0.24 * grazing;
             fragColor.rgb = mix(fragColor.rgb, lit_window, 0.84 * win_mask);
         }
     }
