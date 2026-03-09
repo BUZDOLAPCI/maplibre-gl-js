@@ -54,6 +54,13 @@ void main() {
 
         float win_mask = floor_mask * col_mask;
 
+        // LOD tint gate — suppress window color when grid merges at distance
+        float fw_u = fwidth(fract((face_u - outer_pad_l) / window_spacing));
+        float fw_floor = fwidth(floor_v);
+        float detail = smoothstep(0.35, 0.12, fw_u);
+        float floor_detail = smoothstep(0.35, 0.12, fw_floor);
+        win_mask *= max(detail, floor_detail);
+
         if (win_mask > 0.01) {
             vec2 grid_id = floor(vec2(raw_u, v_wall_uv.y * num_floors));
             float hash = fract(sin(dot(grid_id, vec2(12.9898, 78.233))) * 43758.5453);
