@@ -20,32 +20,38 @@ void main() {
         float floor_mask = smoothstep(band_b - fw_v, band_b + fw_v, floor_v)
                          * smoothstep(band_t + fw_v, band_t - fw_v, floor_v);
 
-        // Vertical window columns — fit repeated cells across the whole wall face.
-        // This keeps left/right edge padding symmetric without inflating facade
-        // margins by counting the per-cell inset twice.
+        // Vertical window columns — center the visible window content span within
+        // the wall face while keeping the original per-cell spacing rhythm.
         float window_spacing = 600.0;
         float win_l = 0.20;
         float win_r = 0.80;
+        float outer_pad_l = win_l * window_spacing;
+        float outer_pad_r = (1.0 - win_r) * window_spacing;
+        float outer_pad_total = outer_pad_l + outer_pad_r;
 
         float col_mask = 0.0;
         float raw_u = 0.0;
         float cell_u = 0.0;
         float face_u = clamp(v_wall_uv.x - v_ed_flat, 0.0, max(v_face_width, 0.0));
-        float column_count = 0.0;
 
         if (v_face_width > 0.0) {
-            column_count = max(1.0, floor(v_face_width / window_spacing + 0.5));
-            float fitted_spacing = v_face_width / column_count;
-            float fw_face = fwidth(face_u);
-            float within_face = smoothstep(-fw_face, fw_face, face_u)
-                              * smoothstep(v_face_width + fw_face, v_face_width - fw_face, face_u);
+            float column_count = floor((v_face_width + outer_pad_total) / window_spacing);
+            if (column_count > 0.0) {
+                float grid_width = column_count * window_spacing;
+                float content_width = grid_width - outer_pad_total;
+                float outer_margin = 0.5 * max(v_face_width - content_width, 0.0);
+                float grid_origin = outer_margin - outer_pad_l;
+                float fw_face = fwidth(face_u);
+                float within_face = smoothstep(-fw_face, fw_face, face_u)
+                                  * smoothstep(v_face_width + fw_face, v_face_width - fw_face, face_u);
 
-            raw_u = face_u / fitted_spacing;
-            cell_u = fract(raw_u);
-            float fw_u = fwidth(cell_u);
-            col_mask = within_face
-                     * smoothstep(win_l - fw_u, win_l + fw_u, cell_u)
-                     * smoothstep(win_r + fw_u, win_r - fw_u, cell_u);
+                raw_u = (face_u - grid_origin) / window_spacing;
+                cell_u = fract(raw_u);
+                float fw_u = fwidth(cell_u);
+                col_mask = within_face
+                         * smoothstep(win_l - fw_u, win_l + fw_u, cell_u)
+                         * smoothstep(win_r + fw_u, win_r - fw_u, cell_u);
+            }
         }
 
         float win_mask = floor_mask * col_mask;
