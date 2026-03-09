@@ -20,13 +20,14 @@ void main() {
         float floor_mask = smoothstep(band_b - fw_v, band_b + fw_v, floor_v)
                          * smoothstep(band_t + fw_v, band_t - fw_v, floor_v);
 
-        // Vertical window columns — keep fixed edge padding and fixed per-cell
-        // spacing, clipping the tail window at the right boundary when needed.
-        float window_spacing = 600.0;
-        float win_l = 0.20;
-        float win_r = 0.80;
-        float outer_pad_l = win_l * window_spacing;
-        float outer_pad_r = (1.0 - win_r) * window_spacing;
+        // Vertical window columns — keep facade edge padding independent from
+        // the repeated column rhythm, clipping the tail window at the right
+        // boundary when needed.
+        float window_width = 360.0;
+        float window_gap = 24.0;
+        float window_spacing = window_width + window_gap;
+        float outer_pad_l = 60.0;
+        float outer_pad_r = 60.0;
 
         float col_mask = 0.0;
         float raw_u = 0.0;
@@ -39,11 +40,12 @@ void main() {
             float within_content = smoothstep(outer_pad_l - fw_face, outer_pad_l + fw_face, face_u)
                                  * smoothstep(content_max + fw_face, content_max - fw_face, face_u);
 
-            raw_u = face_u / window_spacing;
+            raw_u = (face_u - outer_pad_l) / window_spacing;
             cell_u = fract(raw_u);
             float fw_u = fwidth(cell_u);
+            float win_r = window_width / window_spacing;
             col_mask = within_content
-                     * smoothstep(win_l - fw_u, win_l + fw_u, cell_u)
+                     * smoothstep(0.0 - fw_u, 0.0 + fw_u, cell_u)
                      * smoothstep(win_r + fw_u, win_r - fw_u, cell_u);
         }
 
@@ -56,7 +58,7 @@ void main() {
             vec3 window_color = vec3(0.55, 0.78, 0.90) + hash * vec3(-0.04, -0.02, 0.02);
 
             // Diagonal glare — always on, very subtle
-            float local_u = clamp((cell_u - win_l) / (win_r - win_l), 0.0, 1.0);
+            float local_u = clamp((cell_u * window_spacing) / window_width, 0.0, 1.0);
             float local_v = clamp((floor_v - band_b) / (band_t - band_b), 0.0, 1.0);
             float diag = (local_u + local_v) * 0.7;
             float fw_diag = fwidth(diag);
