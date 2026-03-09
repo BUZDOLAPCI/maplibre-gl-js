@@ -11,6 +11,15 @@ uniform lowp vec3 u_camera_dir;
 void main() {
     fragColor = v_color;
 
+    // --- Per-building body color variation (shader-based, cross-platform) ---
+    // Hash using v_ed_flat + v_height_m to get per-building variation.
+    // These varyings differ per building, producing a warm beige palette.
+    float body_hash = fract(sin(v_ed_flat * 0.0073 + v_height_m * 0.0197) * 43758.5453);
+    vec3 beige_warm = vec3(0.961, 0.929, 0.886); // #F5EDE2
+    vec3 beige_cool = vec3(0.910, 0.867, 0.816); // #E8DDD0
+    fragColor.rgb = mix(beige_warm, beige_cool, body_hash);
+    fragColor.a = v_color.a;
+
     // --- Procedural windows on side faces ---
     if (v_is_side > 0.5 && v_height_m >= 3.1) {
         float num_floors = max(1.0, floor(v_height_m / 3.0));
