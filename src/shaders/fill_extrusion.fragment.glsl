@@ -54,6 +54,11 @@ void main() {
 
         float win_mask = floor_mask * col_mask;
 
+        // Top-of-building parapet — same thickness as inter-floor slab
+        float slab_uv = (1.0 - band_t + band_b) / num_floors;
+        float fw_top = fwidth(v_wall_uv.y);
+        win_mask *= smoothstep(1.0 - slab_uv + fw_top, 1.0 - slab_uv - fw_top, v_wall_uv.y);
+
         if (win_mask > 0.01) {
             vec2 grid_id = floor(vec2(raw_u, v_wall_uv.y * num_floors));
             float hash = fract(sin(dot(grid_id, vec2(12.9898, 78.233))) * 43758.5453);
