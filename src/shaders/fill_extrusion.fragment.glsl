@@ -71,13 +71,6 @@ void main() {
 
         float win_mask = floor_mask * col_mask;
 
-        // LOD detail gate — prevent noisy windows at distance
-        float lod_h = fwidth(raw_u);
-        float lod_v = num_floors * fwidth(v_wall_uv.y);
-        float detail = 1.0 - smoothstep(0.15, 0.4, lod_h);
-        float floor_detail = 1.0 - smoothstep(0.15, 0.4, lod_v);
-        win_mask *= max(detail, floor_detail);
-
         // Top-of-building parapet — same thickness as inter-floor slab
         float slab_uv = (1.0 - band_t + band_b) / num_floors;
         float fw_top = fwidth(v_wall_uv.y);
