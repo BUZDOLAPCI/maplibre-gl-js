@@ -1,7 +1,7 @@
 in vec4 v_color;
 in highp vec2 v_wall_uv;
-in highp float v_height_m;
-in lowp float v_is_side;
+flat in highp float v_height_m;
+flat in lowp float v_is_side;
 flat in highp float v_ed_flat;
 flat in highp float v_face_width;
 flat in mediump vec3 v_wall_normal;

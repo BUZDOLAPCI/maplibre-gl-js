@@ -17,8 +17,8 @@ in float a_face_width;
 
 out vec4 v_color;
 out highp vec2 v_wall_uv;
-out highp float v_height_m;
-out lowp float v_is_side;
+flat out highp float v_height_m;
+flat out lowp float v_is_side;
 flat out highp float v_ed_flat;
 flat out highp float v_face_width;
 flat out mediump vec3 v_wall_normal;
