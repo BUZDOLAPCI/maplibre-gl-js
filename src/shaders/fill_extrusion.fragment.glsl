@@ -36,7 +36,7 @@ void main() {
         // Floor band margins (60% window fill — visible floor slabs)
         float band_b = 0.18;
         float band_t = 0.78;
-        float fw_v = fwidth(floor_v);
+        float fw_v = fwidth(v_wall_uv.y * num_floors);
         float floor_mask = smoothstep(band_b - fw_v, band_b + fw_v, floor_v)
                          * smoothstep(band_t + fw_v, band_t - fw_v, floor_v);
 
@@ -62,7 +62,7 @@ void main() {
 
             raw_u = (face_u - outer_pad_l) / window_spacing;
             cell_u = fract(raw_u);
-            float fw_u = fwidth(cell_u);
+            float fw_u = fwidth(raw_u);
             float win_r = window_width / window_spacing;
             col_mask = within_content
                      * smoothstep(0.0 - fw_u, 0.0 + fw_u, cell_u)
@@ -71,12 +71,11 @@ void main() {
 
         float win_mask = floor_mask * col_mask;
 
-        // Grazing-angle detail gate: when the face is viewed nearly edge-on,
-        // the window pattern frequency exceeds Nyquist and aliases into noise.
-        // Use fwidth of the raw UV to detect foreshortening and fade out.
-        float detail = 1.0 - smoothstep(0.25, 0.5, fwidth(raw_u));
-        float floor_detail = 1.0 - smoothstep(0.25, 0.5, fw_v);
-        win_mask *= max(detail, floor_detail);
+        // Grazing-angle detail gate: fade out windows when face is nearly
+        // edge-on (UV frequency exceeds Nyquist → aliasing).
+        float detail = 1.0 - smoothstep(0.4, 0.8, fwidth(raw_u));
+        float floor_detail = 1.0 - smoothstep(0.4, 0.8, fw_v);
+        win_mask *= min(detail, floor_detail);
 
         // Top-of-building parapet — same thickness as inter-floor slab
         float slab_uv = (1.0 - band_t + band_b) / num_floors;
