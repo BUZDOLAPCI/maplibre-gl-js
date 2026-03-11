@@ -5,6 +5,7 @@ in lowp float v_is_side;
 flat in highp float v_ed_flat;
 flat in highp float v_face_width;
 flat in mediump vec3 v_wall_normal;
+in highp vec2 v_tile_pos;
 
 uniform lowp vec3 u_camera_dir;
 
@@ -12,9 +13,16 @@ void main() {
     fragColor = v_color;
 
     // --- Per-building body color variation (shader-based, cross-platform) ---
-    // Hash using v_ed_flat + v_height_m to get per-building variation.
-    // These varyings differ per building, producing a warm beige palette.
-    float body_hash = fract(sin(v_ed_flat * 0.0073 + v_height_m * 0.0197) * 43758.5453);
+    float body_hash;
+    if (v_is_side > 0.5) {
+        // Side walls: per-face variation via edgedistance
+        body_hash = fract(sin(v_ed_flat * 0.0073 + v_height_m * 0.0197) * 43758.5453);
+    } else {
+        // Roof: position-based grid for zebra-striping across merged polygons
+        float cell_size = 700.0;
+        vec2 cell = floor(v_tile_pos / cell_size);
+        body_hash = fract(sin(dot(cell, vec2(12.9898, 78.233)) + v_height_m * 0.0197) * 43758.5453);
+    }
     vec3 beige_warm = vec3(0.961, 0.929, 0.886); // #F5EDE2
     vec3 beige_cool = vec3(0.910, 0.867, 0.816); // #E8DDD0
     fragColor.rgb = mix(beige_warm, beige_cool, body_hash);
@@ -62,6 +70,13 @@ void main() {
         }
 
         float win_mask = floor_mask * col_mask;
+
+        // LOD detail gate — prevent noisy windows at distance
+        float lod_h = fwidth(raw_u);
+        float lod_v = num_floors * fwidth(v_wall_uv.y);
+        float detail = 1.0 - smoothstep(0.15, 0.4, lod_h);
+        float floor_detail = 1.0 - smoothstep(0.15, 0.4, lod_v);
+        win_mask *= max(detail, floor_detail);
 
         // Top-of-building parapet — same thickness as inter-floor slab
         float slab_uv = (1.0 - band_t + band_b) / num_floors;

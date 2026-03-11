@@ -22,6 +22,7 @@ out lowp float v_is_side;
 flat out highp float v_ed_flat;
 flat out highp float v_face_width;
 flat out mediump vec3 v_wall_normal;
+out highp vec2 v_tile_pos;
 
 #pragma mapbox: define highp float base
 #pragma mapbox: define highp float height
@@ -64,6 +65,7 @@ void main() {
     #endif
 
     // --- Procedural window data ---
+    v_tile_pos = posInTile;
     v_is_side = (normal.y != 0.0) ? 1.0 : 0.0;
     v_height_m = max(0.0, height - base);
     float height_range = max(height - base, 0.001);
