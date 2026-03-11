@@ -129,6 +129,13 @@ void main() {
         fragColor.rgb *= mix(1.0, 1.06, top_glow);
     }
 
+    // --- Per-building depth offset to resolve z-fighting on shared walls ---
+    // Adjacent row houses share coplanar wall faces; without an offset the GPU
+    // alternates between the two buildings' fragments per pixel (noise).
+    // A tiny deterministic offset based on body_hash ensures one building
+    // consistently wins the depth test on shared walls.
+    gl_FragDepth = gl_FragCoord.z - body_hash * 2e-7;
+
     #ifdef OVERDRAW_INSPECTOR
         fragColor = vec4(1.0);
     #endif
