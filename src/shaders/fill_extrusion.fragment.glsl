@@ -134,7 +134,7 @@ void main() {
     // alternates between the two buildings' fragments per pixel (noise).
     // A tiny deterministic offset based on body_hash ensures one building
     // consistently wins the depth test on shared walls.
-    gl_FragDepth = gl_FragCoord.z - body_hash * 2e-7;
+    gl_FragDepth = gl_FragCoord.z - body_hash * 5e-5;
 
     #ifdef OVERDRAW_INSPECTOR
         fragColor = vec4(1.0);
