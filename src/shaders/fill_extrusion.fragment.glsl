@@ -29,7 +29,8 @@ void main() {
     fragColor.a = v_color.a;
 
     // --- Procedural windows on side faces ---
-    if (v_is_side > 0.5 && v_height_m >= 3.1) {
+    // DEBUG: disable windows to test if noise is from window shader
+    if (false && v_is_side > 0.5 && v_height_m >= 3.1) {
         float num_floors = max(1.0, floor(v_height_m / 3.0));
         float floor_v = fract(v_wall_uv.y * num_floors);
 
