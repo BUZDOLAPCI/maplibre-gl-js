@@ -5,13 +5,14 @@ flat in lowp float v_is_side;
 flat in highp float v_ed_flat;
 flat in highp float v_face_width;
 flat in mediump vec3 v_wall_normal;
+flat in highp float v_body_hash;
 uniform lowp vec3 u_camera_dir;
 
 void main() {
     fragColor = v_color;
 
-    // --- Per-building body color variation (shader-based, cross-platform) ---
-    float body_hash = fract(sin(v_ed_flat * 0.0073 + v_height_m * 0.0197) * 43758.5453);
+    // --- Per-building body color variation (computed in vertex shader from base+height) ---
+    float body_hash = v_body_hash;
     vec3 beige_warm = vec3(0.961, 0.929, 0.886); // #F5EDE2
     vec3 beige_cool = vec3(0.910, 0.867, 0.816); // #E8DDD0
     fragColor.rgb = mix(beige_warm, beige_cool, body_hash);
