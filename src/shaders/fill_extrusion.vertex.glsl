@@ -72,7 +72,11 @@ void main() {
     v_face_width = a_face_width;
     v_wall_normal = normal.y != 0.0 ? normalize(vec3(normal.x, normal.y, 0.0)) : vec3(0.0);
     vec2 world_centroid = u_tile_id + (a_centroid / 8192.0) * u_centroid_scale;
-    v_body_hash = fract(sin(dot(world_centroid, vec2(12.9898, 78.233)) + height * 0.0197) * 43758.5453);
+    // Snap to ~20m grid cells so float32 arithmetic jitter across zoom levels
+    // can't produce different hash values for the same building.
+    // Height still differentiates buildings in the same cell.
+    vec2 cell = mod(floor(world_centroid * 8000.0), 4096.0);
+    v_body_hash = fract(sin(dot(cell, vec2(12.9898, 78.233)) + height * 0.0197) * 43758.5453);
 
     // Relative luminance (how dark/bright is the surface color?)
     float colorvalue = color.r * 0.2126 + color.g * 0.7152 + color.b * 0.0722;

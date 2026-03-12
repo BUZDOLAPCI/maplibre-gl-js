@@ -13,7 +13,7 @@ void main() {
 
     // --- Per-building body color variation (computed in vertex shader from centroid+height) ---
     float body_hash = v_body_hash;
-#define DEBUG_BUILDING_COLORS
+// #define DEBUG_BUILDING_COLORS
 #ifdef DEBUG_BUILDING_COLORS
     float h2 = fract(body_hash * 7.31);
     float h3 = fract(body_hash * 13.17);
