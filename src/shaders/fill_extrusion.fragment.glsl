@@ -23,18 +23,19 @@ void main() {
         0.65 + 0.35 * h3
     );
 #else
-    // 7-color palette indexed by body_hash [0,1)
-    vec3 pal[7];
-    pal[0] = vec3(0.961, 0.957, 0.941); // #F5F4F0
-    pal[1] = vec3(0.976, 0.957, 0.918); // #F9F4EA
-    pal[2] = vec3(0.957, 0.922, 0.886); // #F4EBE2
-    pal[3] = vec3(0.957, 0.941, 0.918); // #F4F0EA
+    // 8-color palette indexed by body_hash [0,1)
+    vec3 pal[8];
+    pal[0] = vec3(0.965, 0.933, 0.875); // #F6EEDF
+    pal[1] = vec3(0.957, 0.941, 0.918); // #F4F0EA
+    pal[2] = vec3(0.976, 0.957, 0.918); // #F9F4EA
+    pal[3] = vec3(0.961, 0.929, 0.886); // #F5EDE2
     pal[4] = vec3(0.937, 0.902, 0.867); // #EFE6DD
-    pal[5] = vec3(0.961, 0.929, 0.886); // #F5EDE2
+    pal[5] = vec3(0.961, 0.957, 0.941); // #F5F4F0
     pal[6] = vec3(0.910, 0.867, 0.816); // #E8DDD0
-    float idx = body_hash * 7.0;
+    pal[7] = vec3(0.957, 0.922, 0.886); // #F4EBE2
+    float idx = body_hash * 8.0;
     int i0 = int(floor(idx));
-    int i1 = min(i0 + 1, 6);
+    int i1 = min(i0 + 1, 7);
     float f = fract(idx);
     vec3 body_color = mix(pal[i0], pal[i1], f);
 #endif
