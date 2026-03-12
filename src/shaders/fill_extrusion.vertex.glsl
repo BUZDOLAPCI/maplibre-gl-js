@@ -9,10 +9,7 @@ uniform vec2 u_fill_translate;
 in vec2 a_pos;
 in vec4 a_normal_ed;
 in float a_face_width;
-
-#ifdef TERRAIN3D
-    in vec2 a_centroid;
-#endif
+in vec2 a_centroid;
 
 
 out vec4 v_color;
@@ -38,7 +35,7 @@ void main() {
     float edgedistance = a_normal_ed.w;
 
     #ifdef TERRAIN3D
-	    // Raise the "ceiling" of elements by the elevation of the centroid, in meters.
+        // Raise the "ceiling" of elements by the elevation of the centroid, in meters.
         float height_terrain3d_offset = get_elevation(a_centroid);
         // To avoid having buildings "hang above a slope", create a "basement"
         // by lowering the "floor" of ground-level (and below) elements.
@@ -72,7 +69,7 @@ void main() {
     v_ed_flat = edgedistance;
     v_face_width = a_face_width;
     v_wall_normal = normal.y != 0.0 ? normalize(vec3(normal.x, normal.y, 0.0)) : vec3(0.0);
-    v_body_hash = fract(sin(base * 0.0073 + height * 0.0197) * 43758.5453);
+    v_body_hash = fract(sin(dot(a_centroid, vec2(12.9898, 78.233)) + height * 0.0197) * 43758.5453);
 
     // Relative luminance (how dark/bright is the surface color?)
     float colorvalue = color.r * 0.2126 + color.g * 0.7152 + color.b * 0.0722;
