@@ -33,11 +33,7 @@ void main() {
     pal[5] = vec3(0.961, 0.957, 0.941); // #F5F4F0
     pal[6] = vec3(0.910, 0.867, 0.816); // #E8DDD0
     pal[7] = vec3(0.957, 0.922, 0.886); // #F4EBE2
-    float idx = body_hash * 8.0;
-    int i0 = int(floor(idx));
-    int i1 = min(i0 + 1, 7);
-    float f = fract(idx);
-    vec3 body_color = mix(pal[i0], pal[i1], f);
+    vec3 body_color = pal[clamp(int(floor(body_hash * 8.0)), 0, 7)];
 #endif
     fragColor.rgb = body_color;
     fragColor.a = v_color.a;
