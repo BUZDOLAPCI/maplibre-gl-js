@@ -5,6 +5,7 @@ uniform lowp float u_lightintensity;
 uniform float u_vertical_gradient;
 uniform lowp float u_opacity;
 uniform vec2 u_fill_translate;
+uniform vec2 u_tile_id;
 
 in vec2 a_pos;
 in vec4 a_normal_ed;
@@ -69,7 +70,8 @@ void main() {
     v_ed_flat = edgedistance;
     v_face_width = a_face_width;
     v_wall_normal = normal.y != 0.0 ? normalize(vec3(normal.x, normal.y, 0.0)) : vec3(0.0);
-    v_body_hash = fract(sin(dot(a_centroid, vec2(12.9898, 78.233)) + height * 0.0197) * 43758.5453);
+    vec2 world_centroid = u_tile_id + a_centroid / 8192.0;
+    v_body_hash = fract(sin(dot(world_centroid, vec2(12.9898, 78.233)) + height * 0.0197) * 43758.5453);
 
     // Relative luminance (how dark/bright is the surface color?)
     float colorvalue = color.r * 0.2126 + color.g * 0.7152 + color.b * 0.0722;
