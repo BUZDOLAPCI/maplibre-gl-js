@@ -27,6 +27,7 @@ export type FillExtrusionUniformsType = {
     'u_opacity': Uniform1f;
     'u_fill_translate': Uniform2f;
     'u_tile_id': Uniform2f;
+    'u_centroid_scale': Uniform1f;
 };
 
 export type FillExtrusionPatternUniformsType = {
@@ -58,6 +59,7 @@ const fillExtrusionUniforms = (context: Context, locations: UniformLocations): F
     'u_opacity': new Uniform1f(context, locations.u_opacity),
     'u_fill_translate': new Uniform2f(context, locations.u_fill_translate),
     'u_tile_id': new Uniform2f(context, locations.u_tile_id),
+    'u_centroid_scale': new Uniform1f(context, locations.u_centroid_scale),
 });
 
 const fillExtrusionPatternUniforms = (context: Context, locations: UniformLocations): FillExtrusionPatternUniformsType => ({
@@ -100,6 +102,12 @@ const fillExtrusionUniformValues = (
 
     const lightColor = light.properties.get('color');
 
+    // Normalize tile coordinates to zoom-independent space so the same building
+    // produces the same body_hash regardless of which zoom level's tile contains it.
+    // At zoom z, tile (tx, ty) maps to reference coordinate (tx / 2^(z-8), ty / 2^(z-8)).
+    // This gives values in [0, 256) — good float32 precision without modular aliasing.
+    const zoomFactor = Math.pow(2, coord.canonical.z - 8);
+
     return {
         'u_lightpos': lightPos,
         'u_lightpos_globe': transformedLightPos,
@@ -109,7 +117,8 @@ const fillExtrusionUniformValues = (
         'u_vertical_gradient': +shouldUseVerticalGradient,
         'u_opacity': opacity,
         'u_fill_translate': translate,
-        'u_tile_id': [coord.canonical.x % 256, coord.canonical.y % 256],
+        'u_tile_id': [coord.canonical.x / zoomFactor, coord.canonical.y / zoomFactor],
+        'u_centroid_scale': 1.0 / zoomFactor,
     };
 };
 
