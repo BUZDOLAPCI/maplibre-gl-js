@@ -12,16 +12,21 @@ void main() {
     fragColor = v_color;
 
     // --- Per-building body color variation (computed in vertex shader from centroid+height) ---
-    // DEBUG: wide color range to verify per-building uniqueness
     float body_hash = v_body_hash;
+#ifdef DEBUG_BUILDING_COLORS
     float h2 = fract(body_hash * 7.31);
     float h3 = fract(body_hash * 13.17);
-    vec3 debug_color = vec3(
+    vec3 body_color = vec3(
         0.65 + 0.35 * body_hash,
         0.65 + 0.35 * h2,
         0.65 + 0.35 * h3
     );
-    fragColor.rgb = debug_color;
+#else
+    vec3 beige_warm = vec3(0.961, 0.929, 0.886); // #F5EDE2
+    vec3 beige_cool = vec3(0.910, 0.867, 0.816); // #E8DDD0
+    vec3 body_color = mix(beige_warm, beige_cool, body_hash);
+#endif
+    fragColor.rgb = body_color;
     fragColor.a = v_color.a;
 
     // --- Procedural windows on side faces ---
