@@ -127,12 +127,12 @@ void main() {
 
             float facing = clamp(abs(dot(normalize(v_wall_normal), normalize(u_camera_dir))), 0.0, 1.0);
             float grazing = pow(1.0 - facing, 1.65);
-            float specular = min(grazing * (0.32 + hash2 * 0.12), 0.52);
+            float specular = min(grazing * (0.10 + hash2 * 0.04), 0.18);
             window_color = mix(window_color, vec3(0.985, 0.995, 1.0), specular);
 
             float luminance = dot(v_color.rgb, vec3(0.299, 0.587, 0.114));
             vec3 lit_window = window_color * max(luminance * 1.18, 0.70);
-            lit_window *= 1.0 + 0.24 * grazing;
+            lit_window *= 1.0 + 0.08 * grazing;
             fragColor.rgb = mix(fragColor.rgb, lit_window, 0.84 * win_mask);
         }
     }
