@@ -23,10 +23,17 @@ void main() {
         0.65 + 0.35 * h3
     );
 #else
-    // 2-color linear interpolation (matching native shader)
-    vec3 beige_warm = vec3(0.961, 0.929, 0.886); // #F5EDE2
-    vec3 beige_cool = vec3(0.910, 0.867, 0.816); // #E8DDD0
-    vec3 body_color = mix(beige_warm, beige_cool, body_hash);
+    // 8-color palette indexed by body_hash [0,1)
+    vec3 pal[8];
+    pal[0] = vec3(0.965, 0.933, 0.875); // #F6EEDF
+    pal[1] = vec3(0.957, 0.941, 0.918); // #F4F0EA
+    pal[2] = vec3(0.976, 0.957, 0.918); // #F9F4EA
+    pal[3] = vec3(0.961, 0.929, 0.886); // #F5EDE2
+    pal[4] = vec3(0.937, 0.902, 0.867); // #EFE6DD
+    pal[5] = vec3(0.961, 0.957, 0.941); // #F5F4F0
+    pal[6] = vec3(0.910, 0.867, 0.816); // #E8DDD0
+    pal[7] = vec3(0.957, 0.922, 0.886); // #F4EBE2
+    vec3 body_color = pal[clamp(int(floor(body_hash * 8.0)), 0, 7)];
 #endif
     fragColor.rgb = body_color;
     fragColor.a = v_color.a;
