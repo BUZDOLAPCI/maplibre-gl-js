@@ -22,6 +22,7 @@ flat out highp float v_ed_flat;
 flat out highp float v_face_width;
 flat out mediump vec3 v_wall_normal;
 flat out highp float v_body_hash;
+out float v_directional;
 
 #pragma mapbox: define highp float base
 #pragma mapbox: define highp float height
@@ -114,6 +115,9 @@ void main() {
             (1.0 - u_vertical_gradient) +
             (u_vertical_gradient * clamp((t + base) * pow(height / 150.0, 0.5), mix(0.7, 0.98, 1.0 - u_lightintensity), 1.0)));
     }
+
+    // Pass directional factor to fragment shader for procedural body color lighting
+    v_directional = directional;
 
     // Assign final color based on surface + ambient light color, diffuse light directional, and light color
     // with lower bounds adjusted to hue of light
