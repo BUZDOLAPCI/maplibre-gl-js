@@ -89,7 +89,12 @@ void main() {
         v_face_width = 0.0;
         v_wall_normal = vec3(0.0);
         v_body_hash = 0.0;
-        v_directional = 0.0;
+        // Encode whether this side face is on the outer shadow perimeter
+        // (wall normal faces in shadow cast direction) for per-face edge fade.
+        // >0 = outer perimeter (smooth), <0 = overlaps roof shadow (keep sharp).
+        v_directional = (normal.y != 0.0)
+            ? dot(vec2(normal.x, normal.y), light_dir)
+            : 0.0;
         v_color = vec4(0.0);
         return;
     }
