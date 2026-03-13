@@ -14,11 +14,11 @@ void main() {
     // --- Shadow pass early return ---
     if (u_is_shadow > 0.001) {
         float alpha = u_is_shadow;
-        // Soft fade at the building-base edge of side-face shadows.
-        // Fading at y≈0 (footprint) avoids stencil-race artifacts with
-        // roof geometry that shares the y≈1 (tip) edge.
+        // Soft-fade side-face shadow edges so the shadow silhouette
+        // is feathered rather than pixel-sharp.
         if (v_is_side > 0.5) {
-            alpha *= smoothstep(0.0, 0.08, v_wall_uv.y);
+            alpha *= smoothstep(0.0, 0.08, v_wall_uv.y);   // base (near building)
+            alpha *= smoothstep(1.0, 0.92, v_wall_uv.y);   // outer tip
         }
         fragColor = vec4(0.0, 0.0, 0.0, alpha);
         return;
