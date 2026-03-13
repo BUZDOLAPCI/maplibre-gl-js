@@ -9,6 +9,8 @@ import {
 import {mat3, vec3} from 'gl-matrix';
 import {extend} from '../../util/util';
 import {cameraDirectionFromPitchBearing} from '../../geo/projection/mercator_utils';
+import {EXTENT} from '../../data/extent';
+import {earthRadius} from '../../geo/lng_lat';
 
 import type {Context} from '../../gl/context';
 import type {Painter} from '../painter';
@@ -28,6 +30,8 @@ export type FillExtrusionUniformsType = {
     'u_fill_translate': Uniform2f;
     'u_tile_id': Uniform2f;
     'u_centroid_scale': Uniform1f;
+    'u_is_shadow': Uniform1f;
+    'u_meters_to_tile': Uniform1f;
 };
 
 export type FillExtrusionPatternUniformsType = {
@@ -60,6 +64,8 @@ const fillExtrusionUniforms = (context: Context, locations: UniformLocations): F
     'u_fill_translate': new Uniform2f(context, locations.u_fill_translate),
     'u_tile_id': new Uniform2f(context, locations.u_tile_id),
     'u_centroid_scale': new Uniform1f(context, locations.u_centroid_scale),
+    'u_is_shadow': new Uniform1f(context, locations.u_is_shadow),
+    'u_meters_to_tile': new Uniform1f(context, locations.u_meters_to_tile),
 });
 
 const fillExtrusionPatternUniforms = (context: Context, locations: UniformLocations): FillExtrusionPatternUniformsType => ({
@@ -81,12 +87,21 @@ const fillExtrusionPatternUniforms = (context: Context, locations: UniformLocati
     'u_fade': new Uniform1f(context, locations.u_fade)
 });
 
+function computeMetersToTile(coord: OverscaledTileID): number {
+    const numTiles = Math.pow(2, coord.canonical.z);
+    const tileY = coord.canonical.y;
+    const latRad = Math.atan(Math.sinh(Math.PI * (1 - 2 * (tileY + 0.5) / numTiles)));
+    const tileWidthMeters = 2 * Math.PI * earthRadius * Math.cos(latRad) / numTiles;
+    return EXTENT / tileWidthMeters;
+}
+
 const fillExtrusionUniformValues = (
     painter: Painter,
     shouldUseVerticalGradient: boolean,
     opacity: number,
     translate: [number, number],
     coord: OverscaledTileID,
+    shadowOpacity: number = 0,
 ): UniformValues<FillExtrusionUniformsType> => {
     const light = painter.style.light;
     const _lp = light.properties.get('position');
@@ -107,6 +122,7 @@ const fillExtrusionUniformValues = (
     // At zoom z, tile (tx, ty) maps to reference coordinate (tx / 2^(z-8), ty / 2^(z-8)).
     // This gives values in [0, 256) — good float32 precision without modular aliasing.
     const zoomFactor = Math.pow(2, coord.canonical.z - 8);
+    const metersToTile = shadowOpacity > 0 ? computeMetersToTile(coord) : 0;
 
     return {
         'u_lightpos': lightPos,
@@ -119,6 +135,8 @@ const fillExtrusionUniformValues = (
         'u_fill_translate': translate,
         'u_tile_id': [coord.canonical.x / zoomFactor, coord.canonical.y / zoomFactor],
         'u_centroid_scale': 1.0 / zoomFactor,
+        'u_is_shadow': shadowOpacity,
+        'u_meters_to_tile': metersToTile,
     };
 };
 

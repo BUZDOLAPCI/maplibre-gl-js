@@ -16,6 +16,11 @@ import type {OverscaledTileID} from '../tile/tile_id';
 import {updatePatternPositionsInProgram} from './update_pattern_positions_in_program';
 import {translatePosition} from '../util/util';
 
+// Shadow constants
+const SHADOW_BASE_OPACITY = 0.15;
+const SHADOW_ZOOM_FADE_START = 14.5;
+const SHADOW_ZOOM_FADE_END = 13.5;
+
 export function drawFillExtrusion(painter: Painter, tileManager: TileManager, layer: FillExtrusionStyleLayer, coords: Array<OverscaledTileID>, renderOptions: RenderOptions) {
     const opacity = layer.paint.get('fill-extrusion-opacity');
     if (opacity === 0) {
@@ -26,6 +31,19 @@ export function drawFillExtrusion(painter: Painter, tileManager: TileManager, la
     if (painter.renderPass === 'translucent') {
         const depthMode = new DepthMode(painter.context.gl.LEQUAL, DepthMode.ReadWrite, painter.depthRangeFor3D);
 
+        // --- Shadow pass (before normal building rendering) ---
+        const zoom = painter.transform.zoom;
+        const shadowFade = Math.max(0, Math.min(1, (zoom - SHADOW_ZOOM_FADE_END) / (SHADOW_ZOOM_FADE_START - SHADOW_ZOOM_FADE_END)));
+        const shadowOpacity = SHADOW_BASE_OPACITY * shadowFade;
+
+        if (shadowOpacity > 0.001 && !layer.paint.get('fill-extrusion-pattern').constantOr(1 as any)) {
+            const shadowDepthMode = new DepthMode(painter.context.gl.LEQUAL, DepthMode.ReadOnly, painter.depthRangeFor3D);
+            drawExtrusionTiles(painter, tileManager, layer, coords,
+                shadowDepthMode, StencilMode.disabled, ColorMode.alphaBlended,
+                isRenderingToTexture, shadowOpacity);
+        }
+
+        // --- Normal building passes ---
         if (opacity === 1 && !layer.paint.get('fill-extrusion-pattern').constantOr(1 as any)) {
             const colorMode = painter.colorModeForRenderPass();
             drawExtrusionTiles(painter, tileManager, layer, coords, depthMode, StencilMode.disabled, colorMode, isRenderingToTexture);
@@ -55,7 +73,8 @@ function drawExtrusionTiles(
     depthMode: DepthMode,
     stencilMode: Readonly<StencilMode>,
     colorMode: Readonly<ColorMode>,
-    isRenderingToTexture: boolean) {
+    isRenderingToTexture: boolean,
+    shadowOpacity: number = 0) {
     const context = painter.context;
     const gl = context.gl;
     const fillPropertyName = 'fill-extrusion-pattern';
@@ -65,6 +84,8 @@ function drawExtrusionTiles(
     const opacity = layer.paint.get('fill-extrusion-opacity');
     const constantPattern = patternProperty.constantOr(null);
     const transform = painter.transform;
+    const isShadow = shadowOpacity > 0;
+    const cullFaceMode = isShadow ? CullFaceMode.disabled : CullFaceMode.backCCW;
 
     for (const coord of coords) {
         const tile = tileManager.getTile(coord);
@@ -94,9 +115,9 @@ function drawExtrusionTiles(
         const shouldUseVerticalGradient = layer.paint.get('fill-extrusion-vertical-gradient');
         const uniformValues = image ?
             fillExtrusionPatternUniformValues(painter, shouldUseVerticalGradient, opacity, translate, coord, crossfade, tile) :
-            fillExtrusionUniformValues(painter, shouldUseVerticalGradient, opacity, translate, coord);
+            fillExtrusionUniformValues(painter, shouldUseVerticalGradient, opacity, translate, coord, shadowOpacity);
 
-        program.draw(context, context.gl.TRIANGLES, depthMode, stencilMode, colorMode, CullFaceMode.backCCW,
+        program.draw(context, context.gl.TRIANGLES, depthMode, stencilMode, colorMode, cullFaceMode,
             uniformValues, terrainData, projectionData, layer.id, bucket.layoutVertexBuffer, bucket.indexBuffer,
             bucket.segments, layer.paint, painter.transform.zoom,
             programConfiguration, bucket.centroidVertexBuffer);

@@ -8,8 +8,20 @@ flat in mediump vec3 v_wall_normal;
 flat in highp float v_body_hash;
 in float v_directional;
 uniform lowp vec3 u_camera_dir;
+uniform float u_is_shadow;
 
 void main() {
+    // --- Shadow pass early return ---
+    if (u_is_shadow > 0.001) {
+        float alpha = u_is_shadow;
+        // Side faces: fade from full opacity at building edge to zero at shadow tip
+        if (v_is_side > 0.5) {
+            alpha *= smoothstep(1.0, 0.6, v_wall_uv.y);
+        }
+        fragColor = vec4(0.0, 0.0, 0.0, alpha);
+        return;
+    }
+
     fragColor = v_color;
 
     // --- Per-building body color variation (computed in vertex shader from centroid+height) ---

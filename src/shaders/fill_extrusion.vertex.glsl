@@ -7,6 +7,8 @@ uniform lowp float u_opacity;
 uniform vec2 u_fill_translate;
 uniform vec2 u_tile_id;
 uniform float u_centroid_scale;
+uniform float u_is_shadow;
+uniform float u_meters_to_tile;
 
 in vec2 a_pos;
 in vec4 a_normal_ed;
@@ -56,6 +58,41 @@ void main() {
     float t = mod(normal.x, 2.0);
     float elevation = t > 0.0 ? height : base;
     vec2 posInTile = a_pos + u_fill_translate;
+
+    // --- Shadow pass: project geometry onto ground plane ---
+    if (u_is_shadow > 0.001) {
+        // Light direction and shadow angle
+        vec2 light_xy = u_lightpos.xy;
+        float light_xy_len = length(light_xy);
+        float light_z = max(u_lightpos.z, 0.05);
+        vec2 light_dir = light_xy_len > 0.0 ? -light_xy / light_xy_len : vec2(0.0, 0.0);
+        float shadow_angle_factor = clamp(light_xy_len / light_z, 0.0, 6.0);
+
+        float shadow_height_m = max(height - base, 0.0);
+        float shadow_len_m = shadow_height_m * shadow_angle_factor;
+        vec2 shadow_offset_tile = light_dir * shadow_len_m * u_meters_to_tile;
+
+        // Top vertices (t > 0) shift outward; base vertices stay at footprint
+        float shadow_mix = t > 0.0 ? 1.0 : 0.0;
+        vec2 shadow_xy = posInTile + shadow_offset_tile * shadow_mix;
+
+        gl_Position = u_projection_matrix * vec4(shadow_xy, 0.0, 1.0);
+
+        // Set varyings needed by fragment shader shadow path
+        v_is_side = (normal.y != 0.0) ? 1.0 : 0.0;
+        v_height_m = shadow_height_m;
+        float height_range_s = max(height - base, 0.001);
+        v_wall_uv = vec2(edgedistance, (elevation - base) / height_range_s);
+
+        // Not used in shadow path but must be defined
+        v_ed_flat = 0.0;
+        v_face_width = 0.0;
+        v_wall_normal = vec3(0.0);
+        v_body_hash = 0.0;
+        v_directional = 0.0;
+        v_color = vec4(0.0);
+        return;
+    }
 
     #ifdef GLOBE
         vec3 spherePos = projectToSphere(posInTile, a_pos);
