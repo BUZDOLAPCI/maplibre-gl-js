@@ -13,7 +13,12 @@ uniform highp float u_is_shadow;
 void main() {
     // --- Shadow pass early return ---
     if (u_is_shadow > 0.001) {
-        fragColor = vec4(0.0, 0.0, 0.0, u_is_shadow);
+        float alpha = u_is_shadow;
+        // Soft fade at the outer tip of side-face shadow strips
+        if (v_is_side > 0.5) {
+            alpha *= smoothstep(1.0, 0.92, v_wall_uv.y);
+        }
+        fragColor = vec4(0.0, 0.0, 0.0, alpha);
         return;
     }
 
