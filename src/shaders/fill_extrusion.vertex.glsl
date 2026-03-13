@@ -7,8 +7,8 @@ uniform lowp float u_opacity;
 uniform vec2 u_fill_translate;
 uniform vec2 u_tile_id;
 uniform float u_centroid_scale;
-uniform float u_is_shadow;
-uniform float u_meters_to_tile;
+uniform highp float u_is_shadow;
+uniform highp float u_meters_to_tile;
 
 in vec2 a_pos;
 in vec4 a_normal_ed;

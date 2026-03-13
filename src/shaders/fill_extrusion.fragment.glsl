@@ -8,7 +8,7 @@ flat in mediump vec3 v_wall_normal;
 flat in highp float v_body_hash;
 in float v_directional;
 uniform lowp vec3 u_camera_dir;
-uniform float u_is_shadow;
+uniform highp float u_is_shadow;
 
 void main() {
     // --- Shadow pass early return ---
