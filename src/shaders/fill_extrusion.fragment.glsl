@@ -13,12 +13,7 @@ uniform highp float u_is_shadow;
 void main() {
     // --- Shadow pass early return ---
     if (u_is_shadow > 0.001) {
-        float alpha = u_is_shadow;
-        // Side faces: fade from full opacity at building edge to zero at shadow tip
-        if (v_is_side > 0.5) {
-            alpha *= smoothstep(1.0, 0.6, v_wall_uv.y);
-        }
-        fragColor = vec4(0.0, 0.0, 0.0, alpha);
+        fragColor = vec4(0.0, 0.0, 0.0, u_is_shadow);
         return;
     }
 

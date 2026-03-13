@@ -39,7 +39,7 @@ export function drawFillExtrusion(painter: Painter, tileManager: TileManager, la
         if (shadowOpacity > 0.001 && !layer.paint.get('fill-extrusion-pattern').constantOr(1 as any)) {
             const shadowDepthMode = new DepthMode(painter.context.gl.LEQUAL, DepthMode.ReadOnly, painter.depthRangeFor3D);
             drawExtrusionTiles(painter, tileManager, layer, coords,
-                shadowDepthMode, StencilMode.disabled, ColorMode.alphaBlended,
+                shadowDepthMode, painter.stencilModeFor3D(), ColorMode.alphaBlended,
                 isRenderingToTexture, shadowOpacity);
         }
 
