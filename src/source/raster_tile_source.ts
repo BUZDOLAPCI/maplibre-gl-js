@@ -93,7 +93,7 @@ export class RasterTileSource extends Evented implements Source {
         this.fire(new Event('dataloading', {dataType: 'source'}));
         this._tileJSONRequest = new AbortController();
         try {
-            const tileJSON = await loadTileJson(this._options, this.map._requestManager, this._tileJSONRequest);
+            const tileJSON = await loadTileJson(this._options, this.map._requestManager, this._tileJSONRequest, this.map._ownerWindow);
             this._tileJSONRequest = null;
             this._loaded = true;
             if (tileJSON) {
@@ -183,7 +183,7 @@ export class RasterTileSource extends Evented implements Source {
         const url = tile.tileID.canonical.url(this.tiles, this.map.getPixelRatio(), this.scheme);
         tile.abortController = new AbortController();
         try {
-            const response = await ImageRequest.getImage(this.map._requestManager.transformRequest(url, ResourceType.Tile), tile.abortController, this.map._refreshExpiredTiles);
+            const response = await ImageRequest.getImage(await this.map._requestManager.transformRequest(url, ResourceType.Tile), tile.abortController, this.map._refreshExpiredTiles);
             delete tile.abortController;
             if (tile.aborted) {
                 tile.state = 'unloaded';
