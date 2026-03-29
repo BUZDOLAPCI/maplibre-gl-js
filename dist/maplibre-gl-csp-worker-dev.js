@@ -1,6 +1,6 @@
 /**
  * MapLibre GL JS
- * @license 3-Clause BSD. Full text of license: https://github.com/maplibre/maplibre-gl-js/blob/v5.16.0/LICENSE.txt
+ * @license 3-Clause BSD. Full text of license: https://github.com/maplibre/maplibre-gl-js/blob/v5.21.1/LICENSE.txt
  */
 var maplibregl = (function () {
 'use strict';
@@ -9048,7 +9048,7 @@ function keysDifference(obj, other) {
     }
     return difference;
 }
-function extend$1(dest, ...sources) {
+function extend(dest, ...sources) {
     for (const src of sources) {
         for (const k in src) {
             dest[k] = src[k];
@@ -9112,6 +9112,23 @@ function zoomScale(zoom) { return Math.pow(2, zoom); }
  * Computes zoom level from scaling.
  */
 function scaleZoom(scale) { return Math.log(scale) / Math.LN2; }
+/**
+ * Evaluates the snapped zoom level based on zoomSnap. If zoomSnap is 0 or less, the zoom level is returned unchanged.
+ * If delta is provided, it performs directional snapping (ceil for zoom-in, floor for zoom-out).
+ * @param zoom - The input zoom level
+ * @param zoomSnap - The grid interval to snap to, e.g. 1.0 for 1.0 zoom levels, 0.5 for 0.5 zoom levels, etc.
+ * @param delta - Optional scroll delta or direction. If positive, snaps up; if negative, snaps down.
+ * @returns The snapped zoom level
+ */
+function evaluateZoomSnap(zoom, zoomSnap, delta) {
+    if (zoomSnap <= 0)
+        return zoom;
+    const inv = 1 / zoomSnap;
+    if (delta === undefined || Math.abs(delta) < 1e-10) {
+        return Math.round(zoom * inv) / inv;
+    }
+    return (delta > 0 ? Math.ceil(zoom * inv - 1e-9) : Math.floor(zoom * inv + 1e-10)) / inv;
+}
 /**
  * Create an object by mapping all the values of an existing object while
  * preserving their keys.
@@ -9637,8 +9654,19 @@ const pointableEvents = {
 function isTouchableEvent(event, eventType) {
     return touchableEvents[eventType] && 'touches' in event;
 }
+/**
+ * Checks if an event is a pointable event (mouse or wheel event).
+ * Uses the event target's window context for cross-window support.
+ */
 function isPointableEvent(event, eventType) {
-    return pointableEvents[eventType] && (event instanceof MouseEvent || event instanceof WheelEvent);
+    var _a;
+    if (!pointableEvents[eventType])
+        return false;
+    // Get the window context from the event target to use the correct constructor.
+    const domEvent = event;
+    const target = domEvent === null || domEvent === void 0 ? void 0 : domEvent.target;
+    const targetWindow = ((_a = target === null || target === void 0 ? void 0 : target.ownerDocument) === null || _a === void 0 ? void 0 : _a.defaultView) || window;
+    return domEvent instanceof targetWindow.MouseEvent || domEvent instanceof targetWindow.WheelEvent;
 }
 function isTouchableOrPointableType(eventType) {
     return touchableEvents[eventType] || pointableEvents[eventType];
@@ -9719,10 +9747,7 @@ class TransferableGridIndex {
         const min = this.min;
         const max = this.max;
         if (x1 <= min && y1 <= min && max <= x2 && max <= y2 && !intersectionTest) {
-            // We use `Array.slice` because `this.keys` may be a `Int32Array` and
-            // some browsers (Safari and IE) do not support `TypedArray.slice`
-            // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray/slice#Browser_compatibility
-            return Array.prototype.slice.call(this.keys);
+            return [...this.keys];
         }
         else {
             const result = [];
@@ -12645,6 +12670,23 @@ var paint_raster = {
 		},
 		"property-type": "data-constant"
 	},
+	resampling: {
+		type: "enum",
+		values: {
+			linear: {
+			},
+			nearest: {
+			}
+		},
+		"default": "linear",
+		expression: {
+			interpolated: false,
+			parameters: [
+				"zoom"
+			]
+		},
+		"property-type": "data-constant"
+	},
 	"raster-resampling": {
 		type: "enum",
 		values: {
@@ -12788,6 +12830,23 @@ var paint_hillshade = {
 			}
 		},
 		"default": "standard",
+		expression: {
+			interpolated: false,
+			parameters: [
+				"zoom"
+			]
+		},
+		"property-type": "data-constant"
+	},
+	resampling: {
+		type: "enum",
+		values: {
+			linear: {
+			},
+			nearest: {
+			}
+		},
+		"default": "linear",
 		expression: {
 			interpolated: false,
 			parameters: [
@@ -13215,6 +13274,23 @@ var v8Spec = {
 			]
 		},
 		"property-type": "color-ramp"
+	},
+	resampling: {
+		type: "enum",
+		values: {
+			linear: {
+			},
+			nearest: {
+			}
+		},
+		"default": "linear",
+		expression: {
+			interpolated: false,
+			parameters: [
+				"zoom"
+			]
+		},
+		"property-type": "data-constant"
 	}
 },
 	paint_background: paint_background,
@@ -16492,11 +16568,12 @@ class CollatorExpression {
 }
 
 class NumberFormat {
-    constructor(number, locale, currency, minFractionDigits, maxFractionDigits) {
+    constructor(number, locale, currency, unit, minFractionDigits, maxFractionDigits) {
         this.type = StringType;
         this.number = number;
         this.locale = locale;
         this.currency = currency;
+        this.unit = unit;
         this.minFractionDigits = minFractionDigits;
         this.maxFractionDigits = maxFractionDigits;
     }
@@ -16521,6 +16598,15 @@ class NumberFormat {
             if (!currency)
                 return null;
         }
+        let unit = null;
+        if (options['unit']) {
+            unit = context.parse(options['unit'], 1, StringType);
+            if (!unit)
+                return null;
+        }
+        if (currency && unit) {
+            return context.error('NumberFormat options `currency` and `unit` are mutually exclusive');
+        }
         let minFractionDigits = null;
         if (options['min-fraction-digits']) {
             minFractionDigits = context.parse(options['min-fraction-digits'], 1, NumberType);
@@ -16533,12 +16619,13 @@ class NumberFormat {
             if (!maxFractionDigits)
                 return null;
         }
-        return new NumberFormat(number, locale, currency, minFractionDigits, maxFractionDigits);
+        return new NumberFormat(number, locale, currency, unit, minFractionDigits, maxFractionDigits);
     }
     evaluate(ctx) {
         return new Intl.NumberFormat(this.locale ? this.locale.evaluate(ctx) : [], {
-            style: this.currency ? 'currency' : 'decimal',
+            style: this.currency ? 'currency' : this.unit ? 'unit' : 'decimal',
             currency: this.currency ? this.currency.evaluate(ctx) : undefined,
+            unit: this.unit ? this.unit.evaluate(ctx) : undefined,
             minimumFractionDigits: this.minFractionDigits
                 ? this.minFractionDigits.evaluate(ctx)
                 : undefined,
@@ -16554,6 +16641,9 @@ class NumberFormat {
         }
         if (this.currency) {
             fn(this.currency);
+        }
+        if (this.unit) {
+            fn(this.unit);
         }
         if (this.minFractionDigits) {
             fn(this.minFractionDigits);
@@ -18379,6 +18469,16 @@ CompoundExpression.register(expressions$1, {
         StringType,
         varargs(ValueType),
         (ctx, args) => args.map((arg) => valueToString(arg.evaluate(ctx))).join('')
+    ],
+    split: [
+        array(StringType),
+        [StringType, StringType],
+        (ctx, [s, delim]) => s.evaluate(ctx).split(delim.evaluate(ctx))
+    ],
+    join: [
+        StringType,
+        [array(StringType), StringType],
+        (ctx, [arr, delim]) => arr.value.join(delim.evaluate(ctx))
     ],
     'resolved-locale': [
         StringType,
@@ -20541,6 +20641,7 @@ function validateLayoutProperty$1(options) {
 }
 
 function validateLayer(options) {
+    var _a, _b;
     let errors = [];
     const layer = options.value;
     const key = options.key;
@@ -20621,6 +20722,9 @@ function validateLayer(options) {
                 errors.push(new ValidationError(key, layer, `layer "${layer.id}" specifies a line-gradient, which requires a GeoJSON source with \`lineMetrics\` enabled.`));
             }
         }
+    }
+    if (type === 'raster' && ((_a = layer.paint) === null || _a === void 0 ? void 0 : _a.resampling) && ((_b = layer.paint) === null || _b === void 0 ? void 0 : _b['raster-resampling'])) {
+        errors.push(new ValidationError(key, layer.paint, `layer "${layer.id}" redundantly specifies "resampling" and "raster-resampling" paint properties, but only one is allowed. It is advised to use "resampling".`));
     }
     errors = errors.concat(validateObject({
         key,
@@ -22001,6 +22105,7 @@ function makeFetchRequest(requestParameters, abortController) {
             headers: requestParameters.headers,
             cache: requestParameters.cache,
             referrer: getReferrer(),
+            referrerPolicy: requestParameters.referrerPolicy,
             signal: abortController.signal
         });
         // If the user has already set an Accept header, do not overwrite it here
@@ -22037,7 +22142,7 @@ function makeFetchRequest(requestParameters, abortController) {
         }
         const result = yield parsePromise;
         abortController.signal.throwIfAborted();
-        return { data: result, cacheControl: response.headers.get('Cache-Control'), expires: response.headers.get('Expires') };
+        return { data: result, cacheControl: response.headers.get('Cache-Control'), expires: response.headers.get('Expires'), etag: response.headers.get('ETag') };
     });
 }
 function makeXMLHttpRequest(requestParameters, abortController) {
@@ -22078,7 +22183,7 @@ function makeXMLHttpRequest(requestParameters, abortController) {
                         return;
                     }
                 }
-                resolve({ data, cacheControl: xhr.getResponseHeader('Cache-Control'), expires: xhr.getResponseHeader('Expires') });
+                resolve({ data, cacheControl: xhr.getResponseHeader('Cache-Control'), expires: xhr.getResponseHeader('Expires'), etag: xhr.getResponseHeader('ETag') });
             }
             else {
                 const body = new Blob([xhr.response], { type: xhr.getResponseHeader('Content-Type') });
@@ -22121,10 +22226,10 @@ const makeRequest = function (requestParameters, abortController) {
     return makeXMLHttpRequest(requestParameters, abortController);
 };
 const getJSON = (requestParameters, abortController) => {
-    return makeRequest(extend$1(requestParameters, { type: 'json' }), abortController);
+    return makeRequest(extend(requestParameters, { type: 'json' }), abortController);
 };
 const getArrayBuffer = (requestParameters, abortController) => {
-    return makeRequest(extend$1(requestParameters, { type: 'arrayBuffer' }), abortController);
+    return makeRequest(extend(requestParameters, { type: 'arrayBuffer' }), abortController);
 };
 function sameOrigin(inComingUrl) {
     // A relative URL "/foo" or "./foo" will throw exception in URL's ctor,
@@ -22355,28 +22460,19 @@ class ThrottledInvoker {
     constructor(methodToThrottle) {
         this._methodToThrottle = methodToThrottle;
         this._triggered = false;
-        if (typeof MessageChannel !== 'undefined') {
-            this._channel = new MessageChannel();
-            this._channel.port2.onmessage = () => {
-                this._triggered = false;
-                this._methodToThrottle();
-            };
-        }
+        this._channel = new MessageChannel();
+        this._channel.port2.onmessage = () => {
+            this._triggered = false;
+            this._methodToThrottle();
+        };
     }
     trigger() {
+        var _a;
         if (this._triggered) {
             return;
         }
         this._triggered = true;
-        if (this._channel) {
-            this._channel.port1.postMessage(true);
-        }
-        else {
-            setTimeout(() => {
-                this._triggered = false;
-                this._methodToThrottle();
-            }, 0);
-        }
+        (_a = this._channel) === null || _a === void 0 ? void 0 : _a.port1.postMessage(true);
     }
     remove() {
         delete this._channel;
@@ -22459,7 +22555,12 @@ class Actor {
     receive(message) {
         const data = message.data;
         const id = data.id;
-        if (data.origin !== 'file://' && location.origin !== 'file://' && data.origin !== 'resource://android' && location.origin !== 'resource://android' && data.origin !== location.origin) {
+        const SPECIAL_ORIGINS = ['file://', 'resource://android', 'null'];
+        const origins = [data.origin, location.origin];
+        const isSameOrigin = data.origin === location.origin;
+        const hasSpecialOrigin = origins.some((origin) => SPECIAL_ORIGINS.includes(origin));
+        // Ignore cross-origin messages except for special origins.
+        if (!isSameOrigin && !hasSpecialOrigin) {
             return;
         }
         if (data.targetMapId && this.mapId !== data.targetMapId) {
@@ -22586,7 +22687,7 @@ function _removeEventListener(type, listener, listenerList) {
  */
 class Event {
     constructor(type, data = {}) {
-        extend$1(this, data);
+        extend(this, data);
         this.type = type;
     }
 }
@@ -22595,7 +22696,7 @@ class Event {
  */
 class ErrorEvent extends Event {
     constructor(error, data = {}) {
-        super('error', extend$1({ error }, data));
+        super('error', extend({ error }, data));
     }
 }
 /**
@@ -22671,7 +22772,7 @@ class Evented {
             }
             const parent = this._eventedParent;
             if (parent) {
-                extend$1(event, typeof this._eventedParentData === 'function' ? this._eventedParentData() : this._eventedParentData);
+                extend(event, typeof this._eventedParentData === 'function' ? this._eventedParentData() : this._eventedParentData);
                 parent.fire(event);
             }
             // To ensure that no error events are dropped, print them to the
@@ -23127,7 +23228,7 @@ class TransitionablePropertyValue {
         this.value = new PropertyValue(property, undefined, globalState);
     }
     transitioned(parameters, prior) {
-        return new TransitioningPropertyValue(this.property, this.value, prior, extend$1({}, parameters.transition, this.transition), parameters.now);
+        return new TransitioningPropertyValue(this.property, this.value, prior, extend({}, parameters.transition, this.transition), parameters.now);
     }
     untransitioned() {
         return new TransitioningPropertyValue(this.property, this.value, null, {}, 0);
@@ -23938,6 +24039,13 @@ class StructArray {
      */
     _refreshViews() {
         throw new Error('_refreshViews() must be implemented by each concrete StructArray layout');
+    }
+    /**
+     * Replace the buffer with an empty one so typed views release the original ArrayBuffer for GC.
+     */
+    freeBufferAfterUpload() {
+        this.arrayBuffer = new ArrayBuffer(0);
+        this._refreshViews();
     }
 }
 /**
@@ -25512,7 +25620,7 @@ class CrossFadedConstantBinder {
         }
     }
     getBinding(context, location, name) {
-        return (name.substr(0, 9) === 'u_pattern' || name.substr(0, 12) === 'u_dasharray_') ?
+        return (name.startsWith('u_pattern') || name.startsWith('u_dasharray_')) ?
             new Uniform4f(context, location) :
             new Uniform1f(context, location);
     }
@@ -25555,7 +25663,8 @@ class SourceExpressionBinder {
         }
     }
     upload(context) {
-        if (this.paintVertexArray && this.paintVertexArray.arrayBuffer) {
+        var _a;
+        if ((_a = this.paintVertexArray) === null || _a === void 0 ? void 0 : _a.arrayBuffer.byteLength) {
             if (this.paintVertexBuffer && this.paintVertexBuffer.buffer) {
                 this.paintVertexBuffer.updateData(this.paintVertexArray);
             }
@@ -25614,7 +25723,8 @@ class CompositeExpressionBinder {
         }
     }
     upload(context) {
-        if (this.paintVertexArray && this.paintVertexArray.arrayBuffer) {
+        var _a;
+        if ((_a = this.paintVertexArray) === null || _a === void 0 ? void 0 : _a.arrayBuffer.byteLength) {
             if (this.paintVertexBuffer && this.paintVertexBuffer.buffer) {
                 this.paintVertexBuffer.updateData(this.paintVertexArray);
             }
@@ -25674,7 +25784,8 @@ class CrossFadedBinder {
         }
     }
     upload(context) {
-        if (this.zoomInPaintVertexArray && this.zoomInPaintVertexArray.arrayBuffer && this.zoomOutPaintVertexArray && this.zoomOutPaintVertexArray.arrayBuffer) {
+        var _a, _b;
+        if (((_a = this.zoomInPaintVertexArray) === null || _a === void 0 ? void 0 : _a.arrayBuffer.byteLength) && ((_b = this.zoomOutPaintVertexArray) === null || _b === void 0 ? void 0 : _b.arrayBuffer.byteLength)) {
             const attributes = this.getVertexAttributes();
             this.zoomInPaintVertexBuffer = context.createVertexBuffer(this.zoomInPaintVertexArray, attributes, this.expression.isStateDependent);
             this.zoomOutPaintVertexBuffer = context.createVertexBuffer(this.zoomOutPaintVertexArray, attributes, this.expression.isStateDependent);
@@ -26695,7 +26806,7 @@ class AlphaImage {
 }
 /**
  * An object to store image data not premultiplied, because ImageData is not premultiplied.
- * UNPACK_PREMULTIPLY_ALPHA_WEBGL must be used when uploading to a texture.
+ * Premultiplication is applied in JS before uploading to a texture.
  */
 class RGBAImage {
     constructor(size, data) {
@@ -26728,6 +26839,18 @@ class RGBAImage {
         this.data[rLocation + 2] = Math.round(value.b * 255 / value.a);
         this.data[rLocation + 3] = Math.round(value.a * 255);
     }
+}
+/** Returns a copy of RGBA data with premultiplied alpha. */
+function premultiplyAlpha(data) {
+    const out = new Uint8Array(data.length);
+    for (let i = 0; i < data.length; i += 4) {
+        const a = data[i + 3];
+        out[i + 0] = Math.round(data[i + 0] * a / 255);
+        out[i + 1] = Math.round(data[i + 1] * a / 255);
+        out[i + 2] = Math.round(data[i + 2] * a / 255);
+        out[i + 3] = a;
+    }
+    return out;
 }
 register('AlphaImage', AlphaImage);
 register('RGBAImage', RGBAImage);
@@ -26831,6 +26954,7 @@ const getPaint$7 = () => paint$7 = paint$7 || new Properties({
     "hillshade-highlight-color": new DataConstantProperty(v8Spec["paint_hillshade"]["hillshade-highlight-color"]),
     "hillshade-accent-color": new DataConstantProperty(v8Spec["paint_hillshade"]["hillshade-accent-color"]),
     "hillshade-method": new DataConstantProperty(v8Spec["paint_hillshade"]["hillshade-method"]),
+    "resampling": new DataConstantProperty(v8Spec["paint_hillshade"]["resampling"]),
 });
 var properties$7 = ({ get paint() { return getPaint$7(); } });
 
@@ -26866,9 +26990,13 @@ let paint$6;
 const getPaint$6 = () => paint$6 = paint$6 || new Properties({
     "color-relief-opacity": new DataConstantProperty(v8Spec["paint_color-relief"]["color-relief-opacity"]),
     "color-relief-color": new ColorRampProperty(v8Spec["paint_color-relief"]["color-relief-color"]),
+    "resampling": new DataConstantProperty(v8Spec["paint_color-relief"]["resampling"]),
 });
 var properties$6 = ({ get paint() { return getPaint$6(); } });
 
+function hasDataProperty(image) {
+    return 'data' in image;
+}
 /**
  * @internal
  * A `Texture` GL related object
@@ -26878,6 +27006,7 @@ class Texture {
         this.context = context;
         this.format = format;
         this.texture = context.gl.createTexture();
+        this._ownedHandle = this.texture;
         this.update(image, options);
     }
     update(image, options, position) {
@@ -26889,23 +27018,28 @@ class Texture {
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
         context.pixelStoreUnpackFlipY.set(false);
         context.pixelStoreUnpack.set(1);
-        context.pixelStoreUnpackPremultiplyAlpha.set(this.format === gl.RGBA && (!options || options.premultiply !== false));
+        const wantPremultiply = this.format === gl.RGBA && (!options || options.premultiply !== false);
         if (resize) {
             this.size = [width, height];
-            if (image instanceof HTMLImageElement || image instanceof HTMLCanvasElement || image instanceof HTMLVideoElement || image instanceof ImageData || isImageBitmap(image)) {
-                gl.texImage2D(gl.TEXTURE_2D, 0, this.format, this.format, gl.UNSIGNED_BYTE, image);
+            if (hasDataProperty(image)) {
+                // #2030: raw data is premultiplied in JS
+                context.pixelStoreUnpackPremultiplyAlpha.set(false);
+                this._uploadRawData(image, wantPremultiply, width, height, gl);
             }
             else {
-                gl.texImage2D(gl.TEXTURE_2D, 0, this.format, width, height, 0, this.format, gl.UNSIGNED_BYTE, image.data);
+                context.pixelStoreUnpackPremultiplyAlpha.set(wantPremultiply);
+                this._uploadDomImage(image, gl);
             }
         }
         else {
             const { x, y } = position || { x: 0, y: 0 };
-            if (image instanceof HTMLImageElement || image instanceof HTMLCanvasElement || image instanceof HTMLVideoElement || image instanceof ImageData || isImageBitmap(image)) {
-                gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, image);
+            if (hasDataProperty(image)) {
+                context.pixelStoreUnpackPremultiplyAlpha.set(false);
+                this._updateRawData(image, wantPremultiply, x, y, width, height, gl);
             }
             else {
-                gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, width, height, gl.RGBA, gl.UNSIGNED_BYTE, image.data);
+                context.pixelStoreUnpackPremultiplyAlpha.set(wantPremultiply);
+                this._updateDomImage(image, x, y, gl);
             }
         }
         if (this.useMipmap && this.isSizePowerOfTwo()) {
@@ -26915,9 +27049,30 @@ class Texture {
         context.pixelStoreUnpack.setDefault();
         context.pixelStoreUnpackPremultiplyAlpha.setDefault();
     }
+    _uploadDomImage(image, gl) {
+        gl.texImage2D(gl.TEXTURE_2D, 0, this.format, this.format, gl.UNSIGNED_BYTE, image);
+    }
+    _uploadRawData(image, wantPremultiply, width, height, gl) {
+        let { data } = image;
+        if (wantPremultiply && data)
+            data = premultiplyAlpha(data);
+        gl.texImage2D(gl.TEXTURE_2D, 0, this.format, width, height, 0, this.format, gl.UNSIGNED_BYTE, data);
+    }
+    _updateDomImage(image, x, y, gl) {
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    }
+    _updateRawData(image, wantPremultiply, x, y, width, height, gl) {
+        let { data } = image;
+        if (wantPremultiply && data)
+            data = premultiplyAlpha(data);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, width, height, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    }
     bind(filter, wrap, minFilter) {
         const { context } = this;
         const { gl } = context;
+        if (this.texture !== this._ownedHandle) {
+            this.texture = this._ownedHandle;
+        }
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
         if (minFilter === gl.LINEAR_MIPMAP_NEAREST && !this.isSizePowerOfTwo()) {
             minFilter = gl.LINEAR;
@@ -26940,6 +27095,7 @@ class Texture {
         const { gl } = this.context;
         gl.deleteTexture(this.texture);
         this.texture = null;
+        this._ownedHandle = null;
     }
 }
 
@@ -29903,6 +30059,2286 @@ function projectQueryGeometry(queryGeometry, pixelPosMatrix, z) {
     return projectedQueryGeometry;
 }
 
+const ARRAY_TYPES = [
+    Int8Array, Uint8Array, Uint8ClampedArray, Int16Array, Uint16Array,
+    Int32Array, Uint32Array, Float32Array, Float64Array
+];
+
+/** @typedef {Int8ArrayConstructor | Uint8ArrayConstructor | Uint8ClampedArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Int32ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor | Float64ArrayConstructor} TypedArrayConstructor */
+
+const VERSION = 1; // serialized format version
+const HEADER_SIZE = 8;
+
+class KDBush {
+
+    /**
+     * Creates an index from raw `ArrayBuffer` data.
+     * @param {ArrayBuffer} data
+     */
+    static from(data) {
+        if (!(data instanceof ArrayBuffer)) {
+            throw new Error('Data must be an instance of ArrayBuffer.');
+        }
+        const [magic, versionAndType] = new Uint8Array(data, 0, 2);
+        if (magic !== 0xdb) {
+            throw new Error('Data does not appear to be in a KDBush format.');
+        }
+        const version = versionAndType >> 4;
+        if (version !== VERSION) {
+            throw new Error(`Got v${version} data when expected v${VERSION}.`);
+        }
+        const ArrayType = ARRAY_TYPES[versionAndType & 0x0f];
+        if (!ArrayType) {
+            throw new Error('Unrecognized array type.');
+        }
+        const [nodeSize] = new Uint16Array(data, 2, 1);
+        const [numItems] = new Uint32Array(data, 4, 1);
+
+        return new KDBush(numItems, nodeSize, ArrayType, data);
+    }
+
+    /**
+     * Creates an index that will hold a given number of items.
+     * @param {number} numItems
+     * @param {number} [nodeSize=64] Size of the KD-tree node (64 by default).
+     * @param {TypedArrayConstructor} [ArrayType=Float64Array] The array type used for coordinates storage (`Float64Array` by default).
+     * @param {ArrayBuffer} [data] (For internal use only)
+     */
+    constructor(numItems, nodeSize = 64, ArrayType = Float64Array, data) {
+        if (isNaN(numItems) || numItems < 0) throw new Error(`Unpexpected numItems value: ${numItems}.`);
+
+        this.numItems = +numItems;
+        this.nodeSize = Math.min(Math.max(+nodeSize, 2), 65535);
+        this.ArrayType = ArrayType;
+        this.IndexArrayType = numItems < 65536 ? Uint16Array : Uint32Array;
+
+        const arrayTypeIndex = ARRAY_TYPES.indexOf(this.ArrayType);
+        const coordsByteSize = numItems * 2 * this.ArrayType.BYTES_PER_ELEMENT;
+        const idsByteSize = numItems * this.IndexArrayType.BYTES_PER_ELEMENT;
+        const padCoords = (8 - idsByteSize % 8) % 8;
+
+        if (arrayTypeIndex < 0) {
+            throw new Error(`Unexpected typed array class: ${ArrayType}.`);
+        }
+
+        if (data && (data instanceof ArrayBuffer)) { // reconstruct an index from a buffer
+            this.data = data;
+            this.ids = new this.IndexArrayType(this.data, HEADER_SIZE, numItems);
+            this.coords = new this.ArrayType(this.data, HEADER_SIZE + idsByteSize + padCoords, numItems * 2);
+            this._pos = numItems * 2;
+            this._finished = true;
+        } else { // initialize a new index
+            this.data = new ArrayBuffer(HEADER_SIZE + coordsByteSize + idsByteSize + padCoords);
+            this.ids = new this.IndexArrayType(this.data, HEADER_SIZE, numItems);
+            this.coords = new this.ArrayType(this.data, HEADER_SIZE + idsByteSize + padCoords, numItems * 2);
+            this._pos = 0;
+            this._finished = false;
+
+            // set header
+            new Uint8Array(this.data, 0, 2).set([0xdb, (VERSION << 4) + arrayTypeIndex]);
+            new Uint16Array(this.data, 2, 1)[0] = nodeSize;
+            new Uint32Array(this.data, 4, 1)[0] = numItems;
+        }
+    }
+
+    /**
+     * Add a point to the index.
+     * @param {number} x
+     * @param {number} y
+     * @returns {number} An incremental index associated with the added item (starting from `0`).
+     */
+    add(x, y) {
+        const index = this._pos >> 1;
+        this.ids[index] = index;
+        this.coords[this._pos++] = x;
+        this.coords[this._pos++] = y;
+        return index;
+    }
+
+    /**
+     * Perform indexing of the added points.
+     */
+    finish() {
+        const numAdded = this._pos >> 1;
+        if (numAdded !== this.numItems) {
+            throw new Error(`Added ${numAdded} items when expected ${this.numItems}.`);
+        }
+        // kd-sort both arrays for efficient search
+        sort(this.ids, this.coords, this.nodeSize, 0, this.numItems - 1, 0);
+
+        this._finished = true;
+        return this;
+    }
+
+    /**
+     * Search the index for items within a given bounding box.
+     * @param {number} minX
+     * @param {number} minY
+     * @param {number} maxX
+     * @param {number} maxY
+     * @returns {number[]} An array of indices correponding to the found items.
+     */
+    range(minX, minY, maxX, maxY) {
+        if (!this._finished) throw new Error('Data not yet indexed - call index.finish().');
+
+        const {ids, coords, nodeSize} = this;
+        const stack = [0, ids.length - 1, 0];
+        const result = [];
+
+        // recursively search for items in range in the kd-sorted arrays
+        while (stack.length) {
+            const axis = stack.pop() || 0;
+            const right = stack.pop() || 0;
+            const left = stack.pop() || 0;
+
+            // if we reached "tree node", search linearly
+            if (right - left <= nodeSize) {
+                for (let i = left; i <= right; i++) {
+                    const x = coords[2 * i];
+                    const y = coords[2 * i + 1];
+                    if (x >= minX && x <= maxX && y >= minY && y <= maxY) result.push(ids[i]);
+                }
+                continue;
+            }
+
+            // otherwise find the middle index
+            const m = (left + right) >> 1;
+
+            // include the middle item if it's in range
+            const x = coords[2 * m];
+            const y = coords[2 * m + 1];
+            if (x >= minX && x <= maxX && y >= minY && y <= maxY) result.push(ids[m]);
+
+            // queue search in halves that intersect the query
+            if (axis === 0 ? minX <= x : minY <= y) {
+                stack.push(left);
+                stack.push(m - 1);
+                stack.push(1 - axis);
+            }
+            if (axis === 0 ? maxX >= x : maxY >= y) {
+                stack.push(m + 1);
+                stack.push(right);
+                stack.push(1 - axis);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Search the index for items within a given radius.
+     * @param {number} qx
+     * @param {number} qy
+     * @param {number} r Query radius.
+     * @returns {number[]} An array of indices correponding to the found items.
+     */
+    within(qx, qy, r) {
+        if (!this._finished) throw new Error('Data not yet indexed - call index.finish().');
+
+        const {ids, coords, nodeSize} = this;
+        const stack = [0, ids.length - 1, 0];
+        const result = [];
+        const r2 = r * r;
+
+        // recursively search for items within radius in the kd-sorted arrays
+        while (stack.length) {
+            const axis = stack.pop() || 0;
+            const right = stack.pop() || 0;
+            const left = stack.pop() || 0;
+
+            // if we reached "tree node", search linearly
+            if (right - left <= nodeSize) {
+                for (let i = left; i <= right; i++) {
+                    if (sqDist(coords[2 * i], coords[2 * i + 1], qx, qy) <= r2) result.push(ids[i]);
+                }
+                continue;
+            }
+
+            // otherwise find the middle index
+            const m = (left + right) >> 1;
+
+            // include the middle item if it's in range
+            const x = coords[2 * m];
+            const y = coords[2 * m + 1];
+            if (sqDist(x, y, qx, qy) <= r2) result.push(ids[m]);
+
+            // queue search in halves that intersect the query
+            if (axis === 0 ? qx - r <= x : qy - r <= y) {
+                stack.push(left);
+                stack.push(m - 1);
+                stack.push(1 - axis);
+            }
+            if (axis === 0 ? qx + r >= x : qy + r >= y) {
+                stack.push(m + 1);
+                stack.push(right);
+                stack.push(1 - axis);
+            }
+        }
+
+        return result;
+    }
+}
+
+/**
+ * @param {Uint16Array | Uint32Array} ids
+ * @param {InstanceType<TypedArrayConstructor>} coords
+ * @param {number} nodeSize
+ * @param {number} left
+ * @param {number} right
+ * @param {number} axis
+ */
+function sort(ids, coords, nodeSize, left, right, axis) {
+    if (right - left <= nodeSize) return;
+
+    const m = (left + right) >> 1; // middle index
+
+    // sort ids and coords around the middle index so that the halves lie
+    // either left/right or top/bottom correspondingly (taking turns)
+    select(ids, coords, m, left, right, axis);
+
+    // recursively kd-sort first half and second half on the opposite axis
+    sort(ids, coords, nodeSize, left, m - 1, 1 - axis);
+    sort(ids, coords, nodeSize, m + 1, right, 1 - axis);
+}
+
+/**
+ * Custom Floyd-Rivest selection algorithm: sort ids and coords so that
+ * [left..k-1] items are smaller than k-th item (on either x or y axis)
+ * @param {Uint16Array | Uint32Array} ids
+ * @param {InstanceType<TypedArrayConstructor>} coords
+ * @param {number} k
+ * @param {number} left
+ * @param {number} right
+ * @param {number} axis
+ */
+function select(ids, coords, k, left, right, axis) {
+
+    while (right > left) {
+        if (right - left > 600) {
+            const n = right - left + 1;
+            const m = k - left + 1;
+            const z = Math.log(n);
+            const s = 0.5 * Math.exp(2 * z / 3);
+            const sd = 0.5 * Math.sqrt(z * s * (n - s) / n) * (m - n / 2 < 0 ? -1 : 1);
+            const newLeft = Math.max(left, Math.floor(k - m * s / n + sd));
+            const newRight = Math.min(right, Math.floor(k + (n - m) * s / n + sd));
+            select(ids, coords, k, newLeft, newRight, axis);
+        }
+
+        const t = coords[2 * k + axis];
+        let i = left;
+        let j = right;
+
+        swapItem(ids, coords, left, k);
+        if (coords[2 * right + axis] > t) swapItem(ids, coords, left, right);
+
+        while (i < j) {
+            swapItem(ids, coords, i, j);
+            i++;
+            j--;
+            while (coords[2 * i + axis] < t) i++;
+            while (coords[2 * j + axis] > t) j--;
+        }
+
+        if (coords[2 * left + axis] === t) swapItem(ids, coords, left, j);
+        else {
+            j++;
+            swapItem(ids, coords, j, right);
+        }
+
+        if (j <= k) left = j + 1;
+        if (k <= j) right = j - 1;
+    }
+}
+
+/**
+ * @param {Uint16Array | Uint32Array} ids
+ * @param {InstanceType<TypedArrayConstructor>} coords
+ * @param {number} i
+ * @param {number} j
+ */
+function swapItem(ids, coords, i, j) {
+    swap(ids, i, j);
+    swap(coords, 2 * i, 2 * j);
+    swap(coords, 2 * i + 1, 2 * j + 1);
+}
+
+/**
+ * @param {InstanceType<TypedArrayConstructor>} arr
+ * @param {number} i
+ * @param {number} j
+ */
+function swap(arr, i, j) {
+    const tmp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = tmp;
+}
+
+/**
+ * @param {number} ax
+ * @param {number} ay
+ * @param {number} bx
+ * @param {number} by
+ */
+function sqDist(ax, ay, bx, by) {
+    const dx = ax - bx;
+    const dy = ay - by;
+    return dx * dx + dy * dy;
+}
+
+/**
+ * calculate simplification data using optimized Douglas-Peucker algorithm
+ * @param coords - flat array of coordinates
+ * @param first - index of the first coordinate in the segment
+ * @param last - index of the last coordinate in the segment
+ * @param sqTolerance - square tolerance value
+ */
+function simplify(coords, first, last, sqTolerance) {
+    let maxSqDist = sqTolerance;
+    const mid = first + ((last - first) >> 1);
+    let minPosToMid = last - first;
+    let index;
+    const ax = coords[first];
+    const ay = coords[first + 1];
+    const bx = coords[last];
+    const by = coords[last + 1];
+    for (let i = first + 3; i < last; i += 3) {
+        const d = getSqSegDist(coords[i], coords[i + 1], ax, ay, bx, by);
+        if (d > maxSqDist) {
+            index = i;
+            maxSqDist = d;
+            continue;
+        }
+        if (d === maxSqDist) {
+            // a workaround to ensure we choose a pivot close to the middle of the list,
+            // reducing recursion depth, for certain degenerate inputs
+            // https://github.com/mapbox/geojson-vt/issues/104
+            const posToMid = Math.abs(i - mid);
+            if (posToMid < minPosToMid) {
+                index = i;
+                minPosToMid = posToMid;
+            }
+        }
+    }
+    if (maxSqDist > sqTolerance) {
+        if (index - first > 3)
+            simplify(coords, first, index, sqTolerance);
+        coords[index + 2] = maxSqDist;
+        if (last - index > 3)
+            simplify(coords, index, last, sqTolerance);
+    }
+}
+/**
+ * Claculates the square distance from a point to a segment
+ * @param px - x coordinate of the point
+ * @param py - y coordinate of the point
+ * @param x - x coordinate of the first segment endpoint
+ * @param y - y coordinate of the first segment endpoint
+ * @param bx - x coordinate of the second segment endpoint
+ * @param by - y coordinate of the second segment endpoint
+ * @returns square distance from a point to a segment
+ */
+function getSqSegDist(px, py, x, y, bx, by) {
+    let dx = bx - x;
+    let dy = by - y;
+    if (dx !== 0 || dy !== 0) {
+        const t = ((px - x) * dx + (py - y) * dy) / (dx * dx + dy * dy);
+        if (t > 1) {
+            x = bx;
+            y = by;
+        }
+        else if (t > 0) {
+            x += dx * t;
+            y += dy * t;
+        }
+    }
+    dx = px - x;
+    dy = py - y;
+    return dx * dx + dy * dy;
+}
+
+/**
+ *
+ * @param id - the feature's ID
+ * @param type - the feature's type
+ * @param geom - the feature's geometry
+ * @param tags - the feature's properties
+ * @returns the created feature
+ */
+function createFeature(id, type, geom, tags) {
+    // This is mostly for TypeScript type narrowing
+    const data = { type, geom };
+    const feature = {
+        id: id == null ? null : id,
+        type: data.type,
+        geometry: data.geom,
+        tags,
+        minX: Infinity,
+        minY: Infinity,
+        maxX: -Infinity,
+        maxY: -Infinity
+    };
+    switch (data.type) {
+        case 'Point':
+        case 'MultiPoint':
+        case 'LineString':
+            calcLineBBox(feature, data.geom);
+            break;
+        case 'Polygon':
+            // the outer ring (ie [0]) contains all inner rings
+            calcLineBBox(feature, data.geom[0]);
+            break;
+        case 'MultiLineString':
+            for (const line of data.geom) {
+                calcLineBBox(feature, line);
+            }
+            break;
+        case 'MultiPolygon':
+            for (const polygon of data.geom) {
+                // the outer ring (ie [0]) contains all inner rings
+                calcLineBBox(feature, polygon[0]);
+            }
+            break;
+    }
+    return feature;
+}
+function calcLineBBox(feature, geom) {
+    for (let i = 0; i < geom.length; i += 3) {
+        feature.minX = Math.min(feature.minX, geom[i]);
+        feature.minY = Math.min(feature.minY, geom[i + 1]);
+        feature.maxX = Math.max(feature.maxX, geom[i]);
+        feature.maxY = Math.max(feature.maxY, geom[i + 1]);
+    }
+}
+
+/**
+ * converts GeoJSON to internal source features (an intermediate projected JSON vector format with simplification data)
+ * @param data
+ * @param options
+ * @returns
+ */
+function convertToInternal(data, options) {
+    const features = [];
+    switch (data.type) {
+        case 'FeatureCollection':
+            for (let i = 0; i < data.features.length; i++) {
+                featureToInternal(features, data.features[i], options, i);
+            }
+            break;
+        case 'Feature':
+            featureToInternal(features, data, options);
+            break;
+        default:
+            featureToInternal(features, { geometry: data, properties: undefined }, options);
+    }
+    return features;
+}
+function featureToInternal(features, geojson, options, index) {
+    if (!geojson.geometry)
+        return;
+    if (geojson.geometry.type === 'GeometryCollection') {
+        convertGeometryCollection(features, geojson, geojson.geometry, options, index);
+        return;
+    }
+    const coords = geojson.geometry.coordinates;
+    if (!coords?.length)
+        return;
+    const id = getFeatureId(geojson, options, index);
+    const tolerance = Math.pow(options.tolerance / ((1 << options.maxZoom) * options.extent), 2);
+    switch (geojson.geometry.type) {
+        case 'Point':
+            convertPointFeature(features, id, geojson.geometry, geojson.properties);
+            return;
+        case 'MultiPoint':
+            convertMultiPointFeature(features, id, geojson.geometry, geojson.properties);
+            return;
+        case 'LineString':
+            convertLineStringFeature(features, id, geojson.geometry, tolerance, geojson.properties);
+            return;
+        case 'MultiLineString':
+            convertMultiLineStringFeature(features, id, geojson.geometry, tolerance, options, geojson.properties);
+            return;
+        case 'Polygon':
+            convertPolygonFeature(features, id, geojson.geometry, tolerance, geojson.properties);
+            return;
+        case 'MultiPolygon':
+            convertMultiPolygonFeature(features, id, geojson.geometry, tolerance, geojson.properties);
+            return;
+        default:
+            throw new Error('Input data is not a valid GeoJSON object.');
+    }
+}
+function getFeatureId(geojson, options, index) {
+    if (options.promoteId) {
+        return geojson.properties?.[options.promoteId];
+    }
+    if (options.generateId) {
+        return index || 0;
+    }
+    return geojson.id;
+}
+function convertGeometryCollection(features, geojson, geometry, options, index) {
+    for (const geom of geometry.geometries) {
+        featureToInternal(features, {
+            id: geojson.id,
+            geometry: geom,
+            properties: geojson.properties
+        }, options, index);
+    }
+}
+function convertPointFeature(features, id, geom, properties) {
+    const out = [];
+    out.push(projectX(geom.coordinates[0]), projectY(geom.coordinates[1]), 0);
+    features.push(createFeature(id, 'Point', out, properties));
+}
+function convertMultiPointFeature(features, id, geom, properties) {
+    const out = [];
+    for (const coords of geom.coordinates) {
+        out.push(projectX(coords[0]), projectY(coords[1]), 0);
+    }
+    features.push(createFeature(id, 'MultiPoint', out, properties));
+}
+function convertLineStringFeature(features, id, geom, tolerance, properties) {
+    const out = [];
+    convertLine(geom.coordinates, out, tolerance, false);
+    features.push(createFeature(id, 'LineString', out, properties));
+}
+function convertMultiLineStringFeature(features, id, geom, tolerance, options, properties) {
+    if (options.lineMetrics) {
+        // explode into linestrings to be able to track metrics
+        for (const line of geom.coordinates) {
+            const out = [];
+            convertLine(line, out, tolerance, false);
+            features.push(createFeature(id, 'LineString', out, properties));
+        }
+    }
+    else {
+        const out = [];
+        convertLines(geom.coordinates, out, tolerance, false);
+        features.push(createFeature(id, 'MultiLineString', out, properties));
+    }
+}
+function convertPolygonFeature(features, id, geom, tolerance, properties) {
+    const out = [];
+    convertLines(geom.coordinates, out, tolerance, true);
+    features.push(createFeature(id, 'Polygon', out, properties));
+}
+function convertMultiPolygonFeature(features, id, geom, tolerance, properties) {
+    const out = [];
+    for (const polygon of geom.coordinates) {
+        const polygonOut = [];
+        convertLines(polygon, polygonOut, tolerance, true);
+        out.push(polygonOut);
+    }
+    features.push(createFeature(id, 'MultiPolygon', out, properties));
+}
+function convertLine(ring, out, tolerance, isPolygon) {
+    let x0, y0;
+    let size = 0;
+    for (let j = 0; j < ring.length; j++) {
+        const x = projectX(ring[j][0]);
+        const y = projectY(ring[j][1]);
+        out.push(x, y, 0);
+        if (j > 0) {
+            if (isPolygon) {
+                size += (x0 * y - x * y0) / 2; // area
+            }
+            else {
+                size += Math.sqrt(Math.pow(x - x0, 2) + Math.pow(y - y0, 2)); // length
+            }
+        }
+        x0 = x;
+        y0 = y;
+    }
+    const last = out.length - 3;
+    out[2] = 1;
+    if (tolerance > 0)
+        simplify(out, 0, last, tolerance);
+    out[last + 2] = 1;
+    out.size = Math.abs(size);
+    out.start = 0;
+    out.end = out.size;
+}
+function convertLines(rings, out, tolerance, isPolygon) {
+    for (let i = 0; i < rings.length; i++) {
+        const geom = [];
+        convertLine(rings[i], geom, tolerance, isPolygon);
+        out.push(geom);
+    }
+}
+/**
+ * Convert longitude to spherical mercator in [0..1] range
+ */
+function projectX(x) {
+    return x / 360 + 0.5;
+}
+/**
+ * Convert latitude to spherical mercator in [0..1] range
+ */
+function projectY(y) {
+    const sin = Math.sin(y * Math.PI / 180);
+    const y2 = 0.5 - 0.25 * Math.log((1 + sin) / (1 - sin)) / Math.PI;
+    return y2 < 0 ? 0 : y2 > 1 ? 1 : y2;
+}
+
+/**
+ * Converts internal source features back to GeoJSON format.
+ */
+function convertToGeoJSON(source) {
+    const geojson = {
+        type: 'FeatureCollection',
+        features: source.map(feature => featureToGeoJSON(feature))
+    };
+    return geojson;
+}
+/**
+ * Converts a single internal feature to GeoJSON format.
+ */
+function featureToGeoJSON(feature) {
+    const geojsonFeature = {
+        type: 'Feature',
+        geometry: geometryToGeoJSON(feature),
+        properties: feature.tags
+    };
+    if (feature.id != null) {
+        geojsonFeature.id = feature.id;
+    }
+    return geojsonFeature;
+}
+/**
+ * Converts a single internal feature geometry to GeoJSON format.
+ */
+function geometryToGeoJSON(feature) {
+    const { type, geometry } = feature;
+    switch (type) {
+        case 'Point':
+            return {
+                type: type,
+                coordinates: unprojectPoint(geometry[0], geometry[1])
+            };
+        case 'MultiPoint':
+        case 'LineString':
+            return {
+                type: type,
+                coordinates: unprojectPoints(geometry)
+            };
+        case 'MultiLineString':
+        case 'Polygon':
+            return {
+                type: type,
+                coordinates: geometry.map(ring => unprojectPoints(ring))
+            };
+        case 'MultiPolygon':
+            return {
+                type: type,
+                coordinates: geometry.map(polygon => polygon.map(ring => unprojectPoints(ring)))
+            };
+    }
+}
+function unprojectPoints(coords) {
+    const result = [];
+    for (let i = 0; i < coords.length; i += 3) {
+        result.push(unprojectPoint(coords[i], coords[i + 1]));
+    }
+    return result;
+}
+function unprojectPoint(x, y) {
+    return [unprojectX(x), unprojectY(y)];
+}
+/**
+ * Convert spherical mercator in [0..1] range to longitude
+ */
+function unprojectX(x) {
+    return (x - 0.5) * 360;
+}
+/**
+ * Convert spherical mercator in [0..1] range to latitude
+ */
+function unprojectY(y) {
+    const y2 = (180 - y * 360) * Math.PI / 180;
+    return 360 * Math.atan(Math.exp(y2)) / Math.PI - 90;
+}
+
+var AxisType;
+(function (AxisType) {
+    AxisType[AxisType["X"] = 0] = "X";
+    AxisType[AxisType["Y"] = 1] = "Y";
+})(AxisType || (AxisType = {}));
+/**
+ * clip features between two vertical or horizontal axis-parallel lines:
+ *     |        |
+ *  ___|___     |     /
+ * /   |   \____|____/
+ *     |        |
+ *
+ * @param features - the features to clip
+ * @param scale - the scale to divide start and end inputs
+ * @param start - the start of the clip range
+ * @param end - the end of the clip range
+ * @param axis - which axis to clip against
+ * @param minAll - the minimum for all features in the relevant axis
+ * @param maxAll - the maximum for all features in the relevant axis
+ */
+function clip(features, scale, start, end, axis, minAll, maxAll, options) {
+    start /= scale;
+    end /= scale;
+    if (minAll >= start && maxAll < end) { // trivial accept
+        return features;
+    }
+    if (maxAll < start || minAll >= end) { // trivial reject
+        return null;
+    }
+    const clipped = [];
+    for (const feature of features) {
+        const min = axis === AxisType.X ? feature.minX : feature.minY;
+        const max = axis === AxisType.X ? feature.maxX : feature.maxY;
+        if (min >= start && max < end) { // trivial accept
+            clipped.push(feature);
+            continue;
+        }
+        if (max < start || min >= end) { // trivial reject
+            continue;
+        }
+        switch (feature.type) {
+            case 'Point':
+            case 'MultiPoint': {
+                clipPointFeature(feature, clipped, start, end, axis);
+                continue;
+            }
+            case 'LineString': {
+                clipLineStringFeature(feature, clipped, start, end, axis, options);
+                continue;
+            }
+            case 'MultiLineString': {
+                clipMultiLineStringFeature(feature, clipped, start, end, axis);
+                continue;
+            }
+            case 'Polygon': {
+                clipPolygonFeature(feature, clipped, start, end, axis);
+                continue;
+            }
+            case 'MultiPolygon': {
+                clipMultiPolygonFeature(feature, clipped, start, end, axis);
+                continue;
+            }
+        }
+    }
+    if (!clipped.length)
+        return null;
+    return clipped;
+}
+function clipPointFeature(feature, clipped, start, end, axis) {
+    const geom = [];
+    clipPoints$1(feature.geometry, geom, start, end, axis);
+    if (!geom.length)
+        return;
+    const type = geom.length === 3 ? 'Point' : 'MultiPoint';
+    clipped.push(createFeature(feature.id, type, geom, feature.tags));
+}
+function clipLineStringFeature(feature, clipped, start, end, axis, options) {
+    const geom = [];
+    clipLine$1(feature.geometry, geom, start, end, axis, false, options.lineMetrics);
+    if (!geom.length)
+        return;
+    if (options.lineMetrics) {
+        for (const line of geom) {
+            clipped.push(createFeature(feature.id, 'LineString', line, feature.tags));
+        }
+        return;
+    }
+    if (geom.length > 1) {
+        clipped.push(createFeature(feature.id, 'MultiLineString', geom, feature.tags));
+        return;
+    }
+    clipped.push(createFeature(feature.id, 'LineString', geom[0], feature.tags));
+}
+function clipMultiLineStringFeature(feature, clipped, start, end, axis) {
+    const geom = [];
+    clipLines$1(feature.geometry, geom, start, end, axis, false);
+    if (!geom.length)
+        return;
+    if (geom.length === 1) {
+        clipped.push(createFeature(feature.id, 'LineString', geom[0], feature.tags));
+        return;
+    }
+    clipped.push(createFeature(feature.id, 'MultiLineString', geom, feature.tags));
+}
+function clipPolygonFeature(feature, clipped, start, end, axis) {
+    const geom = [];
+    clipLines$1(feature.geometry, geom, start, end, axis, true);
+    if (!geom.length)
+        return;
+    clipped.push(createFeature(feature.id, 'Polygon', geom, feature.tags));
+}
+function clipMultiPolygonFeature(feature, clipped, start, end, axis) {
+    const geom = [];
+    for (const polygon of feature.geometry) {
+        const newPolygon = [];
+        clipLines$1(polygon, newPolygon, start, end, axis, true);
+        if (!newPolygon.length)
+            continue;
+        geom.push(newPolygon);
+    }
+    if (!geom.length)
+        return;
+    clipped.push(createFeature(feature.id, 'MultiPolygon', geom, feature.tags));
+}
+function clipPoints$1(geom, newGeom, start, end, axis) {
+    for (let i = 0; i < geom.length; i += 3) {
+        const a = geom[i + axis];
+        if (a >= start && a <= end) {
+            addPoint(newGeom, geom[i], geom[i + 1], geom[i + 2]);
+        }
+    }
+}
+function clipLine$1(geom, newGeom, start, end, axis, isPolygon, trackMetrics) {
+    let slice = newSlice(geom);
+    const intersect = axis === AxisType.X ? intersectX : intersectY;
+    let len = geom.start;
+    let segLen, t;
+    for (let i = 0; i < geom.length - 3; i += 3) {
+        const ax = geom[i];
+        const ay = geom[i + 1];
+        const az = geom[i + 2];
+        const bx = geom[i + 3];
+        const by = geom[i + 4];
+        const a = axis === AxisType.X ? ax : ay;
+        const b = axis === AxisType.X ? bx : by;
+        let exited = false;
+        if (trackMetrics)
+            segLen = Math.sqrt(Math.pow(ax - bx, 2) + Math.pow(ay - by, 2));
+        if (a < start) {
+            // ---|-->  | (line enters the clip region from the left)
+            if (b > start) {
+                t = intersect(slice, ax, ay, bx, by, start);
+                if (trackMetrics)
+                    slice.start = len + segLen * t;
+            }
+        }
+        else if (a > end) {
+            // |  <--|--- (line enters the clip region from the right)
+            if (b < end) {
+                t = intersect(slice, ax, ay, bx, by, end);
+                if (trackMetrics)
+                    slice.start = len + segLen * t;
+            }
+        }
+        else {
+            addPoint(slice, ax, ay, az);
+        }
+        if (b < start && a >= start) {
+            // <--|---  | or <--|-----|--- (line exits the clip region on the left)
+            t = intersect(slice, ax, ay, bx, by, start);
+            exited = true;
+        }
+        if (b > end && a <= end) {
+            // |  ---|--> or ---|-----|--> (line exits the clip region on the right)
+            t = intersect(slice, ax, ay, bx, by, end);
+            exited = true;
+        }
+        if (!isPolygon && exited) {
+            if (trackMetrics)
+                slice.end = len + segLen * t;
+            newGeom.push(slice);
+            slice = newSlice(geom);
+        }
+        if (trackMetrics)
+            len += segLen;
+    }
+    // add the last point
+    let last = geom.length - 3;
+    const ax = geom[last];
+    const ay = geom[last + 1];
+    const az = geom[last + 2];
+    const a = axis === AxisType.X ? ax : ay;
+    if (a >= start && a <= end)
+        addPoint(slice, ax, ay, az);
+    // close the polygon if its endpoints are not the same after clipping
+    last = slice.length - 3;
+    if (isPolygon && last >= 3 && (slice[last] !== slice[0] || slice[last + 1] !== slice[1])) {
+        addPoint(slice, slice[0], slice[1], slice[2]);
+    }
+    // add the final slice
+    if (slice.length) {
+        newGeom.push(slice);
+    }
+}
+function newSlice(line) {
+    const slice = [];
+    slice.size = line.size;
+    slice.start = line.start;
+    slice.end = line.end;
+    return slice;
+}
+function clipLines$1(geom, newGeom, start, end, axis, isPolygon) {
+    for (const line of geom) {
+        clipLine$1(line, newGeom, start, end, axis, isPolygon, false);
+    }
+}
+function addPoint(out, x, y, z) {
+    out.push(x, y, z);
+}
+function intersectX(out, ax, ay, bx, by, x) {
+    const t = (x - ax) / (bx - ax);
+    addPoint(out, x, ay + (by - ay) * t, 1);
+    return t;
+}
+function intersectY(out, ax, ay, bx, by, y) {
+    const t = (y - ay) / (by - ay);
+    addPoint(out, ax + (bx - ax) * t, y, 1);
+    return t;
+}
+
+function wrap(features, options) {
+    const buffer = options.buffer / options.extent;
+    let merged = features;
+    const left = clip(features, 1, -1 - buffer, buffer, AxisType.X, -1, 2, options); // left world copy
+    const right = clip(features, 1, 1 - buffer, 2 + buffer, AxisType.X, -1, 2, options); // right world copy
+    if (!left && !right)
+        return merged;
+    merged = clip(features, 1, -buffer, 1 + buffer, AxisType.X, -1, 2, options) || []; // center world copy
+    if (left)
+        merged = shiftFeatureCoords(left, 1).concat(merged); // merge left into center
+    if (right)
+        merged = merged.concat(shiftFeatureCoords(right, -1)); // merge right into center
+    return merged;
+}
+function shiftFeatureCoords(features, offset) {
+    const newFeatures = [];
+    for (const feature of features) {
+        switch (feature.type) {
+            case 'Point':
+            case 'MultiPoint':
+            case 'LineString': {
+                const newGeometry = shiftCoords(feature.geometry, offset);
+                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
+                continue;
+            }
+            case 'MultiLineString':
+            case 'Polygon': {
+                const newGeometry = [];
+                for (const line of feature.geometry) {
+                    newGeometry.push(shiftCoords(line, offset));
+                }
+                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
+                continue;
+            }
+            case 'MultiPolygon': {
+                const newGeometry = [];
+                for (const polygon of feature.geometry) {
+                    const newPolygon = [];
+                    for (const line of polygon) {
+                        newPolygon.push(shiftCoords(line, offset));
+                    }
+                    newGeometry.push(newPolygon);
+                }
+                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
+                continue;
+            }
+        }
+    }
+    return newFeatures;
+}
+function shiftCoords(points, offset) {
+    const newPoints = [];
+    newPoints.size = points.size;
+    if (points.start !== undefined) {
+        newPoints.start = points.start;
+        newPoints.end = points.end;
+    }
+    for (let i = 0; i < points.length; i += 3) {
+        newPoints.push(points[i] + offset, points[i + 1], points[i + 2]);
+    }
+    return newPoints;
+}
+
+/**
+ * Applies a GeoJSON Source Diff to an existing set of simplified features
+ * @param source
+ * @param dataDiff
+ * @param options
+ * @returns
+ */
+function applySourceDiff(source, dataDiff, options) {
+    // convert diff to sets/maps for o(1) lookups
+    const diff = diffToHashed(dataDiff);
+    // collection for features that will be affected by this update and used to invalidate tiles
+    let affected = [];
+    if (diff.removeAll) {
+        affected = source;
+        source = [];
+    }
+    if (diff.remove.size || diff.add.size) {
+        const removeFeatures = [];
+        // Collect features to remove (explicit removals + replacements via add)
+        for (const feature of source) {
+            if (diff.remove.has(feature.id) || diff.add.has(feature.id)) {
+                removeFeatures.push(feature);
+            }
+        }
+        if (removeFeatures.length) {
+            affected.push(...removeFeatures);
+            const removeIds = new Set(removeFeatures.map(f => f.id));
+            source = source.filter(f => !removeIds.has(f.id));
+        }
+        if (diff.add.size) {
+            let addFeatures = convertToInternal({ type: 'FeatureCollection', features: Array.from(diff.add.values()) }, options);
+            addFeatures = wrap(addFeatures, options);
+            affected.push(...addFeatures);
+            source.push(...addFeatures);
+        }
+    }
+    if (diff.update.size) {
+        // Features can be duplicated across the antimeridian (wrap) in a single tile, so must update all instances with the same id
+        for (const [id, update] of diff.update) {
+            const oldFeatures = [];
+            const keepFeatures = [];
+            for (const feature of source) {
+                if (feature.id === id) {
+                    oldFeatures.push(feature);
+                }
+                else {
+                    keepFeatures.push(feature);
+                }
+            }
+            if (!oldFeatures.length)
+                continue;
+            const updatedFeatures = getUpdatedFeatures(oldFeatures, update, options);
+            if (!updatedFeatures.length)
+                continue;
+            affected.push(...oldFeatures, ...updatedFeatures);
+            keepFeatures.push(...updatedFeatures);
+            source = keepFeatures;
+        }
+    }
+    return { affected, source };
+}
+/**
+ * Gets updated simplified feature(s) based on a diff update object.
+ * @param vtFeatures - the original features
+ * @param update - the update object to apply
+ * @param options - the options to use for the wrap method
+ * @returns Updated features. If geometry is updated, returns new feature(s) converted from geojson and wrapped. If only properties are updated, returns feature(s) with tags updated.
+ */
+function getUpdatedFeatures(vtFeatures, update, options) {
+    const changeGeometry = !!update.newGeometry;
+    const changeProps = update.removeAllProperties ||
+        update.removeProperties?.length > 0 ||
+        update.addOrUpdateProperties?.length > 0;
+    // if geometry changed, need to create a new geojson feature and convert to internal format
+    if (changeGeometry) {
+        const vtFeature = vtFeatures[0];
+        const geojsonFeature = {
+            type: 'Feature',
+            id: vtFeature.id,
+            geometry: update.newGeometry,
+            properties: changeProps ? applyPropertyUpdates(vtFeature.tags, update) : vtFeature.tags
+        };
+        let features = convertToInternal({ type: 'FeatureCollection', features: [geojsonFeature] }, options);
+        features = wrap(features, options);
+        return features;
+    }
+    if (changeProps) {
+        const updated = [];
+        for (const vtFeature of vtFeatures) {
+            const feature = { ...vtFeature };
+            feature.tags = applyPropertyUpdates(feature.tags, update);
+            updated.push(feature);
+        }
+        return updated;
+    }
+    return [];
+}
+/**
+ * helper to apply property updates from a diff update object to a properties object
+ */
+function applyPropertyUpdates(tags, update) {
+    if (update.removeAllProperties) {
+        return {};
+    }
+    const properties = { ...tags || {} };
+    if (update.removeProperties) {
+        for (const key of update.removeProperties) {
+            delete properties[key];
+        }
+    }
+    if (update.addOrUpdateProperties) {
+        for (const { key, value } of update.addOrUpdateProperties) {
+            properties[key] = value;
+        }
+    }
+    return properties;
+}
+/**
+ * Convert a GeoJSON Source Diff to an idempotent hashed representation using Sets and Maps
+ */
+function diffToHashed(diff) {
+    if (!diff)
+        return {
+            remove: new Set(),
+            add: new Map(),
+            update: new Map()
+        };
+    const hashed = {
+        removeAll: diff.removeAll,
+        remove: new Set(diff.remove || []),
+        add: new Map(diff.add?.map(feature => [feature.id, feature])),
+        update: new Map(diff.update?.map(update => [update.id, update]))
+    };
+    return hashed;
+}
+
+const defaultClusterOptions = {
+    minZoom: 0,
+    maxZoom: 16,
+    minPoints: 2,
+    radius: 40,
+    extent: 512,
+    nodeSize: 64,
+    log: false,
+    generateId: false,
+    reduce: null,
+    map: (props) => props
+};
+const OFFSET_ZOOM = 2;
+const OFFSET_ID = 3;
+const OFFSET_PARENT = 4;
+const OFFSET_NUM = 5;
+const OFFSET_PROP = 6;
+/**
+ * This class allow clustering of geojson points.
+ */
+class ClusterTileIndex {
+    constructor(options) {
+        this.options = Object.assign(Object.create(defaultClusterOptions), options);
+        this.trees = new Array(this.options.maxZoom + 1);
+        this.stride = this.options.reduce ? 7 : 6;
+        this.clusterProps = [];
+        this.points = [];
+    }
+    /**
+     * Loads GeoJSON point features and builds the internal clustering index.
+     * @param points - GeoJSON point features to cluster.
+     */
+    load(points) {
+        const features = [];
+        // Convert GeoJSON point features to GeoJSONVT internal point features
+        for (const point of points) {
+            if (!point.geometry) {
+                continue;
+            }
+            const [lng, lat] = point.geometry.coordinates;
+            const [x, y] = [projectX(lng), projectY(lat)];
+            const feature = {
+                id: point.id,
+                type: 'Point',
+                geometry: [x, y],
+                tags: point.properties
+            };
+            features.push(feature);
+        }
+        this.createIndex(features);
+    }
+    /**
+     * @internal
+     * Loads internal GeoJSONVT point features from a data source and builds the clustering index.
+     * @param features - {@link GeoJSONVTInternalFeature} data source features to filter and cluster.
+     */
+    initialize(features) {
+        const points = [];
+        for (const feature of features) {
+            if (feature.type !== 'Point')
+                continue;
+            points.push(feature);
+        }
+        this.createIndex(points);
+    }
+    /**
+     * @internal
+     * Updates the cluster data by rebuilding.
+     * @param features
+     */
+    updateIndex(features, _affected, options) {
+        this.options = Object.assign(Object.create(defaultClusterOptions), options.clusterOptions);
+        this.initialize(features);
+    }
+    createIndex(points) {
+        const { log, minZoom, maxZoom } = this.options;
+        if (log)
+            console.time('total time');
+        const timerId = `prepare ${points.length} points`;
+        if (log)
+            console.time(timerId);
+        this.points = points;
+        // generate a cluster object for each point and index input points into a KD-tree
+        const data = [];
+        for (let i = 0; i < points.length; i++) {
+            const p = points[i];
+            if (!p?.geometry)
+                continue;
+            let [x, y] = p.geometry;
+            x = Math.fround(x);
+            y = Math.fround(y);
+            // store internal point/cluster data in flat numeric arrays for performance
+            data.push(x, y, // projected point coordinates
+            Infinity, // the last zoom the point was processed at
+            i, // index of the source feature in the original input array
+            -1, // parent cluster id
+            1 // number of points in a cluster
+            );
+            if (this.options.reduce)
+                data.push(0); // noop
+        }
+        let tree = this.trees[maxZoom + 1] = this.createTree(data);
+        if (log)
+            console.timeEnd(timerId);
+        // cluster points on max zoom, then cluster the results on previous zoom, etc.;
+        // results in a cluster hierarchy across zoom levels
+        for (let z = maxZoom; z >= minZoom; z--) {
+            const now = Date.now();
+            // create a new set of clusters for the zoom and index them with a KD-tree
+            tree = this.trees[z] = this.createTree(this.cluster(tree, z));
+            if (log)
+                console.log('z%d: %d clusters in %dms', z, tree.numItems, Date.now() - now);
+        }
+        if (log)
+            console.timeEnd('total time');
+    }
+    /**
+     * Returns clusters and/or points within a bounding box at a given zoom level.
+     * @param bbox - Bounding box in `[westLng, southLat, eastLng, northLat]` order.
+     * @param zoom - Zoom level to query.
+     */
+    getClusters(bbox, zoom) {
+        const clusterInternal = this.getClustersInternal(bbox, zoom);
+        return clusterInternal.map((f) => featureToGeoJSON(f));
+    }
+    getClustersInternal(bbox, zoom) {
+        let minLng = ((bbox[0] + 180) % 360 + 360) % 360 - 180;
+        const minLat = Math.max(-90, Math.min(90, bbox[1]));
+        let maxLng = bbox[2] === 180 ? 180 : ((bbox[2] + 180) % 360 + 360) % 360 - 180;
+        const maxLat = Math.max(-90, Math.min(90, bbox[3]));
+        if (bbox[2] - bbox[0] >= 360) {
+            minLng = -180;
+            maxLng = 180;
+        }
+        else if (minLng > maxLng) {
+            const easternHem = this.getClustersInternal([minLng, minLat, 180, maxLat], zoom);
+            const westernHem = this.getClustersInternal([-180, minLat, maxLng, maxLat], zoom);
+            return easternHem.concat(westernHem);
+        }
+        const tree = this.trees[this.limitZoom(zoom)];
+        const ids = tree.range(projectX(minLng), projectY(maxLat), projectX(maxLng), projectY(minLat));
+        const data = tree.flatData;
+        const clusters = [];
+        for (const id of ids) {
+            const k = this.stride * id;
+            clusters.push(data[k + OFFSET_NUM] > 1 ? getClusterFeature(data, k, this.clusterProps) : this.points[data[k + OFFSET_ID]]);
+        }
+        return clusters;
+    }
+    /**
+     * Returns the immediate children (clusters or points) of a cluster as GeoJSON.
+     * @param clusterId - The target cluster id.
+     */
+    getChildren(clusterId) {
+        const originId = this.getOriginId(clusterId);
+        const originZoom = this.getOriginZoom(clusterId);
+        const clusterError = new Error('No cluster with the specified id: ' + clusterId);
+        const tree = this.trees[originZoom];
+        if (!tree)
+            throw clusterError;
+        const data = tree.flatData;
+        if (originId * this.stride >= data.length)
+            throw clusterError;
+        const r = this.options.radius / (this.options.extent * Math.pow(2, originZoom - 1));
+        const x = data[originId * this.stride];
+        const y = data[originId * this.stride + 1];
+        const ids = tree.within(x, y, r);
+        const children = [];
+        for (const id of ids) {
+            const k = id * this.stride;
+            if (data[k + OFFSET_PARENT] === clusterId) {
+                children.push(data[k + OFFSET_NUM] > 1 ? getClusterGeoJSON(data, k, this.clusterProps) : featureToGeoJSON(this.points[data[k + OFFSET_ID]]));
+            }
+        }
+        if (children.length === 0)
+            throw clusterError;
+        return children;
+    }
+    /**
+     * Returns leaf point features under a cluster, paginated by `limit` and `offset`.
+     * @param clusterId - The target cluster id.
+     * @param limit - Maximum number of points to return (defaults to `10`).
+     * @param offset - Number of points to skip before collecting results (defaults to `0`).
+     */
+    getLeaves(clusterId, limit, offset) {
+        limit = limit || 10;
+        offset = offset || 0;
+        const leaves = [];
+        this.appendLeaves(leaves, clusterId, limit, offset, 0);
+        return leaves;
+    }
+    /**
+     * Generates a vector-tile-like representation of a single tile.
+     * @param z - Tile zoom.
+     * @param x - Tile x coordinate.
+     * @param y - Tile y coordinate.
+     */
+    getTile(z, x, y) {
+        const tree = this.trees[this.limitZoom(z)];
+        if (!tree) {
+            return null;
+        }
+        const z2 = Math.pow(2, z);
+        const { extent, radius } = this.options;
+        const p = radius / extent;
+        const top = (y - p) / z2;
+        const bottom = (y + 1 + p) / z2;
+        const tile = {
+            transformed: true,
+            features: [],
+            source: null,
+            x: x,
+            y: y,
+            z: z
+        };
+        this.addTileFeatures(tree.range((x - p) / z2, top, (x + 1 + p) / z2, bottom), tree.flatData, x, y, z2, tile);
+        if (x === 0) {
+            this.addTileFeatures(tree.range(1 - p / z2, top, 1, bottom), tree.flatData, z2, y, z2, tile);
+        }
+        if (x === z2 - 1) {
+            this.addTileFeatures(tree.range(0, top, p / z2, bottom), tree.flatData, -1, y, z2, tile);
+        }
+        return tile;
+    }
+    /**
+     * Returns the zoom level at which a cluster expands into multiple children.
+     * @param clusterId - The target cluster id.
+     */
+    getClusterExpansionZoom(clusterId) {
+        return this.getOriginZoom(clusterId);
+    }
+    appendLeaves(result, clusterId, limit, offset, skipped) {
+        const children = this.getChildren(clusterId);
+        for (const child of children) {
+            const props = child.properties;
+            if (props?.cluster) {
+                if (skipped + props.point_count <= offset) {
+                    // skip the whole cluster
+                    skipped += props.point_count;
+                }
+                else {
+                    // enter the cluster
+                    skipped = this.appendLeaves(result, props.cluster_id, limit, offset, skipped);
+                    // exit the cluster
+                }
+            }
+            else if (skipped < offset) {
+                // skip a single point
+                skipped++;
+            }
+            else {
+                // add a single point
+                result.push(child);
+            }
+            if (result.length === limit)
+                break;
+        }
+        return skipped;
+    }
+    createTree(data) {
+        const tree = new KDBush(data.length / this.stride | 0, this.options.nodeSize, Float32Array);
+        for (let i = 0; i < data.length; i += this.stride)
+            tree.add(data[i], data[i + 1]);
+        tree.finish();
+        tree.flatData = data;
+        tree.data = null; // clear original data to free memory as it isn't used later on.
+        return tree;
+    }
+    addTileFeatures(ids, data, x, y, z2, tile) {
+        for (const i of ids) {
+            const k = i * this.stride;
+            const isCluster = data[k + OFFSET_NUM] > 1;
+            let tags;
+            let px;
+            let py;
+            if (isCluster) {
+                tags = getClusterProperties(data, k, this.clusterProps);
+                px = data[k];
+                py = data[k + 1];
+            }
+            else {
+                const p = this.points[data[k + OFFSET_ID]];
+                tags = p.tags;
+                [px, py] = p.geometry;
+            }
+            const f = {
+                type: 1,
+                geometry: [[
+                        Math.round(this.options.extent * (px * z2 - x)),
+                        Math.round(this.options.extent * (py * z2 - y))
+                    ]],
+                tags
+            };
+            // assign id
+            let id;
+            if (isCluster || this.options.generateId) {
+                // optionally generate id for points
+                id = data[k + OFFSET_ID];
+            }
+            else {
+                // keep id if already assigned
+                id = this.points[data[k + OFFSET_ID]].id;
+            }
+            if (id !== undefined)
+                f.id = id;
+            tile.features.push(f);
+        }
+    }
+    limitZoom(z) {
+        return Math.max(this.options.minZoom, Math.min(Math.floor(+z), this.options.maxZoom + 1));
+    }
+    cluster(tree, zoom) {
+        const { radius, extent, reduce, minPoints } = this.options;
+        const r = radius / (extent * Math.pow(2, zoom));
+        const data = tree.flatData;
+        const nextData = [];
+        const stride = this.stride;
+        // loop through each point
+        for (let i = 0; i < data.length; i += stride) {
+            // if we've already visited the point at this zoom level, skip it
+            if (data[i + OFFSET_ZOOM] <= zoom)
+                continue;
+            data[i + OFFSET_ZOOM] = zoom;
+            // find all nearby points
+            const x = data[i];
+            const y = data[i + 1];
+            const neighborIds = tree.within(data[i], data[i + 1], r);
+            const numPointsOrigin = data[i + OFFSET_NUM];
+            let numPoints = numPointsOrigin;
+            // count the number of points in a potential cluster
+            for (const neighborId of neighborIds) {
+                const k = neighborId * stride;
+                // filter out neighbors that are already processed
+                if (data[k + OFFSET_ZOOM] > zoom)
+                    numPoints += data[k + OFFSET_NUM];
+            }
+            // if there were neighbors to merge, and there are enough points to form a cluster
+            if (numPoints > numPointsOrigin && numPoints >= minPoints) {
+                let wx = x * numPointsOrigin;
+                let wy = y * numPointsOrigin;
+                let clusterProperties;
+                let clusterPropIndex = -1;
+                // encode both zoom and point index on which the cluster originated -- offset by total length of features
+                const id = ((i / stride | 0) << 5) + (zoom + 1) + this.points.length;
+                for (const neighborId of neighborIds) {
+                    const k = neighborId * stride;
+                    if (data[k + OFFSET_ZOOM] <= zoom)
+                        continue;
+                    data[k + OFFSET_ZOOM] = zoom; // save the zoom (so it doesn't get processed twice)
+                    const numPoints2 = data[k + OFFSET_NUM];
+                    wx += data[k] * numPoints2; // accumulate coordinates for calculating weighted center
+                    wy += data[k + 1] * numPoints2;
+                    data[k + OFFSET_PARENT] = id;
+                    if (reduce) {
+                        if (!clusterProperties) {
+                            clusterProperties = this.map(data, i, true);
+                            clusterPropIndex = this.clusterProps.length;
+                            this.clusterProps.push(clusterProperties);
+                        }
+                        reduce(clusterProperties, this.map(data, k));
+                    }
+                }
+                data[i + OFFSET_PARENT] = id;
+                nextData.push(wx / numPoints, wy / numPoints, Infinity, id, -1, numPoints);
+                if (reduce)
+                    nextData.push(clusterPropIndex);
+            }
+            else { // left points as unclustered
+                for (let j = 0; j < stride; j++)
+                    nextData.push(data[i + j]);
+                if (numPoints > 1) {
+                    for (const neighborId of neighborIds) {
+                        const k = neighborId * stride;
+                        if (data[k + OFFSET_ZOOM] <= zoom)
+                            continue;
+                        data[k + OFFSET_ZOOM] = zoom;
+                        for (let j = 0; j < stride; j++)
+                            nextData.push(data[k + j]);
+                    }
+                }
+            }
+        }
+        return nextData;
+    }
+    // get index of the point from which the cluster originated
+    getOriginId(clusterId) {
+        return (clusterId - this.points.length) >> 5;
+    }
+    // get zoom of the point from which the cluster originated
+    getOriginZoom(clusterId) {
+        return (clusterId - this.points.length) % 32;
+    }
+    map(data, i, clone) {
+        if (data[i + OFFSET_NUM] > 1) {
+            const props = this.clusterProps[data[i + OFFSET_PROP]];
+            return clone ? Object.assign({}, props) : props;
+        }
+        const original = this.points[data[i + OFFSET_ID]].tags;
+        const result = this.options.map(original);
+        return clone && result === original ? Object.assign({}, result) : result;
+    }
+}
+function getClusterFeature(data, i, clusterProps) {
+    return {
+        id: data[i + OFFSET_ID],
+        type: 'Point',
+        tags: getClusterProperties(data, i, clusterProps),
+        geometry: [data[i], data[i + 1]]
+    };
+}
+function getClusterGeoJSON(data, i, clusterProps) {
+    return {
+        type: 'Feature',
+        id: data[i + OFFSET_ID],
+        properties: getClusterProperties(data, i, clusterProps),
+        geometry: {
+            type: 'Point',
+            coordinates: [unprojectX(data[i]), unprojectY(data[i + 1])]
+        }
+    };
+}
+function getClusterProperties(data, i, clusterProps) {
+    const count = data[i + OFFSET_NUM];
+    const abbrev = count >= 10000 ? `${Math.round(count / 1000)}k` :
+        count >= 1000 ? `${Math.round(count / 100) / 10}k` : count;
+    const propIndex = data[i + OFFSET_PROP];
+    const properties = propIndex === -1 ? {} : Object.assign({}, clusterProps[propIndex]);
+    return Object.assign(properties, {
+        cluster: true,
+        cluster_id: data[i + OFFSET_ID],
+        point_count: count,
+        point_count_abbreviated: abbrev
+    });
+}
+
+const GEOJSONVT_CLIP_START = 'geojsonvt_clip_start';
+const GEOJSONVT_CLIP_END = 'geojsonvt_clip_end';
+/**
+ * Creates a tile object from the given features
+ * @param features - the features to include in the tile
+ * @param z
+ * @param tx
+ * @param ty
+ * @param options - the options object
+ * @returns the created tile
+ */
+function createTile(features, z, tx, ty, options) {
+    const tolerance = z === options.maxZoom ? 0 : options.tolerance / ((1 << z) * options.extent);
+    const tile = {
+        transformed: false,
+        features: [],
+        source: null,
+        x: tx,
+        y: ty,
+        z: z,
+        minX: 2,
+        minY: 1,
+        maxX: -1,
+        maxY: 0,
+        numPoints: 0,
+        numSimplified: 0,
+        numFeatures: features.length
+    };
+    for (const feature of features) {
+        addFeature$1(tile, feature, tolerance, options);
+    }
+    return tile;
+}
+function addFeature$1(tile, feature, tolerance, options) {
+    tile.minX = Math.min(tile.minX, feature.minX);
+    tile.minY = Math.min(tile.minY, feature.minY);
+    tile.maxX = Math.max(tile.maxX, feature.maxX);
+    tile.maxY = Math.max(tile.maxY, feature.maxY);
+    switch (feature.type) {
+        case 'Point':
+        case 'MultiPoint':
+            addPointsTileFeature(tile, feature);
+            return;
+        case 'LineString':
+            addLineTileFeautre(tile, feature, tolerance, options);
+            return;
+        case 'MultiLineString':
+        case 'Polygon':
+            addLinesTileFeature(tile, feature, tolerance);
+            return;
+        case 'MultiPolygon':
+            addMultiPolygonTileFeature(tile, feature, tolerance);
+            return;
+    }
+}
+function addPointsTileFeature(tile, feature) {
+    const geometry = [];
+    for (let i = 0; i < feature.geometry.length; i += 3) {
+        geometry.push(feature.geometry[i], feature.geometry[i + 1]);
+        tile.numPoints++;
+        tile.numSimplified++;
+    }
+    if (!geometry.length)
+        return;
+    const tileFeature = {
+        type: 1,
+        tags: feature.tags || null,
+        geometry: geometry
+    };
+    if (feature.id !== null) {
+        tileFeature.id = feature.id;
+    }
+    tile.features.push(tileFeature);
+}
+function addLineTileFeautre(tile, feature, tolerance, options) {
+    const geometry = [];
+    addLine(geometry, feature.geometry, tile, tolerance, false, false);
+    if (!geometry.length)
+        return;
+    let tags = feature.tags || null;
+    if (options.lineMetrics) {
+        tags = {};
+        for (const key in feature.tags)
+            tags[key] = feature.tags[key];
+        tags[GEOJSONVT_CLIP_START] = feature.geometry.start / feature.geometry.size;
+        tags[GEOJSONVT_CLIP_END] = feature.geometry.end / feature.geometry.size;
+    }
+    const tileFeature = {
+        type: 2,
+        tags: tags,
+        geometry: geometry
+    };
+    if (feature.id !== null) {
+        tileFeature.id = feature.id;
+    }
+    tile.features.push(tileFeature);
+}
+function addLinesTileFeature(tile, feature, tolerance) {
+    const geometry = [];
+    for (let i = 0; i < feature.geometry.length; i++) {
+        addLine(geometry, feature.geometry[i], tile, tolerance, feature.type === 'Polygon', i === 0);
+    }
+    if (!geometry.length)
+        return;
+    const tileFeature = {
+        type: feature.type === 'Polygon' ? 3 : 2,
+        tags: feature.tags || null,
+        geometry: geometry
+    };
+    if (feature.id !== null) {
+        tileFeature.id = feature.id;
+    }
+    tile.features.push(tileFeature);
+}
+function addMultiPolygonTileFeature(tile, feature, tolerance) {
+    const geometry = [];
+    for (let k = 0; k < feature.geometry.length; k++) {
+        const polygon = feature.geometry[k];
+        for (let i = 0; i < polygon.length; i++) {
+            addLine(geometry, polygon[i], tile, tolerance, true, i === 0);
+        }
+    }
+    if (!geometry.length)
+        return;
+    const tileFeature = {
+        type: 3,
+        tags: feature.tags || null,
+        geometry: geometry
+    };
+    if (feature.id !== null) {
+        tileFeature.id = feature.id;
+    }
+    tile.features.push(tileFeature);
+}
+function addLine(result, geom, tile, tolerance, isPolygon, isOuter) {
+    const sqTolerance = tolerance * tolerance;
+    if (tolerance > 0 && (geom.size < (isPolygon ? sqTolerance : tolerance))) {
+        tile.numPoints += geom.length / 3;
+        return;
+    }
+    const ring = [];
+    for (let i = 0; i < geom.length; i += 3) {
+        if (tolerance === 0 || geom[i + 2] > sqTolerance) {
+            tile.numSimplified++;
+            ring.push(geom[i], geom[i + 1]);
+        }
+        tile.numPoints++;
+    }
+    if (isPolygon)
+        rewind(ring, isOuter);
+    result.push(ring);
+}
+function rewind(ring, clockwise) {
+    let area = 0;
+    for (let i = 0, len = ring.length, j = len - 2; i < len; j = i, i += 2) {
+        area += (ring[i] - ring[j]) * (ring[i + 1] + ring[j + 1]);
+    }
+    if (area > 0 !== clockwise)
+        return;
+    for (let i = 0, len = ring.length; i < len / 2; i += 2) {
+        const x = ring[i];
+        const y = ring[i + 1];
+        ring[i] = ring[len - 2 - i];
+        ring[i + 1] = ring[len - 1 - i];
+        ring[len - 2 - i] = x;
+        ring[len - 1 - i] = y;
+    }
+}
+
+/**
+ * Transforms the coordinates of each feature in the given tile from
+ * mercator-projected space into (extent x extent) tile space.
+ * @param tile - the tile to transform, this gets modified in place
+ * @param extent - the tile extent (usually 4096)
+ * @returns the transformed tile
+ */
+function transformTile(tile, extent) {
+    if (tile.transformed) {
+        return tile;
+    }
+    const z2 = 1 << tile.z;
+    const tx = tile.x;
+    const ty = tile.y;
+    for (const feature of tile.features) {
+        if (feature.type === 1) {
+            transformPointFeature(feature, extent, z2, tx, ty);
+        }
+        else {
+            transformNonPointFeature(feature, extent, z2, tx, ty);
+        }
+    }
+    tile.transformed = true;
+    return tile;
+}
+/**
+ * Transforms a single point feature from mercator-projected space into (extent x extent) tile space.
+ */
+function transformPointFeature(feature, extent, z2, tx, ty) {
+    const transformed = feature;
+    const geometry = feature.geometry;
+    const point = [];
+    for (let i = 0; i < geometry.length; i += 2) {
+        point.push(transformPoint(geometry[i], geometry[i + 1], extent, z2, tx, ty));
+    }
+    transformed.geometry = point;
+    return transformed;
+}
+/**
+ * Transforms a single non-point feature from mercator-projected space into (extent x extent) tile space.
+ */
+function transformNonPointFeature(feature, extent, z2, tx, ty) {
+    const transformed = feature;
+    const geometry = feature.geometry;
+    const nonPoint = [];
+    for (const geom of geometry) {
+        const ring = [];
+        for (let i = 0; i < geom.length; i += 2) {
+            ring.push(transformPoint(geom[i], geom[i + 1], extent, z2, tx, ty));
+        }
+        nonPoint.push(ring);
+    }
+    transformed.geometry = nonPoint;
+    return transformed;
+}
+function transformPoint(x, y, extent, z2, tx, ty) {
+    return [
+        Math.round(extent * (x * z2 - tx)),
+        Math.round(extent * (y * z2 - ty))
+    ];
+}
+
+class TileIndex {
+    constructor(options) {
+        this.options = options;
+        /** @internal */
+        this.stats = {};
+        /** @internal */
+        this.total = 0;
+        this.tiles = {};
+        this.tileCoords = [];
+        this.stats = {};
+        this.total = 0;
+    }
+    initialize(features) {
+        // start slicing from the top tile down
+        this.splitTile(features, 0, 0, 0);
+        if (this.options.debug) {
+            if (features.length)
+                console.log('features: %d, points: %d', this.tiles[0].numFeatures, this.tiles[0].numPoints);
+            console.timeEnd('generate tiles');
+            console.log('tiles generated:', this.total, JSON.stringify(this.stats));
+        }
+    }
+    /** {@inheritdoc} */
+    updateIndex(source, affected, options) {
+        if (options.debug > 1) {
+            console.log('invalidating tiles');
+            console.time('invalidating');
+        }
+        this.invalidateTiles(affected);
+        if (options.debug > 1)
+            console.timeEnd('invalidating');
+        // re-generate root tile with updated feature set
+        const [z, x, y] = [0, 0, 0];
+        const rootTile = createTile(source, z, x, y, options);
+        rootTile.source = source;
+        // update tile index with new root tile - ready for getTile calls
+        const id = toID(z, x, y);
+        this.tiles[id] = rootTile;
+        this.tileCoords.push({ z, x, y, id });
+        if (options.debug) {
+            const key = `z${z}`;
+            this.stats[key] = (this.stats[key] || 0) + 1;
+            this.total++;
+        }
+    }
+    /** {@inheritdoc} */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    getClusterExpansionZoom(_clusterId) {
+        return null;
+    }
+    /** {@inheritdoc} */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    getChildren(_clusterId) {
+        return null;
+    }
+    /** {@inheritdoc} */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    getLeaves(_clusterId, _limit, _offset) {
+        return null;
+    }
+    /** {@inheritdoc} */
+    getTile(z, x, y) {
+        const { extent, debug } = this.options;
+        const z2 = 1 << z;
+        x = (x + z2) & (z2 - 1); // wrap tile x coordinate
+        const id = toID(z, x, y);
+        if (this.tiles[id]) {
+            return transformTile(this.tiles[id], extent);
+        }
+        if (debug > 1)
+            console.log('drilling down to z%d-%d-%d', z, x, y);
+        let z0 = z;
+        let x0 = x;
+        let y0 = y;
+        let parent;
+        while (!parent && z0 > 0) {
+            z0--;
+            x0 = x0 >> 1;
+            y0 = y0 >> 1;
+            parent = this.tiles[toID(z0, x0, y0)];
+        }
+        if (!parent?.source)
+            return null;
+        // if we found a parent tile containing the original geometry, we can drill down from it
+        if (debug > 1) {
+            console.log('found parent tile z%d-%d-%d', z0, x0, y0);
+            console.time('drilling down');
+        }
+        this.splitTile(parent.source, z0, x0, y0, z, x, y);
+        if (debug > 1)
+            console.timeEnd('drilling down');
+        if (!this.tiles[id])
+            return null;
+        return transformTile(this.tiles[id], extent);
+    }
+    /**
+     * splits features from a parent tile to sub-tiles.
+     * z, x, and y are the coordinates of the parent tile
+     * cz, cx, and cy are the coordinates of the target tile
+     *
+     * If no target tile is specified, splitting stops when we reach the maximum
+     * zoom or the number of points is low as specified in the options.
+     * @internal
+     * @param features - features to split
+     * @param z - tile zoom level
+     * @param x - tile x coordinate
+     * @param y - tile y coordinate
+     * @param cz - target tile zoom level
+     * @param cx - target tile x coordinate
+     * @param cy - target tile y coordinate
+     */
+    splitTile(features, z, x, y, cz, cx, cy) {
+        const stack = [features, z, x, y];
+        const options = this.options;
+        const debug = options.debug;
+        // avoid recursion by using a processing queue
+        while (stack.length) {
+            y = stack.pop();
+            x = stack.pop();
+            z = stack.pop();
+            features = stack.pop();
+            const z2 = 1 << z;
+            const id = toID(z, x, y);
+            let tile = this.tiles[id];
+            if (!tile) {
+                if (debug > 1)
+                    console.time('creation');
+                tile = this.tiles[id] = createTile(features, z, x, y, options);
+                this.tileCoords.push({ z, x, y, id });
+                if (debug) {
+                    if (debug > 1) {
+                        console.log('tile z%d-%d-%d (features: %d, points: %d, simplified: %d)', z, x, y, tile.numFeatures, tile.numPoints, tile.numSimplified);
+                        console.timeEnd('creation');
+                    }
+                    const key = `z${z}`;
+                    this.stats[key] = (this.stats[key] || 0) + 1;
+                    this.total++;
+                }
+            }
+            // save reference to original geometry in tile so that we can drill down later if we stop now
+            tile.source = features;
+            // if it's the first-pass tiling
+            if (cz == null) {
+                // stop tiling if we reached max zoom, or if the tile is too simple
+                if (z === options.indexMaxZoom || tile.numPoints <= options.indexMaxPoints)
+                    continue;
+                // if a drilldown to a specific tile
+            }
+            else if (z === options.maxZoom || z === cz) {
+                // stop tiling if we reached base zoom or our target tile zoom
+                continue;
+            }
+            else if (cz != null) {
+                // stop tiling if it's not an ancestor of the target tile
+                const zoomSteps = cz - z;
+                if (x !== cx >> zoomSteps || y !== cy >> zoomSteps)
+                    continue;
+            }
+            // if we slice further down, no need to keep source geometry
+            tile.source = null;
+            if (!features.length)
+                continue;
+            if (debug > 1)
+                console.time('clipping');
+            // values we'll use for clipping
+            const k1 = 0.5 * options.buffer / options.extent;
+            const k2 = 0.5 - k1;
+            const k3 = 0.5 + k1;
+            const k4 = 1 + k1;
+            let tl = null;
+            let bl = null;
+            let tr = null;
+            let br = null;
+            const left = clip(features, z2, x - k1, x + k3, AxisType.X, tile.minX, tile.maxX, options);
+            const right = clip(features, z2, x + k2, x + k4, AxisType.X, tile.minX, tile.maxX, options);
+            if (left) {
+                tl = clip(left, z2, y - k1, y + k3, AxisType.Y, tile.minY, tile.maxY, options);
+                bl = clip(left, z2, y + k2, y + k4, AxisType.Y, tile.minY, tile.maxY, options);
+            }
+            if (right) {
+                tr = clip(right, z2, y - k1, y + k3, AxisType.Y, tile.minY, tile.maxY, options);
+                br = clip(right, z2, y + k2, y + k4, AxisType.Y, tile.minY, tile.maxY, options);
+            }
+            if (debug > 1)
+                console.timeEnd('clipping');
+            stack.push(tl || [], z + 1, x * 2, y * 2);
+            stack.push(bl || [], z + 1, x * 2, y * 2 + 1);
+            stack.push(tr || [], z + 1, x * 2 + 1, y * 2);
+            stack.push(br || [], z + 1, x * 2 + 1, y * 2 + 1);
+        }
+    }
+    /**
+     * Invalidates (removes) tiles affected by the provided features
+     * @internal
+     * @param features
+     */
+    invalidateTiles(features) {
+        if (!features.length)
+            return;
+        const options = this.options;
+        const { debug } = options;
+        // calculate bounding box of all features for trivial reject
+        let minX = Infinity;
+        let maxX = -Infinity;
+        let minY = Infinity;
+        let maxY = -Infinity;
+        for (const feature of features) {
+            minX = Math.min(minX, feature.minX);
+            maxX = Math.max(maxX, feature.maxX);
+            minY = Math.min(minY, feature.minY);
+            maxY = Math.max(maxY, feature.maxY);
+        }
+        // tile buffer clipping value - not halved as in splitTile above because checking against tile's own extent
+        const k1 = options.buffer / options.extent;
+        // track removed tile ids for o(1) lookup
+        const removedLookup = new Set();
+        // iterate through existing tiles and remove ones that are affected by features
+        for (const id in this.tiles) {
+            const tile = this.tiles[id];
+            // calculate tile bounds including buffer
+            const z2 = 1 << tile.z;
+            const tileMinX = (tile.x - k1) / z2;
+            const tileMaxX = (tile.x + 1 + k1) / z2;
+            const tileMinY = (tile.y - k1) / z2;
+            const tileMaxY = (tile.y + 1 + k1) / z2;
+            // trivial reject if feature bounds don't intersect tile
+            if (maxX < tileMinX || minX >= tileMaxX ||
+                maxY < tileMinY || minY >= tileMaxY) {
+                continue;
+            }
+            // check if any feature intersects with the tile
+            let intersects = false;
+            for (const feature of features) {
+                if (feature.maxX >= tileMinX && feature.minX < tileMaxX &&
+                    feature.maxY >= tileMinY && feature.minY < tileMaxY) {
+                    intersects = true;
+                    break;
+                }
+            }
+            if (!intersects)
+                continue;
+            if (debug) {
+                if (debug > 1) {
+                    console.log('invalidate tile z%d-%d-%d (features: %d, points: %d, simplified: %d)', tile.z, tile.x, tile.y, tile.numFeatures, tile.numPoints, tile.numSimplified);
+                }
+                const key = `z${tile.z}`;
+                this.stats[key] = (this.stats[key] || 0) - 1;
+                this.total--;
+            }
+            delete this.tiles[id];
+            removedLookup.add(id);
+        }
+        // remove tile coords that are no longer in the index
+        if (removedLookup.size) {
+            this.tileCoords = this.tileCoords.filter(c => !removedLookup.has(c.id));
+        }
+    }
+}
+function toID(z, x, y) {
+    return (((1 << z) * y + x) * 32) + z;
+}
+
+const defaultOptions = {
+    maxZoom: 14,
+    indexMaxZoom: 5,
+    indexMaxPoints: 100000,
+    tolerance: 3,
+    extent: 4096,
+    buffer: 64,
+    lineMetrics: false,
+    promoteId: null,
+    generateId: false,
+    updateable: false,
+    cluster: false,
+    clusterOptions: defaultClusterOptions,
+    debug: 0
+};
+/**
+ * Main class for creating and managing a vector tile index from GeoJSON data.
+ */
+class GeoJSONVT {
+    /**
+     * @internal
+     * This is for the tests
+     */
+    get tiles() {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return this.tileIndex?.tiles ?? {};
+    }
+    /**
+     * @internal
+     * This is for the tests
+     */
+    get stats() {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return this.tileIndex.stats;
+    }
+    /**
+    * @internal
+    * This is for the tests
+    */
+    get total() {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return this.tileIndex.total;
+    }
+    constructor(data, options) {
+        options = this.options = Object.assign({}, defaultOptions, options);
+        const debug = options.debug;
+        if (debug)
+            console.time('preprocess data');
+        if (options.maxZoom < 0 || options.maxZoom > 24)
+            throw new Error('maxZoom should be in the 0-24 range');
+        if (options.promoteId && options.generateId)
+            throw new Error('promoteId and generateId cannot be used together.');
+        // projects and adds simplification info
+        let features = convertToInternal(data, options);
+        if (debug) {
+            console.timeEnd('preprocess data');
+            console.log('index: maxZoom: %d, maxPoints: %d', options.indexMaxZoom, options.indexMaxPoints);
+            console.time('generate tiles');
+        }
+        // wraps features (ie extreme west and extreme east)
+        features = wrap(features, options);
+        // for updateable indexes, store a copy of the original simplified features
+        if (options.updateable) {
+            this.source = features;
+        }
+        this.initializeIndex(features, options);
+    }
+    initializeIndex(features, options) {
+        this.tileIndex = options.cluster ? new ClusterTileIndex(options.clusterOptions) : new TileIndex(options);
+        if (!features.length)
+            return;
+        this.tileIndex.initialize(features);
+    }
+    /**
+     * Given z, x, and y tile coordinates, returns the corresponding tile with geometries in tile coordinates, much like MVT data is stored.
+     * @param z - tile zoom level
+     * @param x - tile x coordinate
+     * @param y - tile y coordinate
+     * @returns the transformed tile or null if not found
+     */
+    getTile(z, x, y) {
+        z = +z;
+        x = +x;
+        y = +y;
+        if (z < 0 || z > 24)
+            return null;
+        return this.tileIndex.getTile(z, x, y);
+    }
+    /**
+     * Updates the source data feature set using a {@link GeoJSONVTSourceDiff}
+     * @param diff - the source diff object
+     */
+    updateData(diff, filter) {
+        const options = this.options;
+        if (!options.updateable)
+            throw new Error('to update tile geojson `updateable` option must be set to true');
+        // apply diff and collect affected features and updated source that will be used to invalidate tiles
+        let { affected, source } = applySourceDiff(this.source, diff, options);
+        if (filter) {
+            ({ affected, source } = this.filterUpdate(source, affected, filter));
+        }
+        // nothing has changed
+        if (!affected.length)
+            return;
+        // update source with new simplified feature set
+        this.source = source;
+        this.tileIndex.updateIndex(source, affected, options);
+    }
+    /**
+     * Filter an update using a predicate function. Returns the affected and updated source features.
+     */
+    filterUpdate(source, affected, predicate) {
+        const removeIds = new Set();
+        for (const feature of source) {
+            if (feature.id == undefined)
+                continue;
+            if (predicate(featureToGeoJSON(feature)))
+                continue;
+            affected.push(feature);
+            removeIds.add(feature.id);
+        }
+        source = source.filter(feature => !removeIds.has(feature.id));
+        return { affected, source };
+    }
+    /**
+     * Returns source data as GeoJSON - only available when `updateable` option is set to true.
+     */
+    getData() {
+        if (!this.options.updateable)
+            throw new Error('to retrieve data the `updateable` option must be set to true');
+        return convertToGeoJSON(this.source);
+    }
+    /**
+     * Update supercluster options and regenerate the index.
+     * @param cluster - whether to enable clustering
+     * @param clusterOptions - {@link SuperclusterOptions}
+     */
+    updateClusterOptions(cluster, clusterOptions) {
+        const wasCluster = this.options.cluster;
+        this.options.cluster = cluster;
+        this.options.clusterOptions = clusterOptions;
+        if (wasCluster == cluster) {
+            this.tileIndex.updateIndex(this.source, [], this.options);
+            return;
+        }
+        this.initializeIndex(this.source, this.options);
+    }
+    /**
+     * Returns the zoom level at which a cluster expands into multiple children.
+     * @param clusterId - The target cluster id.
+     * @returns the expansion zoom or null in case of non-clustered source
+     */
+    getClusterExpansionZoom(clusterId) {
+        return this.tileIndex.getClusterExpansionZoom(clusterId);
+    }
+    /**
+     * Returns the immediate children (clusters or points) of a cluster as GeoJSON.
+     * @param clusterId - The target cluster id.
+     * @returns the immediate children or null in case of non-clustered source
+     */
+    getClusterChildren(clusterId) {
+        return this.tileIndex.getChildren(clusterId);
+    }
+    /**
+     * Returns leaf point features under a cluster, paginated by `limit` and `offset`.
+     * @param clusterId - The target cluster id.
+     * @param limit - Maximum number of points to return (defaults to `10`).
+     * @param offset - Number of points to skip before collecting results (defaults to `0`).
+     * @returns leaf point features under a cluster or null in case of non-clustered source
+     */
+    getClusterLeaves(clusterId, limit, offset) {
+        return this.tileIndex.getLeaves(clusterId, limit, offset);
+    }
+}
+
+/**
+ * Converts GeoJSON data directly to a single vector tile without building a tile index.
+ *
+ * Unlike the {@link GeoJSONVT} class which builds a hierarchical tile index for efficient
+ * repeated tile access, this function generates a single tile on-demand. This is useful when:
+ * - You only need one specific tile and don't need to query multiple tiles
+ * - The source data is already spatially filtered to the tile's bounding box
+ * - You want to avoid the overhead of building a full tile index
+ *
+ * @example
+ * ```ts
+ * import {geoJSONToTile} from '@maplibre/geojson-vt';
+ *
+ * const geojson = {
+ *   type: 'FeatureCollection',
+ *   features: [{
+ *     type: 'Feature',
+ *     geometry: { type: 'Point', coordinates: [-77.03, 38.90] },
+ *     properties: { name: 'Washington, D.C.' }
+ *   }]
+ * };
+ *
+ * const tile = geoJSONToTile(geojson, 10, 292, 391, { extent: 4096 });
+ * ```
+ *
+ * @param data - GeoJSON data (Feature, FeatureCollection, or Geometry)
+ * @param z - Tile zoom level
+ * @param x - Tile x coordinate
+ * @param y - Tile y coordinate
+ * @param options - Optional configuration for tile generation
+ * @returns The generated tile with geometries in tile coordinates, or null if no features
+ */
+function geoJSONToTile(data, z, x, y, options = {}) {
+    options = { ...defaultOptions, ...options };
+    const { wrap: shouldWrap = false, clip: shouldClip = false } = options;
+    let features = convertToInternal(data, options);
+    if (shouldWrap) {
+        features = wrap(features, options);
+    }
+    if (shouldClip || options.lineMetrics) {
+        const pow2 = 1 << z;
+        const buffer = options.buffer / options.extent;
+        const left = clip(features, pow2, (x - buffer), (x + 1 + buffer), AxisType.X, -1, 2, options);
+        features = clip(left || [], pow2, (y - buffer), (y + 1 + buffer), AxisType.Y, -1, 2, options);
+    }
+    return transformTile(createTile(features ?? [], z, x, y, options), options.extent);
+}
+
 const lineLayoutAttributes = createLayout([
     { name: 'a_pos_normal', components: 2, type: 'Int16' },
     { name: 'a_data', components: 4, type: 'Uint8' }
@@ -30061,9 +32497,9 @@ class LineBucket {
         this.segments.destroy();
     }
     lineFeatureClips(feature) {
-        if (!!feature.properties && Object.prototype.hasOwnProperty.call(feature.properties, 'mapbox_clip_start') && Object.prototype.hasOwnProperty.call(feature.properties, 'mapbox_clip_end')) {
-            const start = +feature.properties['mapbox_clip_start'];
-            const end = +feature.properties['mapbox_clip_end'];
+        if (!!feature.properties && Object.prototype.hasOwnProperty.call(feature.properties, GEOJSONVT_CLIP_START) && Object.prototype.hasOwnProperty.call(feature.properties, GEOJSONVT_CLIP_END)) {
+            const start = +feature.properties[GEOJSONVT_CLIP_START];
+            const end = +feature.properties[GEOJSONVT_CLIP_END];
             return { start, end };
         }
     }
@@ -30445,7 +32881,7 @@ class LineFloorwidthProperty extends DataDrivenProperty {
         return super.possiblyEvaluate(value, parameters);
     }
     evaluate(value, globals, feature, featureState) {
-        globals = extend$1({}, globals, { zoom: Math.floor(globals.zoom) });
+        globals = extend({}, globals, { zoom: Math.floor(globals.zoom) });
         return super.evaluate(value, globals, feature, featureState);
     }
 }
@@ -33588,6 +36024,7 @@ const getPaint = () => paint = paint || new Properties({
     "raster-brightness-max": new DataConstantProperty(v8Spec["paint_raster"]["raster-brightness-max"]),
     "raster-saturation": new DataConstantProperty(v8Spec["paint_raster"]["raster-saturation"]),
     "raster-contrast": new DataConstantProperty(v8Spec["paint_raster"]["raster-contrast"]),
+    "resampling": new DataConstantProperty(v8Spec["paint_raster"]["resampling"]),
     "raster-resampling": new DataConstantProperty(v8Spec["paint_raster"]["raster-resampling"]),
     "raster-fade-duration": new DataConstantProperty(v8Spec["paint_raster"]["raster-fade-duration"]),
 });
@@ -33783,10 +36220,6 @@ class GeoJSONFeature {
 }
 
 class Vector {
-    _name;
-    dataBuffer;
-    nullabilityBuffer;
-    _size;
     constructor(_name, dataBuffer, sizeOrNullabilityBuffer) {
         this._name = _name;
         this.dataBuffer = dataBuffer;
@@ -33802,7 +36235,7 @@ class Vector {
         return this.nullabilityBuffer && !this.nullabilityBuffer.get(index) ? null : this.getValueFromBuffer(index);
     }
     has(index) {
-        return (this.nullabilityBuffer && this.nullabilityBuffer.get(index)) || !this.nullabilityBuffer;
+        return this.nullabilityBuffer?.get(index) || !this.nullabilityBuffer;
     }
     get name() {
         return this._name;
@@ -33815,7 +36248,7 @@ class Vector {
 class FixedSizeVector extends Vector {
 }
 
-class IntFlatVector extends FixedSizeVector {
+class Int32FlatVector extends FixedSizeVector {
     getValueFromBuffer(index) {
         return this.dataBuffer[index];
     }
@@ -33828,14 +36261,13 @@ class DoubleFlatVector extends FixedSizeVector {
 }
 
 class SequenceVector extends Vector {
-    delta;
     constructor(name, baseValueBuffer, delta, size) {
         super(name, baseValueBuffer, size);
         this.delta = delta;
     }
 }
 
-class IntSequenceVector extends SequenceVector {
+class Int32SequenceVector extends SequenceVector {
     constructor(name, baseValue, delta, size) {
         super(name, Int32Array.of(baseValue), delta, size);
     }
@@ -33844,22 +36276,16 @@ class IntSequenceVector extends SequenceVector {
     }
 }
 
-class IntConstVector extends Vector {
-    constructor(name, value, sizeOrNullabilityBuffer) {
-        super(name, Int32Array.of(value), sizeOrNullabilityBuffer);
+class Int32ConstVector extends Vector {
+    constructor(name, value, sizeOrNullabilityBuffer, isSigned) {
+        super(name, isSigned ? Int32Array.of(value) : Uint32Array.of(value), sizeOrNullabilityBuffer);
     }
-    getValueFromBuffer(index) {
+    getValueFromBuffer(_index) {
         return this.dataBuffer[0];
     }
 }
 
 class FeatureTable {
-    _name;
-    _geometryVector;
-    _idVector;
-    _propertyVectors;
-    _extent;
-    propertyVectorsMap;
     constructor(_name, _geometryVector, _idVector, _propertyVectors, _extent = 4096) {
         this._name = _name;
         this._geometryVector = _geometryVector;
@@ -33885,32 +36311,6 @@ class FeatureTable {
         }
         return this.propertyVectorsMap.get(name);
     }
-    *[Symbol.iterator]() {
-        const geometryIterator = this.geometryVector[Symbol.iterator]();
-        let index = 0;
-        while (index < this.numFeatures) {
-            let id;
-            if (this.idVector) {
-                id = this.containsMaxSaveIntegerValues(this.idVector)
-                    ? Number(this.idVector.getValue(index))
-                    : this.idVector.getValue(index);
-            }
-            const geometry = geometryIterator?.next().value;
-            const properties = {};
-            for (const propertyColumn of this.propertyVectors) {
-                if (!propertyColumn) {
-                    continue;
-                }
-                const columnName = propertyColumn.name;
-                const propertyValue = propertyColumn.getValue(index);
-                if (propertyValue !== null) {
-                    properties[columnName] = propertyValue;
-                }
-            }
-            index++;
-            yield { id, geometry, properties };
-        }
-    }
     get numFeatures() {
         return this.geometryVector.numGeometries;
     }
@@ -33926,9 +36326,8 @@ class FeatureTable {
         for (let i = 0; i < this.numFeatures; i++) {
             let id;
             if (this.idVector) {
-                id = this.containsMaxSaveIntegerValues(this.idVector)
-                    ? Number(this.idVector.getValue(i))
-                    : this.idVector.getValue(i);
+                const idValue = this.idVector.getValue(i);
+                id = this.containsMaxSafeIntegerValues(this.idVector) && idValue !== null ? Number(idValue) : idValue;
             }
             const geometry = {
                 coordinates: geometries[i],
@@ -33948,10 +36347,11 @@ class FeatureTable {
         }
         return features;
     }
-    containsMaxSaveIntegerValues(intVector) {
-        return (intVector instanceof IntFlatVector ||
-            (intVector instanceof IntConstVector && intVector instanceof IntSequenceVector) ||
-            intVector instanceof DoubleFlatVector);
+    containsMaxSafeIntegerValues(idVector) {
+        return (idVector instanceof Int32FlatVector ||
+            idVector instanceof Int32ConstVector ||
+            idVector instanceof Int32SequenceVector ||
+            idVector instanceof DoubleFlatVector);
     }
 }
 
@@ -33986,7 +36386,6 @@ const LogicalComplexType = {
 
 // Ported from https://github.com/lemire/JavaFastPFOR/blob/master/src/main/java/me/lemire/integercompression/IntWrapper.java
 class IntWrapper {
-    value;
     constructor(value) {
         this.value = value;
     }
@@ -34035,10 +36434,1476 @@ var PhysicalLevelTechnique;
     PhysicalLevelTechnique["ALP"] = "ALP";
 })(PhysicalLevelTechnique || (PhysicalLevelTechnique = {}));
 
-/* Null suppression (physical level) techniques ------------------------------------------------------------------*/
+/**
+ * Bit masks for each bitwidth 0-32.
+ * DO NOT MUTATE - this is a shared constant.
+ */
+const masks = new Uint32Array(33);
+masks[0] = 0;
+for (let bitWidth = 1; bitWidth <= 32; bitWidth++) {
+    masks[bitWidth] = bitWidth === 32 ? 0xffffffff : 0xffffffff >>> (32 - bitWidth);
+}
+const MASKS = masks;
+const DEFAULT_PAGE_SIZE = 65536;
+const BLOCK_SIZE = 256;
+function greatestMultiple(value, factor) {
+    return value - (value % factor);
+}
+function roundUpToMultipleOf32(value) {
+    return greatestMultiple(value + 31, 32);
+}
+function normalizePageSize(pageSize) {
+    if (!Number.isFinite(pageSize) || pageSize <= 0)
+        return DEFAULT_PAGE_SIZE;
+    const aligned = greatestMultiple(Math.floor(pageSize), BLOCK_SIZE);
+    return aligned === 0 ? BLOCK_SIZE : aligned;
+}
+function bswap32(value) {
+    const x = value >>> 0;
+    return (((x & 0xff) << 24) | ((x & 0xff00) << 8) | ((x >>> 8) & 0xff00) | ((x >>> 24) & 0xff)) >>> 0;
+}
+
+function fastUnpack32_1(inValues, inPos, out, outPos) {
+    const in0 = inValues[inPos] >>> 0;
+    for (let i = 0; i < 32; i++) {
+        out[outPos + i] = (in0 >>> i) & 1;
+    }
+}
+function fastUnpack32_2(inValues, inPos, out, outPos) {
+    let op = outPos;
+    const in0 = inValues[inPos] >>> 0;
+    const in1 = inValues[inPos + 1] >>> 0;
+    out[op++] = (in0 >>> 0) & 0x3;
+    out[op++] = (in0 >>> 2) & 0x3;
+    out[op++] = (in0 >>> 4) & 0x3;
+    out[op++] = (in0 >>> 6) & 0x3;
+    out[op++] = (in0 >>> 8) & 0x3;
+    out[op++] = (in0 >>> 10) & 0x3;
+    out[op++] = (in0 >>> 12) & 0x3;
+    out[op++] = (in0 >>> 14) & 0x3;
+    out[op++] = (in0 >>> 16) & 0x3;
+    out[op++] = (in0 >>> 18) & 0x3;
+    out[op++] = (in0 >>> 20) & 0x3;
+    out[op++] = (in0 >>> 22) & 0x3;
+    out[op++] = (in0 >>> 24) & 0x3;
+    out[op++] = (in0 >>> 26) & 0x3;
+    out[op++] = (in0 >>> 28) & 0x3;
+    out[op++] = (in0 >>> 30) & 0x3;
+    out[op++] = (in1 >>> 0) & 0x3;
+    out[op++] = (in1 >>> 2) & 0x3;
+    out[op++] = (in1 >>> 4) & 0x3;
+    out[op++] = (in1 >>> 6) & 0x3;
+    out[op++] = (in1 >>> 8) & 0x3;
+    out[op++] = (in1 >>> 10) & 0x3;
+    out[op++] = (in1 >>> 12) & 0x3;
+    out[op++] = (in1 >>> 14) & 0x3;
+    out[op++] = (in1 >>> 16) & 0x3;
+    out[op++] = (in1 >>> 18) & 0x3;
+    out[op++] = (in1 >>> 20) & 0x3;
+    out[op++] = (in1 >>> 22) & 0x3;
+    out[op++] = (in1 >>> 24) & 0x3;
+    out[op++] = (in1 >>> 26) & 0x3;
+    out[op++] = (in1 >>> 28) & 0x3;
+    out[op] = (in1 >>> 30) & 0x3;
+}
+function fastUnpack32_3(inValues, inPos, out, outPos) {
+    let op = outPos;
+    const in0 = inValues[inPos] >>> 0;
+    const in1 = inValues[inPos + 1] >>> 0;
+    const in2 = inValues[inPos + 2] >>> 0;
+    out[op++] = (in0 >>> 0) & 0x7;
+    out[op++] = (in0 >>> 3) & 0x7;
+    out[op++] = (in0 >>> 6) & 0x7;
+    out[op++] = (in0 >>> 9) & 0x7;
+    out[op++] = (in0 >>> 12) & 0x7;
+    out[op++] = (in0 >>> 15) & 0x7;
+    out[op++] = (in0 >>> 18) & 0x7;
+    out[op++] = (in0 >>> 21) & 0x7;
+    out[op++] = (in0 >>> 24) & 0x7;
+    out[op++] = (in0 >>> 27) & 0x7;
+    out[op++] = ((in0 >>> 30) | ((in1 & 0x1) << 2)) & 0x7;
+    out[op++] = (in1 >>> 1) & 0x7;
+    out[op++] = (in1 >>> 4) & 0x7;
+    out[op++] = (in1 >>> 7) & 0x7;
+    out[op++] = (in1 >>> 10) & 0x7;
+    out[op++] = (in1 >>> 13) & 0x7;
+    out[op++] = (in1 >>> 16) & 0x7;
+    out[op++] = (in1 >>> 19) & 0x7;
+    out[op++] = (in1 >>> 22) & 0x7;
+    out[op++] = (in1 >>> 25) & 0x7;
+    out[op++] = (in1 >>> 28) & 0x7;
+    out[op++] = ((in1 >>> 31) | ((in2 & 0x3) << 1)) & 0x7;
+    out[op++] = (in2 >>> 2) & 0x7;
+    out[op++] = (in2 >>> 5) & 0x7;
+    out[op++] = (in2 >>> 8) & 0x7;
+    out[op++] = (in2 >>> 11) & 0x7;
+    out[op++] = (in2 >>> 14) & 0x7;
+    out[op++] = (in2 >>> 17) & 0x7;
+    out[op++] = (in2 >>> 20) & 0x7;
+    out[op++] = (in2 >>> 23) & 0x7;
+    out[op++] = (in2 >>> 26) & 0x7;
+    out[op] = (in2 >>> 29) & 0x7;
+}
+function fastUnpack32_4(inValues, inPos, out, outPos) {
+    let op = outPos;
+    const in0 = inValues[inPos] >>> 0;
+    const in1 = inValues[inPos + 1] >>> 0;
+    const in2 = inValues[inPos + 2] >>> 0;
+    const in3 = inValues[inPos + 3] >>> 0;
+    out[op++] = (in0 >>> 0) & 0xf;
+    out[op++] = (in0 >>> 4) & 0xf;
+    out[op++] = (in0 >>> 8) & 0xf;
+    out[op++] = (in0 >>> 12) & 0xf;
+    out[op++] = (in0 >>> 16) & 0xf;
+    out[op++] = (in0 >>> 20) & 0xf;
+    out[op++] = (in0 >>> 24) & 0xf;
+    out[op++] = (in0 >>> 28) & 0xf;
+    out[op++] = (in1 >>> 0) & 0xf;
+    out[op++] = (in1 >>> 4) & 0xf;
+    out[op++] = (in1 >>> 8) & 0xf;
+    out[op++] = (in1 >>> 12) & 0xf;
+    out[op++] = (in1 >>> 16) & 0xf;
+    out[op++] = (in1 >>> 20) & 0xf;
+    out[op++] = (in1 >>> 24) & 0xf;
+    out[op++] = (in1 >>> 28) & 0xf;
+    out[op++] = (in2 >>> 0) & 0xf;
+    out[op++] = (in2 >>> 4) & 0xf;
+    out[op++] = (in2 >>> 8) & 0xf;
+    out[op++] = (in2 >>> 12) & 0xf;
+    out[op++] = (in2 >>> 16) & 0xf;
+    out[op++] = (in2 >>> 20) & 0xf;
+    out[op++] = (in2 >>> 24) & 0xf;
+    out[op++] = (in2 >>> 28) & 0xf;
+    out[op++] = (in3 >>> 0) & 0xf;
+    out[op++] = (in3 >>> 4) & 0xf;
+    out[op++] = (in3 >>> 8) & 0xf;
+    out[op++] = (in3 >>> 12) & 0xf;
+    out[op++] = (in3 >>> 16) & 0xf;
+    out[op++] = (in3 >>> 20) & 0xf;
+    out[op++] = (in3 >>> 24) & 0xf;
+    out[op] = (in3 >>> 28) & 0xf;
+}
+function fastUnpack32_5(inValues, inPos, out, outPos) {
+    let op = outPos;
+    const in0 = inValues[inPos] >>> 0;
+    const in1 = inValues[inPos + 1] >>> 0;
+    const in2 = inValues[inPos + 2] >>> 0;
+    const in3 = inValues[inPos + 3] >>> 0;
+    const in4 = inValues[inPos + 4] >>> 0;
+    out[op++] = (in0 >>> 0) & 0x1f;
+    out[op++] = (in0 >>> 5) & 0x1f;
+    out[op++] = (in0 >>> 10) & 0x1f;
+    out[op++] = (in0 >>> 15) & 0x1f;
+    out[op++] = (in0 >>> 20) & 0x1f;
+    out[op++] = (in0 >>> 25) & 0x1f;
+    out[op++] = ((in0 >>> 30) | ((in1 & 0x7) << 2)) & 0x1f;
+    out[op++] = (in1 >>> 3) & 0x1f;
+    out[op++] = (in1 >>> 8) & 0x1f;
+    out[op++] = (in1 >>> 13) & 0x1f;
+    out[op++] = (in1 >>> 18) & 0x1f;
+    out[op++] = (in1 >>> 23) & 0x1f;
+    out[op++] = ((in1 >>> 28) | ((in2 & 0x1) << 4)) & 0x1f;
+    out[op++] = (in2 >>> 1) & 0x1f;
+    out[op++] = (in2 >>> 6) & 0x1f;
+    out[op++] = (in2 >>> 11) & 0x1f;
+    out[op++] = (in2 >>> 16) & 0x1f;
+    out[op++] = (in2 >>> 21) & 0x1f;
+    out[op++] = (in2 >>> 26) & 0x1f;
+    out[op++] = ((in2 >>> 31) | ((in3 & 0xf) << 1)) & 0x1f;
+    out[op++] = (in3 >>> 4) & 0x1f;
+    out[op++] = (in3 >>> 9) & 0x1f;
+    out[op++] = (in3 >>> 14) & 0x1f;
+    out[op++] = (in3 >>> 19) & 0x1f;
+    out[op++] = (in3 >>> 24) & 0x1f;
+    out[op++] = ((in3 >>> 29) | ((in4 & 0x3) << 3)) & 0x1f;
+    out[op++] = (in4 >>> 2) & 0x1f;
+    out[op++] = (in4 >>> 7) & 0x1f;
+    out[op++] = (in4 >>> 12) & 0x1f;
+    out[op++] = (in4 >>> 17) & 0x1f;
+    out[op++] = (in4 >>> 22) & 0x1f;
+    out[op] = (in4 >>> 27) & 0x1f;
+}
+function fastUnpack32_6(inValues, inPos, out, outPos) {
+    let op = outPos;
+    const in0 = inValues[inPos] >>> 0;
+    const in1 = inValues[inPos + 1] >>> 0;
+    const in2 = inValues[inPos + 2] >>> 0;
+    const in3 = inValues[inPos + 3] >>> 0;
+    const in4 = inValues[inPos + 4] >>> 0;
+    const in5 = inValues[inPos + 5] >>> 0;
+    out[op++] = (in0 >>> 0) & 0x3f;
+    out[op++] = (in0 >>> 6) & 0x3f;
+    out[op++] = (in0 >>> 12) & 0x3f;
+    out[op++] = (in0 >>> 18) & 0x3f;
+    out[op++] = (in0 >>> 24) & 0x3f;
+    out[op++] = ((in0 >>> 30) | ((in1 & 0xf) << 2)) & 0x3f;
+    out[op++] = (in1 >>> 4) & 0x3f;
+    out[op++] = (in1 >>> 10) & 0x3f;
+    out[op++] = (in1 >>> 16) & 0x3f;
+    out[op++] = (in1 >>> 22) & 0x3f;
+    out[op++] = ((in1 >>> 28) | ((in2 & 0x3) << 4)) & 0x3f;
+    out[op++] = (in2 >>> 2) & 0x3f;
+    out[op++] = (in2 >>> 8) & 0x3f;
+    out[op++] = (in2 >>> 14) & 0x3f;
+    out[op++] = (in2 >>> 20) & 0x3f;
+    out[op++] = (in2 >>> 26) & 0x3f;
+    out[op++] = (in3 >>> 0) & 0x3f;
+    out[op++] = (in3 >>> 6) & 0x3f;
+    out[op++] = (in3 >>> 12) & 0x3f;
+    out[op++] = (in3 >>> 18) & 0x3f;
+    out[op++] = (in3 >>> 24) & 0x3f;
+    out[op++] = ((in3 >>> 30) | ((in4 & 0xf) << 2)) & 0x3f;
+    out[op++] = (in4 >>> 4) & 0x3f;
+    out[op++] = (in4 >>> 10) & 0x3f;
+    out[op++] = (in4 >>> 16) & 0x3f;
+    out[op++] = (in4 >>> 22) & 0x3f;
+    out[op++] = ((in4 >>> 28) | ((in5 & 0x3) << 4)) & 0x3f;
+    out[op++] = (in5 >>> 2) & 0x3f;
+    out[op++] = (in5 >>> 8) & 0x3f;
+    out[op++] = (in5 >>> 14) & 0x3f;
+    out[op++] = (in5 >>> 20) & 0x3f;
+    out[op] = (in5 >>> 26) & 0x3f;
+}
+function fastUnpack32_7(inValues, inPos, out, outPos) {
+    let op = outPos;
+    const in0 = inValues[inPos] >>> 0;
+    const in1 = inValues[inPos + 1] >>> 0;
+    const in2 = inValues[inPos + 2] >>> 0;
+    const in3 = inValues[inPos + 3] >>> 0;
+    const in4 = inValues[inPos + 4] >>> 0;
+    const in5 = inValues[inPos + 5] >>> 0;
+    const in6 = inValues[inPos + 6] >>> 0;
+    out[op++] = (in0 >>> 0) & 0x7f;
+    out[op++] = (in0 >>> 7) & 0x7f;
+    out[op++] = (in0 >>> 14) & 0x7f;
+    out[op++] = (in0 >>> 21) & 0x7f;
+    out[op++] = ((in0 >>> 28) | ((in1 & 0x7) << 4)) & 0x7f;
+    out[op++] = (in1 >>> 3) & 0x7f;
+    out[op++] = (in1 >>> 10) & 0x7f;
+    out[op++] = (in1 >>> 17) & 0x7f;
+    out[op++] = (in1 >>> 24) & 0x7f;
+    out[op++] = ((in1 >>> 31) | ((in2 & 0x3f) << 1)) & 0x7f;
+    out[op++] = (in2 >>> 6) & 0x7f;
+    out[op++] = (in2 >>> 13) & 0x7f;
+    out[op++] = (in2 >>> 20) & 0x7f;
+    out[op++] = ((in2 >>> 27) | ((in3 & 0x3) << 5)) & 0x7f;
+    out[op++] = (in3 >>> 2) & 0x7f;
+    out[op++] = (in3 >>> 9) & 0x7f;
+    out[op++] = (in3 >>> 16) & 0x7f;
+    out[op++] = (in3 >>> 23) & 0x7f;
+    out[op++] = ((in3 >>> 30) | ((in4 & 0x1f) << 2)) & 0x7f;
+    out[op++] = (in4 >>> 5) & 0x7f;
+    out[op++] = (in4 >>> 12) & 0x7f;
+    out[op++] = (in4 >>> 19) & 0x7f;
+    out[op++] = ((in4 >>> 26) | ((in5 & 0x1) << 6)) & 0x7f;
+    out[op++] = (in5 >>> 1) & 0x7f;
+    out[op++] = (in5 >>> 8) & 0x7f;
+    out[op++] = (in5 >>> 15) & 0x7f;
+    out[op++] = (in5 >>> 22) & 0x7f;
+    out[op++] = ((in5 >>> 29) | ((in6 & 0xf) << 3)) & 0x7f;
+    out[op++] = (in6 >>> 4) & 0x7f;
+    out[op++] = (in6 >>> 11) & 0x7f;
+    out[op++] = (in6 >>> 18) & 0x7f;
+    out[op] = (in6 >>> 25) & 0x7f;
+}
+function fastUnpack32_8(inValues, inPos, out, outPos) {
+    let op = outPos;
+    const in0 = inValues[inPos] >>> 0;
+    const in1 = inValues[inPos + 1] >>> 0;
+    const in2 = inValues[inPos + 2] >>> 0;
+    const in3 = inValues[inPos + 3] >>> 0;
+    const in4 = inValues[inPos + 4] >>> 0;
+    const in5 = inValues[inPos + 5] >>> 0;
+    const in6 = inValues[inPos + 6] >>> 0;
+    const in7 = inValues[inPos + 7] >>> 0;
+    out[op++] = (in0 >>> 0) & 0xff;
+    out[op++] = (in0 >>> 8) & 0xff;
+    out[op++] = (in0 >>> 16) & 0xff;
+    out[op++] = (in0 >>> 24) & 0xff;
+    out[op++] = (in1 >>> 0) & 0xff;
+    out[op++] = (in1 >>> 8) & 0xff;
+    out[op++] = (in1 >>> 16) & 0xff;
+    out[op++] = (in1 >>> 24) & 0xff;
+    out[op++] = (in2 >>> 0) & 0xff;
+    out[op++] = (in2 >>> 8) & 0xff;
+    out[op++] = (in2 >>> 16) & 0xff;
+    out[op++] = (in2 >>> 24) & 0xff;
+    out[op++] = (in3 >>> 0) & 0xff;
+    out[op++] = (in3 >>> 8) & 0xff;
+    out[op++] = (in3 >>> 16) & 0xff;
+    out[op++] = (in3 >>> 24) & 0xff;
+    out[op++] = (in4 >>> 0) & 0xff;
+    out[op++] = (in4 >>> 8) & 0xff;
+    out[op++] = (in4 >>> 16) & 0xff;
+    out[op++] = (in4 >>> 24) & 0xff;
+    out[op++] = (in5 >>> 0) & 0xff;
+    out[op++] = (in5 >>> 8) & 0xff;
+    out[op++] = (in5 >>> 16) & 0xff;
+    out[op++] = (in5 >>> 24) & 0xff;
+    out[op++] = (in6 >>> 0) & 0xff;
+    out[op++] = (in6 >>> 8) & 0xff;
+    out[op++] = (in6 >>> 16) & 0xff;
+    out[op++] = (in6 >>> 24) & 0xff;
+    out[op++] = (in7 >>> 0) & 0xff;
+    out[op++] = (in7 >>> 8) & 0xff;
+    out[op++] = (in7 >>> 16) & 0xff;
+    out[op] = (in7 >>> 24) & 0xff;
+}
+function fastUnpack32_9(inValues, inPos, out, outPos) {
+    let op = outPos;
+    const in0 = inValues[inPos] >>> 0;
+    const in1 = inValues[inPos + 1] >>> 0;
+    const in2 = inValues[inPos + 2] >>> 0;
+    const in3 = inValues[inPos + 3] >>> 0;
+    const in4 = inValues[inPos + 4] >>> 0;
+    const in5 = inValues[inPos + 5] >>> 0;
+    const in6 = inValues[inPos + 6] >>> 0;
+    const in7 = inValues[inPos + 7] >>> 0;
+    const in8 = inValues[inPos + 8] >>> 0;
+    out[op++] = (in0 >>> 0) & 0x1ff;
+    out[op++] = (in0 >>> 9) & 0x1ff;
+    out[op++] = (in0 >>> 18) & 0x1ff;
+    out[op++] = ((in0 >>> 27) | ((in1 & 0xf) << 5)) & 0x1ff;
+    out[op++] = (in1 >>> 4) & 0x1ff;
+    out[op++] = (in1 >>> 13) & 0x1ff;
+    out[op++] = (in1 >>> 22) & 0x1ff;
+    out[op++] = ((in1 >>> 31) | ((in2 & 0xff) << 1)) & 0x1ff;
+    out[op++] = (in2 >>> 8) & 0x1ff;
+    out[op++] = (in2 >>> 17) & 0x1ff;
+    out[op++] = ((in2 >>> 26) | ((in3 & 0x7) << 6)) & 0x1ff;
+    out[op++] = (in3 >>> 3) & 0x1ff;
+    out[op++] = (in3 >>> 12) & 0x1ff;
+    out[op++] = (in3 >>> 21) & 0x1ff;
+    out[op++] = ((in3 >>> 30) | ((in4 & 0x7f) << 2)) & 0x1ff;
+    out[op++] = (in4 >>> 7) & 0x1ff;
+    out[op++] = (in4 >>> 16) & 0x1ff;
+    out[op++] = ((in4 >>> 25) | ((in5 & 0x3) << 7)) & 0x1ff;
+    out[op++] = (in5 >>> 2) & 0x1ff;
+    out[op++] = (in5 >>> 11) & 0x1ff;
+    out[op++] = (in5 >>> 20) & 0x1ff;
+    out[op++] = ((in5 >>> 29) | ((in6 & 0x3f) << 3)) & 0x1ff;
+    out[op++] = (in6 >>> 6) & 0x1ff;
+    out[op++] = (in6 >>> 15) & 0x1ff;
+    out[op++] = ((in6 >>> 24) | ((in7 & 0x1) << 8)) & 0x1ff;
+    out[op++] = (in7 >>> 1) & 0x1ff;
+    out[op++] = (in7 >>> 10) & 0x1ff;
+    out[op++] = (in7 >>> 19) & 0x1ff;
+    out[op++] = ((in7 >>> 28) | ((in8 & 0x1f) << 4)) & 0x1ff;
+    out[op++] = (in8 >>> 5) & 0x1ff;
+    out[op++] = (in8 >>> 14) & 0x1ff;
+    out[op] = (in8 >>> 23) & 0x1ff;
+}
+function fastUnpack32_10(inValues, inPos, out, outPos) {
+    let op = outPos;
+    const in0 = inValues[inPos] >>> 0;
+    const in1 = inValues[inPos + 1] >>> 0;
+    const in2 = inValues[inPos + 2] >>> 0;
+    const in3 = inValues[inPos + 3] >>> 0;
+    const in4 = inValues[inPos + 4] >>> 0;
+    const in5 = inValues[inPos + 5] >>> 0;
+    const in6 = inValues[inPos + 6] >>> 0;
+    const in7 = inValues[inPos + 7] >>> 0;
+    const in8 = inValues[inPos + 8] >>> 0;
+    const in9 = inValues[inPos + 9] >>> 0;
+    out[op++] = (in0 >>> 0) & 0x3ff;
+    out[op++] = (in0 >>> 10) & 0x3ff;
+    out[op++] = (in0 >>> 20) & 0x3ff;
+    out[op++] = ((in0 >>> 30) | ((in1 & 0xff) << 2)) & 0x3ff;
+    out[op++] = (in1 >>> 8) & 0x3ff;
+    out[op++] = (in1 >>> 18) & 0x3ff;
+    out[op++] = ((in1 >>> 28) | ((in2 & 0x3f) << 4)) & 0x3ff;
+    out[op++] = (in2 >>> 6) & 0x3ff;
+    out[op++] = (in2 >>> 16) & 0x3ff;
+    out[op++] = ((in2 >>> 26) | ((in3 & 0xf) << 6)) & 0x3ff;
+    out[op++] = (in3 >>> 4) & 0x3ff;
+    out[op++] = (in3 >>> 14) & 0x3ff;
+    out[op++] = ((in3 >>> 24) | ((in4 & 0x3) << 8)) & 0x3ff;
+    out[op++] = (in4 >>> 2) & 0x3ff;
+    out[op++] = (in4 >>> 12) & 0x3ff;
+    out[op++] = (in4 >>> 22) & 0x3ff;
+    out[op++] = (in5 >>> 0) & 0x3ff;
+    out[op++] = (in5 >>> 10) & 0x3ff;
+    out[op++] = (in5 >>> 20) & 0x3ff;
+    out[op++] = ((in5 >>> 30) | ((in6 & 0xff) << 2)) & 0x3ff;
+    out[op++] = (in6 >>> 8) & 0x3ff;
+    out[op++] = (in6 >>> 18) & 0x3ff;
+    out[op++] = ((in6 >>> 28) | ((in7 & 0x3f) << 4)) & 0x3ff;
+    out[op++] = (in7 >>> 6) & 0x3ff;
+    out[op++] = (in7 >>> 16) & 0x3ff;
+    out[op++] = ((in7 >>> 26) | ((in8 & 0xf) << 6)) & 0x3ff;
+    out[op++] = (in8 >>> 4) & 0x3ff;
+    out[op++] = (in8 >>> 14) & 0x3ff;
+    out[op++] = ((in8 >>> 24) | ((in9 & 0x3) << 8)) & 0x3ff;
+    out[op++] = (in9 >>> 2) & 0x3ff;
+    out[op++] = (in9 >>> 12) & 0x3ff;
+    out[op] = (in9 >>> 22) & 0x3ff;
+}
+function fastUnpack32_11(inValues, inPos, out, outPos) {
+    let op = outPos;
+    const in0 = inValues[inPos] >>> 0;
+    const in1 = inValues[inPos + 1] >>> 0;
+    const in2 = inValues[inPos + 2] >>> 0;
+    const in3 = inValues[inPos + 3] >>> 0;
+    const in4 = inValues[inPos + 4] >>> 0;
+    const in5 = inValues[inPos + 5] >>> 0;
+    const in6 = inValues[inPos + 6] >>> 0;
+    const in7 = inValues[inPos + 7] >>> 0;
+    const in8 = inValues[inPos + 8] >>> 0;
+    const in9 = inValues[inPos + 9] >>> 0;
+    const in10 = inValues[inPos + 10] >>> 0;
+    out[op++] = (in0 >>> 0) & 0x7ff;
+    out[op++] = (in0 >>> 11) & 0x7ff;
+    out[op++] = ((in0 >>> 22) | ((in1 & 0x1) << 10)) & 0x7ff;
+    out[op++] = (in1 >>> 1) & 0x7ff;
+    out[op++] = (in1 >>> 12) & 0x7ff;
+    out[op++] = ((in1 >>> 23) | ((in2 & 0x3) << 9)) & 0x7ff;
+    out[op++] = (in2 >>> 2) & 0x7ff;
+    out[op++] = (in2 >>> 13) & 0x7ff;
+    out[op++] = ((in2 >>> 24) | ((in3 & 0x7) << 8)) & 0x7ff;
+    out[op++] = (in3 >>> 3) & 0x7ff;
+    out[op++] = (in3 >>> 14) & 0x7ff;
+    out[op++] = ((in3 >>> 25) | ((in4 & 0xf) << 7)) & 0x7ff;
+    out[op++] = (in4 >>> 4) & 0x7ff;
+    out[op++] = (in4 >>> 15) & 0x7ff;
+    out[op++] = ((in4 >>> 26) | ((in5 & 0x1f) << 6)) & 0x7ff;
+    out[op++] = (in5 >>> 5) & 0x7ff;
+    out[op++] = (in5 >>> 16) & 0x7ff;
+    out[op++] = ((in5 >>> 27) | ((in6 & 0x3f) << 5)) & 0x7ff;
+    out[op++] = (in6 >>> 6) & 0x7ff;
+    out[op++] = (in6 >>> 17) & 0x7ff;
+    out[op++] = ((in6 >>> 28) | ((in7 & 0x7f) << 4)) & 0x7ff;
+    out[op++] = (in7 >>> 7) & 0x7ff;
+    out[op++] = (in7 >>> 18) & 0x7ff;
+    out[op++] = ((in7 >>> 29) | ((in8 & 0xff) << 3)) & 0x7ff;
+    out[op++] = (in8 >>> 8) & 0x7ff;
+    out[op++] = (in8 >>> 19) & 0x7ff;
+    out[op++] = ((in8 >>> 30) | ((in9 & 0x1ff) << 2)) & 0x7ff;
+    out[op++] = (in9 >>> 9) & 0x7ff;
+    out[op++] = (in9 >>> 20) & 0x7ff;
+    out[op++] = ((in9 >>> 31) | ((in10 & 0x3ff) << 1)) & 0x7ff;
+    out[op++] = (in10 >>> 10) & 0x7ff;
+    out[op] = (in10 >>> 21) & 0x7ff;
+}
+function fastUnpack32_12(inValues, inPos, out, outPos) {
+    let op = outPos;
+    const in0 = inValues[inPos] >>> 0;
+    const in1 = inValues[inPos + 1] >>> 0;
+    const in2 = inValues[inPos + 2] >>> 0;
+    const in3 = inValues[inPos + 3] >>> 0;
+    const in4 = inValues[inPos + 4] >>> 0;
+    const in5 = inValues[inPos + 5] >>> 0;
+    const in6 = inValues[inPos + 6] >>> 0;
+    const in7 = inValues[inPos + 7] >>> 0;
+    const in8 = inValues[inPos + 8] >>> 0;
+    const in9 = inValues[inPos + 9] >>> 0;
+    const in10 = inValues[inPos + 10] >>> 0;
+    const in11 = inValues[inPos + 11] >>> 0;
+    out[op++] = (in0 >>> 0) & 0xfff;
+    out[op++] = (in0 >>> 12) & 0xfff;
+    out[op++] = ((in0 >>> 24) | ((in1 & 0xf) << 8)) & 0xfff;
+    out[op++] = (in1 >>> 4) & 0xfff;
+    out[op++] = (in1 >>> 16) & 0xfff;
+    out[op++] = ((in1 >>> 28) | ((in2 & 0xff) << 4)) & 0xfff;
+    out[op++] = (in2 >>> 8) & 0xfff;
+    out[op++] = (in2 >>> 20) & 0xfff;
+    out[op++] = (in3 >>> 0) & 0xfff;
+    out[op++] = (in3 >>> 12) & 0xfff;
+    out[op++] = ((in3 >>> 24) | ((in4 & 0xf) << 8)) & 0xfff;
+    out[op++] = (in4 >>> 4) & 0xfff;
+    out[op++] = (in4 >>> 16) & 0xfff;
+    out[op++] = ((in4 >>> 28) | ((in5 & 0xff) << 4)) & 0xfff;
+    out[op++] = (in5 >>> 8) & 0xfff;
+    out[op++] = (in5 >>> 20) & 0xfff;
+    out[op++] = (in6 >>> 0) & 0xfff;
+    out[op++] = (in6 >>> 12) & 0xfff;
+    out[op++] = ((in6 >>> 24) | ((in7 & 0xf) << 8)) & 0xfff;
+    out[op++] = (in7 >>> 4) & 0xfff;
+    out[op++] = (in7 >>> 16) & 0xfff;
+    out[op++] = ((in7 >>> 28) | ((in8 & 0xff) << 4)) & 0xfff;
+    out[op++] = (in8 >>> 8) & 0xfff;
+    out[op++] = (in8 >>> 20) & 0xfff;
+    out[op++] = (in9 >>> 0) & 0xfff;
+    out[op++] = (in9 >>> 12) & 0xfff;
+    out[op++] = ((in9 >>> 24) | ((in10 & 0xf) << 8)) & 0xfff;
+    out[op++] = (in10 >>> 4) & 0xfff;
+    out[op++] = (in10 >>> 16) & 0xfff;
+    out[op++] = ((in10 >>> 28) | ((in11 & 0xff) << 4)) & 0xfff;
+    out[op++] = (in11 >>> 8) & 0xfff;
+    out[op] = (in11 >>> 20) & 0xfff;
+}
+function fastUnpack32_16(inValues, inPos, out, outPos) {
+    let op = outPos;
+    const in0 = inValues[inPos] >>> 0;
+    const in1 = inValues[inPos + 1] >>> 0;
+    const in2 = inValues[inPos + 2] >>> 0;
+    const in3 = inValues[inPos + 3] >>> 0;
+    const in4 = inValues[inPos + 4] >>> 0;
+    const in5 = inValues[inPos + 5] >>> 0;
+    const in6 = inValues[inPos + 6] >>> 0;
+    const in7 = inValues[inPos + 7] >>> 0;
+    const in8 = inValues[inPos + 8] >>> 0;
+    const in9 = inValues[inPos + 9] >>> 0;
+    const in10 = inValues[inPos + 10] >>> 0;
+    const in11 = inValues[inPos + 11] >>> 0;
+    const in12 = inValues[inPos + 12] >>> 0;
+    const in13 = inValues[inPos + 13] >>> 0;
+    const in14 = inValues[inPos + 14] >>> 0;
+    const in15 = inValues[inPos + 15] >>> 0;
+    out[op++] = (in0 >>> 0) & 0xffff;
+    out[op++] = (in0 >>> 16) & 0xffff;
+    out[op++] = (in1 >>> 0) & 0xffff;
+    out[op++] = (in1 >>> 16) & 0xffff;
+    out[op++] = (in2 >>> 0) & 0xffff;
+    out[op++] = (in2 >>> 16) & 0xffff;
+    out[op++] = (in3 >>> 0) & 0xffff;
+    out[op++] = (in3 >>> 16) & 0xffff;
+    out[op++] = (in4 >>> 0) & 0xffff;
+    out[op++] = (in4 >>> 16) & 0xffff;
+    out[op++] = (in5 >>> 0) & 0xffff;
+    out[op++] = (in5 >>> 16) & 0xffff;
+    out[op++] = (in6 >>> 0) & 0xffff;
+    out[op++] = (in6 >>> 16) & 0xffff;
+    out[op++] = (in7 >>> 0) & 0xffff;
+    out[op++] = (in7 >>> 16) & 0xffff;
+    out[op++] = (in8 >>> 0) & 0xffff;
+    out[op++] = (in8 >>> 16) & 0xffff;
+    out[op++] = (in9 >>> 0) & 0xffff;
+    out[op++] = (in9 >>> 16) & 0xffff;
+    out[op++] = (in10 >>> 0) & 0xffff;
+    out[op++] = (in10 >>> 16) & 0xffff;
+    out[op++] = (in11 >>> 0) & 0xffff;
+    out[op++] = (in11 >>> 16) & 0xffff;
+    out[op++] = (in12 >>> 0) & 0xffff;
+    out[op++] = (in12 >>> 16) & 0xffff;
+    out[op++] = (in13 >>> 0) & 0xffff;
+    out[op++] = (in13 >>> 16) & 0xffff;
+    out[op++] = (in14 >>> 0) & 0xffff;
+    out[op++] = (in14 >>> 16) & 0xffff;
+    out[op++] = (in15 >>> 0) & 0xffff;
+    out[op] = (in15 >>> 16) & 0xffff;
+}
+function fastUnpack256_1(inValues, inPos, out, outPos) {
+    let op = outPos;
+    let ip = inPos;
+    for (let c = 0; c < 8; c++) {
+        const in0 = inValues[ip++] >>> 0;
+        out[op++] = (in0 >>> 0) & 0x1;
+        out[op++] = (in0 >>> 1) & 0x1;
+        out[op++] = (in0 >>> 2) & 0x1;
+        out[op++] = (in0 >>> 3) & 0x1;
+        out[op++] = (in0 >>> 4) & 0x1;
+        out[op++] = (in0 >>> 5) & 0x1;
+        out[op++] = (in0 >>> 6) & 0x1;
+        out[op++] = (in0 >>> 7) & 0x1;
+        out[op++] = (in0 >>> 8) & 0x1;
+        out[op++] = (in0 >>> 9) & 0x1;
+        out[op++] = (in0 >>> 10) & 0x1;
+        out[op++] = (in0 >>> 11) & 0x1;
+        out[op++] = (in0 >>> 12) & 0x1;
+        out[op++] = (in0 >>> 13) & 0x1;
+        out[op++] = (in0 >>> 14) & 0x1;
+        out[op++] = (in0 >>> 15) & 0x1;
+        out[op++] = (in0 >>> 16) & 0x1;
+        out[op++] = (in0 >>> 17) & 0x1;
+        out[op++] = (in0 >>> 18) & 0x1;
+        out[op++] = (in0 >>> 19) & 0x1;
+        out[op++] = (in0 >>> 20) & 0x1;
+        out[op++] = (in0 >>> 21) & 0x1;
+        out[op++] = (in0 >>> 22) & 0x1;
+        out[op++] = (in0 >>> 23) & 0x1;
+        out[op++] = (in0 >>> 24) & 0x1;
+        out[op++] = (in0 >>> 25) & 0x1;
+        out[op++] = (in0 >>> 26) & 0x1;
+        out[op++] = (in0 >>> 27) & 0x1;
+        out[op++] = (in0 >>> 28) & 0x1;
+        out[op++] = (in0 >>> 29) & 0x1;
+        out[op++] = (in0 >>> 30) & 0x1;
+        out[op++] = (in0 >>> 31) & 0x1;
+    }
+}
+function fastUnpack256_2(inValues, inPos, out, outPos) {
+    let op = outPos;
+    let ip = inPos;
+    for (let c = 0; c < 8; c++) {
+        const in0 = inValues[ip++] >>> 0;
+        const in1 = inValues[ip++] >>> 0;
+        out[op++] = (in0 >>> 0) & 0x3;
+        out[op++] = (in0 >>> 2) & 0x3;
+        out[op++] = (in0 >>> 4) & 0x3;
+        out[op++] = (in0 >>> 6) & 0x3;
+        out[op++] = (in0 >>> 8) & 0x3;
+        out[op++] = (in0 >>> 10) & 0x3;
+        out[op++] = (in0 >>> 12) & 0x3;
+        out[op++] = (in0 >>> 14) & 0x3;
+        out[op++] = (in0 >>> 16) & 0x3;
+        out[op++] = (in0 >>> 18) & 0x3;
+        out[op++] = (in0 >>> 20) & 0x3;
+        out[op++] = (in0 >>> 22) & 0x3;
+        out[op++] = (in0 >>> 24) & 0x3;
+        out[op++] = (in0 >>> 26) & 0x3;
+        out[op++] = (in0 >>> 28) & 0x3;
+        out[op++] = (in0 >>> 30) & 0x3;
+        out[op++] = (in1 >>> 0) & 0x3;
+        out[op++] = (in1 >>> 2) & 0x3;
+        out[op++] = (in1 >>> 4) & 0x3;
+        out[op++] = (in1 >>> 6) & 0x3;
+        out[op++] = (in1 >>> 8) & 0x3;
+        out[op++] = (in1 >>> 10) & 0x3;
+        out[op++] = (in1 >>> 12) & 0x3;
+        out[op++] = (in1 >>> 14) & 0x3;
+        out[op++] = (in1 >>> 16) & 0x3;
+        out[op++] = (in1 >>> 18) & 0x3;
+        out[op++] = (in1 >>> 20) & 0x3;
+        out[op++] = (in1 >>> 22) & 0x3;
+        out[op++] = (in1 >>> 24) & 0x3;
+        out[op++] = (in1 >>> 26) & 0x3;
+        out[op++] = (in1 >>> 28) & 0x3;
+        out[op++] = (in1 >>> 30) & 0x3;
+    }
+}
+function fastUnpack256_3(inValues, inPos, out, outPos) {
+    let op = outPos;
+    let ip = inPos;
+    for (let c = 0; c < 8; c++) {
+        const in0 = inValues[ip++] >>> 0;
+        const in1 = inValues[ip++] >>> 0;
+        const in2 = inValues[ip++] >>> 0;
+        out[op++] = (in0 >>> 0) & 0x7;
+        out[op++] = (in0 >>> 3) & 0x7;
+        out[op++] = (in0 >>> 6) & 0x7;
+        out[op++] = (in0 >>> 9) & 0x7;
+        out[op++] = (in0 >>> 12) & 0x7;
+        out[op++] = (in0 >>> 15) & 0x7;
+        out[op++] = (in0 >>> 18) & 0x7;
+        out[op++] = (in0 >>> 21) & 0x7;
+        out[op++] = (in0 >>> 24) & 0x7;
+        out[op++] = (in0 >>> 27) & 0x7;
+        out[op++] = ((in0 >>> 30) | ((in1 & 0x1) << 2)) & 0x7;
+        out[op++] = (in1 >>> 1) & 0x7;
+        out[op++] = (in1 >>> 4) & 0x7;
+        out[op++] = (in1 >>> 7) & 0x7;
+        out[op++] = (in1 >>> 10) & 0x7;
+        out[op++] = (in1 >>> 13) & 0x7;
+        out[op++] = (in1 >>> 16) & 0x7;
+        out[op++] = (in1 >>> 19) & 0x7;
+        out[op++] = (in1 >>> 22) & 0x7;
+        out[op++] = (in1 >>> 25) & 0x7;
+        out[op++] = (in1 >>> 28) & 0x7;
+        out[op++] = ((in1 >>> 31) | ((in2 & 0x3) << 1)) & 0x7;
+        out[op++] = (in2 >>> 2) & 0x7;
+        out[op++] = (in2 >>> 5) & 0x7;
+        out[op++] = (in2 >>> 8) & 0x7;
+        out[op++] = (in2 >>> 11) & 0x7;
+        out[op++] = (in2 >>> 14) & 0x7;
+        out[op++] = (in2 >>> 17) & 0x7;
+        out[op++] = (in2 >>> 20) & 0x7;
+        out[op++] = (in2 >>> 23) & 0x7;
+        out[op++] = (in2 >>> 26) & 0x7;
+        out[op++] = (in2 >>> 29) & 0x7;
+    }
+}
+function fastUnpack256_4(inValues, inPos, out, outPos) {
+    let op = outPos;
+    let ip = inPos;
+    for (let c = 0; c < 8; c++) {
+        const in0 = inValues[ip++] >>> 0;
+        const in1 = inValues[ip++] >>> 0;
+        const in2 = inValues[ip++] >>> 0;
+        const in3 = inValues[ip++] >>> 0;
+        out[op++] = (in0 >>> 0) & 0xf;
+        out[op++] = (in0 >>> 4) & 0xf;
+        out[op++] = (in0 >>> 8) & 0xf;
+        out[op++] = (in0 >>> 12) & 0xf;
+        out[op++] = (in0 >>> 16) & 0xf;
+        out[op++] = (in0 >>> 20) & 0xf;
+        out[op++] = (in0 >>> 24) & 0xf;
+        out[op++] = (in0 >>> 28) & 0xf;
+        out[op++] = (in1 >>> 0) & 0xf;
+        out[op++] = (in1 >>> 4) & 0xf;
+        out[op++] = (in1 >>> 8) & 0xf;
+        out[op++] = (in1 >>> 12) & 0xf;
+        out[op++] = (in1 >>> 16) & 0xf;
+        out[op++] = (in1 >>> 20) & 0xf;
+        out[op++] = (in1 >>> 24) & 0xf;
+        out[op++] = (in1 >>> 28) & 0xf;
+        out[op++] = (in2 >>> 0) & 0xf;
+        out[op++] = (in2 >>> 4) & 0xf;
+        out[op++] = (in2 >>> 8) & 0xf;
+        out[op++] = (in2 >>> 12) & 0xf;
+        out[op++] = (in2 >>> 16) & 0xf;
+        out[op++] = (in2 >>> 20) & 0xf;
+        out[op++] = (in2 >>> 24) & 0xf;
+        out[op++] = (in2 >>> 28) & 0xf;
+        out[op++] = (in3 >>> 0) & 0xf;
+        out[op++] = (in3 >>> 4) & 0xf;
+        out[op++] = (in3 >>> 8) & 0xf;
+        out[op++] = (in3 >>> 12) & 0xf;
+        out[op++] = (in3 >>> 16) & 0xf;
+        out[op++] = (in3 >>> 20) & 0xf;
+        out[op++] = (in3 >>> 24) & 0xf;
+        out[op++] = (in3 >>> 28) & 0xf;
+    }
+}
+function fastUnpack256_5(inValues, inPos, out, outPos) {
+    let op = outPos;
+    let ip = inPos;
+    for (let c = 0; c < 8; c++) {
+        const in0 = inValues[ip++] >>> 0;
+        const in1 = inValues[ip++] >>> 0;
+        const in2 = inValues[ip++] >>> 0;
+        const in3 = inValues[ip++] >>> 0;
+        const in4 = inValues[ip++] >>> 0;
+        out[op++] = (in0 >>> 0) & 0x1f;
+        out[op++] = (in0 >>> 5) & 0x1f;
+        out[op++] = (in0 >>> 10) & 0x1f;
+        out[op++] = (in0 >>> 15) & 0x1f;
+        out[op++] = (in0 >>> 20) & 0x1f;
+        out[op++] = (in0 >>> 25) & 0x1f;
+        out[op++] = ((in0 >>> 30) | ((in1 & 0x7) << 2)) & 0x1f;
+        out[op++] = (in1 >>> 3) & 0x1f;
+        out[op++] = (in1 >>> 8) & 0x1f;
+        out[op++] = (in1 >>> 13) & 0x1f;
+        out[op++] = (in1 >>> 18) & 0x1f;
+        out[op++] = (in1 >>> 23) & 0x1f;
+        out[op++] = ((in1 >>> 28) | ((in2 & 0x1) << 4)) & 0x1f;
+        out[op++] = (in2 >>> 1) & 0x1f;
+        out[op++] = (in2 >>> 6) & 0x1f;
+        out[op++] = (in2 >>> 11) & 0x1f;
+        out[op++] = (in2 >>> 16) & 0x1f;
+        out[op++] = (in2 >>> 21) & 0x1f;
+        out[op++] = (in2 >>> 26) & 0x1f;
+        out[op++] = ((in2 >>> 31) | ((in3 & 0xf) << 1)) & 0x1f;
+        out[op++] = (in3 >>> 4) & 0x1f;
+        out[op++] = (in3 >>> 9) & 0x1f;
+        out[op++] = (in3 >>> 14) & 0x1f;
+        out[op++] = (in3 >>> 19) & 0x1f;
+        out[op++] = (in3 >>> 24) & 0x1f;
+        out[op++] = ((in3 >>> 29) | ((in4 & 0x3) << 3)) & 0x1f;
+        out[op++] = (in4 >>> 2) & 0x1f;
+        out[op++] = (in4 >>> 7) & 0x1f;
+        out[op++] = (in4 >>> 12) & 0x1f;
+        out[op++] = (in4 >>> 17) & 0x1f;
+        out[op++] = (in4 >>> 22) & 0x1f;
+        out[op++] = (in4 >>> 27) & 0x1f;
+    }
+}
+function fastUnpack256_6(inValues, inPos, out, outPos) {
+    let op = outPos;
+    let ip = inPos;
+    for (let c = 0; c < 8; c++) {
+        const in0 = inValues[ip++] >>> 0;
+        const in1 = inValues[ip++] >>> 0;
+        const in2 = inValues[ip++] >>> 0;
+        const in3 = inValues[ip++] >>> 0;
+        const in4 = inValues[ip++] >>> 0;
+        const in5 = inValues[ip++] >>> 0;
+        out[op++] = (in0 >>> 0) & 0x3f;
+        out[op++] = (in0 >>> 6) & 0x3f;
+        out[op++] = (in0 >>> 12) & 0x3f;
+        out[op++] = (in0 >>> 18) & 0x3f;
+        out[op++] = (in0 >>> 24) & 0x3f;
+        out[op++] = ((in0 >>> 30) | ((in1 & 0xf) << 2)) & 0x3f;
+        out[op++] = (in1 >>> 4) & 0x3f;
+        out[op++] = (in1 >>> 10) & 0x3f;
+        out[op++] = (in1 >>> 16) & 0x3f;
+        out[op++] = (in1 >>> 22) & 0x3f;
+        out[op++] = ((in1 >>> 28) | ((in2 & 0x3) << 4)) & 0x3f;
+        out[op++] = (in2 >>> 2) & 0x3f;
+        out[op++] = (in2 >>> 8) & 0x3f;
+        out[op++] = (in2 >>> 14) & 0x3f;
+        out[op++] = (in2 >>> 20) & 0x3f;
+        out[op++] = (in2 >>> 26) & 0x3f;
+        out[op++] = (in3 >>> 0) & 0x3f;
+        out[op++] = (in3 >>> 6) & 0x3f;
+        out[op++] = (in3 >>> 12) & 0x3f;
+        out[op++] = (in3 >>> 18) & 0x3f;
+        out[op++] = (in3 >>> 24) & 0x3f;
+        out[op++] = ((in3 >>> 30) | ((in4 & 0xf) << 2)) & 0x3f;
+        out[op++] = (in4 >>> 4) & 0x3f;
+        out[op++] = (in4 >>> 10) & 0x3f;
+        out[op++] = (in4 >>> 16) & 0x3f;
+        out[op++] = (in4 >>> 22) & 0x3f;
+        out[op++] = ((in4 >>> 28) | ((in5 & 0x3) << 4)) & 0x3f;
+        out[op++] = (in5 >>> 2) & 0x3f;
+        out[op++] = (in5 >>> 8) & 0x3f;
+        out[op++] = (in5 >>> 14) & 0x3f;
+        out[op++] = (in5 >>> 20) & 0x3f;
+        out[op++] = (in5 >>> 26) & 0x3f;
+    }
+}
+function fastUnpack256_7(inValues, inPos, out, outPos) {
+    let op = outPos;
+    let ip = inPos;
+    for (let c = 0; c < 8; c++) {
+        const in0 = inValues[ip++] >>> 0;
+        const in1 = inValues[ip++] >>> 0;
+        const in2 = inValues[ip++] >>> 0;
+        const in3 = inValues[ip++] >>> 0;
+        const in4 = inValues[ip++] >>> 0;
+        const in5 = inValues[ip++] >>> 0;
+        const in6 = inValues[ip++] >>> 0;
+        out[op++] = (in0 >>> 0) & 0x7f;
+        out[op++] = (in0 >>> 7) & 0x7f;
+        out[op++] = (in0 >>> 14) & 0x7f;
+        out[op++] = (in0 >>> 21) & 0x7f;
+        out[op++] = ((in0 >>> 28) | ((in1 & 0x7) << 4)) & 0x7f;
+        out[op++] = (in1 >>> 3) & 0x7f;
+        out[op++] = (in1 >>> 10) & 0x7f;
+        out[op++] = (in1 >>> 17) & 0x7f;
+        out[op++] = (in1 >>> 24) & 0x7f;
+        out[op++] = ((in1 >>> 31) | ((in2 & 0x3f) << 1)) & 0x7f;
+        out[op++] = (in2 >>> 6) & 0x7f;
+        out[op++] = (in2 >>> 13) & 0x7f;
+        out[op++] = (in2 >>> 20) & 0x7f;
+        out[op++] = ((in2 >>> 27) | ((in3 & 0x3) << 5)) & 0x7f;
+        out[op++] = (in3 >>> 2) & 0x7f;
+        out[op++] = (in3 >>> 9) & 0x7f;
+        out[op++] = (in3 >>> 16) & 0x7f;
+        out[op++] = (in3 >>> 23) & 0x7f;
+        out[op++] = ((in3 >>> 30) | ((in4 & 0x1f) << 2)) & 0x7f;
+        out[op++] = (in4 >>> 5) & 0x7f;
+        out[op++] = (in4 >>> 12) & 0x7f;
+        out[op++] = (in4 >>> 19) & 0x7f;
+        out[op++] = ((in4 >>> 26) | ((in5 & 0x1) << 6)) & 0x7f;
+        out[op++] = (in5 >>> 1) & 0x7f;
+        out[op++] = (in5 >>> 8) & 0x7f;
+        out[op++] = (in5 >>> 15) & 0x7f;
+        out[op++] = (in5 >>> 22) & 0x7f;
+        out[op++] = ((in5 >>> 29) | ((in6 & 0xf) << 3)) & 0x7f;
+        out[op++] = (in6 >>> 4) & 0x7f;
+        out[op++] = (in6 >>> 11) & 0x7f;
+        out[op++] = (in6 >>> 18) & 0x7f;
+        out[op++] = (in6 >>> 25) & 0x7f;
+    }
+}
+function fastUnpack256_8(inValues, inPos, out, outPos) {
+    let op = outPos;
+    let ip = inPos;
+    for (let c = 0; c < 8; c++) {
+        const in0 = inValues[ip++] >>> 0;
+        const in1 = inValues[ip++] >>> 0;
+        const in2 = inValues[ip++] >>> 0;
+        const in3 = inValues[ip++] >>> 0;
+        const in4 = inValues[ip++] >>> 0;
+        const in5 = inValues[ip++] >>> 0;
+        const in6 = inValues[ip++] >>> 0;
+        const in7 = inValues[ip++] >>> 0;
+        out[op++] = (in0 >>> 0) & 0xff;
+        out[op++] = (in0 >>> 8) & 0xff;
+        out[op++] = (in0 >>> 16) & 0xff;
+        out[op++] = (in0 >>> 24) & 0xff;
+        out[op++] = (in1 >>> 0) & 0xff;
+        out[op++] = (in1 >>> 8) & 0xff;
+        out[op++] = (in1 >>> 16) & 0xff;
+        out[op++] = (in1 >>> 24) & 0xff;
+        out[op++] = (in2 >>> 0) & 0xff;
+        out[op++] = (in2 >>> 8) & 0xff;
+        out[op++] = (in2 >>> 16) & 0xff;
+        out[op++] = (in2 >>> 24) & 0xff;
+        out[op++] = (in3 >>> 0) & 0xff;
+        out[op++] = (in3 >>> 8) & 0xff;
+        out[op++] = (in3 >>> 16) & 0xff;
+        out[op++] = (in3 >>> 24) & 0xff;
+        out[op++] = (in4 >>> 0) & 0xff;
+        out[op++] = (in4 >>> 8) & 0xff;
+        out[op++] = (in4 >>> 16) & 0xff;
+        out[op++] = (in4 >>> 24) & 0xff;
+        out[op++] = (in5 >>> 0) & 0xff;
+        out[op++] = (in5 >>> 8) & 0xff;
+        out[op++] = (in5 >>> 16) & 0xff;
+        out[op++] = (in5 >>> 24) & 0xff;
+        out[op++] = (in6 >>> 0) & 0xff;
+        out[op++] = (in6 >>> 8) & 0xff;
+        out[op++] = (in6 >>> 16) & 0xff;
+        out[op++] = (in6 >>> 24) & 0xff;
+        out[op++] = (in7 >>> 0) & 0xff;
+        out[op++] = (in7 >>> 8) & 0xff;
+        out[op++] = (in7 >>> 16) & 0xff;
+        out[op++] = (in7 >>> 24) & 0xff;
+    }
+}
+function fastUnpack256_16(inValues, inPos, out, outPos) {
+    let op = outPos;
+    let ip = inPos;
+    for (let i = 0; i < 128; i++) {
+        const in0 = inValues[ip++] >>> 0;
+        out[op++] = in0 & 0xffff;
+        out[op++] = (in0 >>> 16) & 0xffff;
+    }
+}
+function fastUnpack256_Generic(inValues, inPos, out, outPos, bitWidth) {
+    const mask = MASKS[bitWidth] >>> 0;
+    let inputWordIndex = inPos;
+    let bitOffset = 0;
+    let currentWord = inValues[inputWordIndex] >>> 0;
+    let op = outPos;
+    for (let c = 0; c < 8; c++) {
+        for (let i = 0; i < 32; i++) {
+            if (bitOffset + bitWidth <= 32) {
+                const value = (currentWord >>> bitOffset) & mask;
+                out[op + i] = value | 0;
+                bitOffset += bitWidth;
+                if (bitOffset === 32) {
+                    bitOffset = 0;
+                    inputWordIndex++;
+                    if (i !== 31) {
+                        currentWord = inValues[inputWordIndex] >>> 0;
+                    }
+                }
+            }
+            else {
+                const lowBits = 32 - bitOffset;
+                const low = currentWord >>> bitOffset;
+                inputWordIndex++;
+                currentWord = inValues[inputWordIndex] >>> 0;
+                const highBits = bitWidth - lowBits;
+                const highMask = (-1 >>> (32 - highBits)) >>> 0;
+                const high = currentWord & highMask;
+                const value = (low | (high << lowBits)) & mask;
+                out[op + i] = value | 0;
+                bitOffset = highBits;
+            }
+        }
+        op += 32;
+        bitOffset = 0;
+        if (c < 7) {
+            currentWord = inValues[inputWordIndex] >>> 0;
+        }
+    }
+}
+
+const MAX_BIT_WIDTH = 32;
+const BIT_WIDTH_SLOTS = MAX_BIT_WIDTH + 1;
+const PAGE_SIZE = normalizePageSize(DEFAULT_PAGE_SIZE);
+const BYTE_CONTAINER_SIZE = ((3 * PAGE_SIZE) / BLOCK_SIZE + PAGE_SIZE) | 0;
+/**
+ * Creates an isolated workspace for decoding.
+ * Reusing a workspace across calls avoids repeated allocations.
+ */
+function createDecoderWorkspace() {
+    const byteContainer = new Uint8Array(BYTE_CONTAINER_SIZE);
+    return {
+        dataToBePacked: new Array(BIT_WIDTH_SLOTS),
+        dataPointers: new Int32Array(BIT_WIDTH_SLOTS),
+        byteContainer,
+        byteContainerI32: new Int32Array(byteContainer.buffer, byteContainer.byteOffset, byteContainer.byteLength >>> 2),
+        exceptionSizes: new Int32Array(BIT_WIDTH_SLOTS),
+    };
+}
+function createFastPforWireDecodeWorkspace(initialEncodedWordCapacity = 16) {
+    if (initialEncodedWordCapacity < 0) {
+        throw new RangeError(`initialEncodedWordCapacity must be >= 0, got ${initialEncodedWordCapacity}`);
+    }
+    const capacity = Math.max(16, initialEncodedWordCapacity | 0);
+    return {
+        encodedWords: new Uint32Array(capacity),
+        decoderWorkspace: createDecoderWorkspace(),
+    };
+}
+function ensureFastPforWireEncodedWordsCapacity(workspace, requiredWordCount) {
+    if (requiredWordCount <= workspace.encodedWords.length)
+        return workspace.encodedWords;
+    const next = new Uint32Array(Math.max(16, requiredWordCount * 2));
+    workspace.encodedWords = next;
+    return next;
+}
+function materializeByteContainer(inValues, byteContainerStart, byteSize, workspace) {
+    if (workspace.byteContainer.length < byteSize) {
+        workspace.byteContainer = new Uint8Array(byteSize * 2);
+        workspace.byteContainerI32 = undefined;
+    }
+    const byteContainer = workspace.byteContainer;
+    const numFullInts = byteSize >>> 2;
+    if ((byteContainer.byteOffset & 3) === 0) {
+        let intView = workspace.byteContainerI32;
+        if (!intView ||
+            intView.buffer !== byteContainer.buffer ||
+            intView.byteOffset !== byteContainer.byteOffset ||
+            intView.length < numFullInts) {
+            intView = workspace.byteContainerI32 = new Int32Array(byteContainer.buffer, byteContainer.byteOffset, byteContainer.byteLength >>> 2);
+        }
+        intView.set(inValues.subarray(byteContainerStart, byteContainerStart + numFullInts));
+    }
+    else {
+        for (let i = 0; i < numFullInts; i = (i + 1) | 0) {
+            const val = inValues[(byteContainerStart + i) | 0] | 0;
+            const base = i << 2;
+            byteContainer[base] = val & 0xff;
+            byteContainer[(base + 1) | 0] = (val >>> 8) & 0xff;
+            byteContainer[(base + 2) | 0] = (val >>> 16) & 0xff;
+            byteContainer[(base + 3) | 0] = (val >>> 24) & 0xff;
+        }
+    }
+    const remainder = byteSize & 3;
+    if (remainder > 0) {
+        const lastIntIdx = (byteContainerStart + numFullInts) | 0;
+        const lastVal = inValues[lastIntIdx] | 0;
+        const base = numFullInts << 2;
+        for (let r = 0; r < remainder; r = (r + 1) | 0) {
+            byteContainer[(base + r) | 0] = (lastVal >>> (r << 3)) & 0xff;
+        }
+    }
+    return byteContainer;
+}
+/**
+ * Unpacks the per-bitWidth "exception streams" described by the page's bitmap.
+ *
+ * @remarks
+ * For each bit-width present in the bitmap, a stream header gives the count of outlier values for that
+ * bit-width, followed by packed bits representing those values.
+ *
+ * @param inValues - Packed input (32-bit words).
+ * @param inExcept - Offset (32-bit word index) where the exception bitmap starts.
+ * @param workspace - Decoder workspace used to store the unpacked exception streams.
+ * @returns The new input offset (32-bit word index) after consuming all exception streams.
+ */
+function unpackExceptionStreams(inValues, inExcept, workspace) {
+    const bitmap = inValues[inExcept++] | 0;
+    const dataToBePacked = workspace.dataToBePacked;
+    for (let bitWidth = 2; bitWidth <= MAX_BIT_WIDTH; bitWidth = (bitWidth + 1) | 0) {
+        if (((bitmap >>> (bitWidth - 1)) & 1) === 0)
+            continue;
+        if (inExcept >= inValues.length) {
+            throw new Error(`FastPFOR decode: truncated exception stream header (bitWidth=${bitWidth}, streamWordIndex=${inExcept}, needWords=1, availableWords=${inValues.length - inExcept}, encodedWords=${inValues.length})`);
+        }
+        const size = inValues[inExcept++] >>> 0;
+        const roundedUp = roundUpToMultipleOf32(size);
+        const wordsNeeded = (size * bitWidth + 31) >>> 5;
+        if (inExcept + wordsNeeded > inValues.length) {
+            throw new Error(`FastPFOR decode: truncated exception stream (bitWidth=${bitWidth}, size=${size}, streamWordIndex=${inExcept}, needWords=${wordsNeeded}, availableWords=${inValues.length - inExcept}, encodedWords=${inValues.length})`);
+        }
+        let exceptionStream = dataToBePacked[bitWidth];
+        if (!exceptionStream || exceptionStream.length < roundedUp) {
+            exceptionStream = dataToBePacked[bitWidth] = new Uint32Array(roundedUp);
+        }
+        let j = 0;
+        for (; j < size; j = (j + 32) | 0) {
+            fastUnpack32(inValues, inExcept, exceptionStream, j, bitWidth);
+            inExcept = (inExcept + bitWidth) | 0;
+        }
+        const overflow = (j - size) | 0;
+        inExcept = (inExcept - ((overflow * bitWidth) >>> 5)) | 0;
+        workspace.exceptionSizes[bitWidth] = size;
+    }
+    return inExcept;
+}
+/**
+ * Unpacks one 256-value block from the packed bitstream using a specialized implementation for common widths.
+ *
+ * @param inValues - Packed input (32-bit words).
+ * @param inPos - Input offset (32-bit word index) where the packed block starts.
+ * @param out - Output buffer.
+ * @param outPos - Output offset where the 256 values will be written.
+ * @param bitWidth - Base bit-width used for this block.
+ * @returns The new input offset (32-bit word index) right after the packed block data.
+ */
+function unpackBlock256(inValues, inPos, out, outPos, bitWidth) {
+    switch (bitWidth) {
+        case 1:
+            fastUnpack256_1(inValues, inPos, out, outPos);
+            break;
+        case 2:
+            fastUnpack256_2(inValues, inPos, out, outPos);
+            break;
+        case 3:
+            fastUnpack256_3(inValues, inPos, out, outPos);
+            break;
+        case 4:
+            fastUnpack256_4(inValues, inPos, out, outPos);
+            break;
+        case 5:
+            fastUnpack256_5(inValues, inPos, out, outPos);
+            break;
+        case 6:
+            fastUnpack256_6(inValues, inPos, out, outPos);
+            break;
+        case 7:
+            fastUnpack256_7(inValues, inPos, out, outPos);
+            break;
+        case 8:
+            fastUnpack256_8(inValues, inPos, out, outPos);
+            break;
+        case 16:
+            fastUnpack256_16(inValues, inPos, out, outPos);
+            break;
+        default:
+            fastUnpack256_Generic(inValues, inPos, out, outPos, bitWidth);
+            break;
+    }
+    return (inPos + (bitWidth << 3)) | 0;
+}
+/**
+ * Reads and validates the 2-byte block header from the byteContainer.
+ *
+ * @remarks
+ * The header is `[bitWidth, exceptionCount]`, both stored as single bytes.
+ *
+ * @param byteContainer - Byte metadata buffer for the page.
+ * @param byteContainerLen - The valid byte length in `byteContainer` for this page.
+ * @param bytePosIn - Current offset in `byteContainer`.
+ * @param block - Block index within the page (for error messages).
+ * @returns The parsed header and the updated `bytePosIn`.
+ */
+function readBlockHeader(byteContainer, byteContainerLen, bytePosIn, block) {
+    if (bytePosIn + 2 > byteContainerLen) {
+        throw new Error(`FastPFOR decode: byteContainer underflow at block=${block} (need 2 bytes for [bitWidth, exceptionCount], bytePos=${bytePosIn}, byteSize=${byteContainerLen})`);
+    }
+    const bitWidth = byteContainer[bytePosIn++];
+    const exceptionCount = byteContainer[bytePosIn++];
+    if (bitWidth > MAX_BIT_WIDTH) {
+        throw new Error(`FastPFOR decode: invalid bitWidth=${bitWidth} at block=${block} (expected 0..${MAX_BIT_WIDTH}). This likely indicates corrupted or truncated input.`);
+    }
+    return { bitWidth, exceptionCount, bytePosIn };
+}
+/**
+ * Reads and validates the exception header for a block.
+ *
+ * @remarks
+ * The header contains `maxBits` (1 byte), which defines the width of the outlier values as
+ * `exceptionBitWidth = maxBits - bitWidth`.
+ *
+ * @param byteContainer - Byte metadata buffer for the page.
+ * @param byteContainerLen - The valid byte length in `byteContainer` for this page.
+ * @param bytePosIn - Current offset in `byteContainer`.
+ * @param bitWidth - Base bit-width for the block.
+ * @param exceptionCount - Number of exceptions/outliers in this block.
+ * @param block - Block index within the page (for error messages).
+ * @returns Parsed `maxBits`, `exceptionBitWidth`, and the updated `bytePosIn`.
+ */
+function readBlockExceptionHeader(byteContainer, byteContainerLen, bytePosIn, bitWidth, exceptionCount, block) {
+    if (bytePosIn + 1 > byteContainerLen) {
+        throw new Error(`FastPFOR decode: exception header underflow at block=${block} (need 1 byte for maxBits, bytePos=${bytePosIn}, byteSize=${byteContainerLen})`);
+    }
+    const maxBits = byteContainer[bytePosIn++];
+    if (maxBits < bitWidth || maxBits > MAX_BIT_WIDTH) {
+        throw new Error(`FastPFOR decode: invalid maxBits=${maxBits} at block=${block} (bitWidth=${bitWidth}, expected ${bitWidth}..${MAX_BIT_WIDTH})`);
+    }
+    const exceptionBitWidth = (maxBits - bitWidth) | 0;
+    if (exceptionBitWidth < 1 || exceptionBitWidth > MAX_BIT_WIDTH) {
+        throw new Error(`FastPFOR decode: invalid exceptionBitWidth=${exceptionBitWidth} at block=${block} (bitWidth=${bitWidth}, maxBits=${maxBits})`);
+    }
+    if (bytePosIn + exceptionCount > byteContainerLen) {
+        throw new Error(`FastPFOR decode: exception positions underflow at block=${block} (need=${exceptionCount}, have=${byteContainerLen - bytePosIn})`);
+    }
+    return { maxBits, exceptionBitWidth, bytePosIn };
+}
+/**
+ * Applies (block-local) FastPFOR "exceptions" (outliers) to an already-unpacked base 256-value block.
+ *
+ * @param out - Output buffer containing the base unpacked values for the block.
+ * @param blockOutPos - Offset in `out` where the 256-value block starts.
+ * @param bitWidth - Base bit-width for the block.
+ * @param exceptionCount - Number of exceptions/outliers in this block.
+ * @param byteContainer - Byte metadata buffer for the page.
+ * @param byteContainerLen - The valid byte length in `byteContainer` for this page.
+ * @param bytePosIn - Current offset in `byteContainer` (right after `[bitWidth, exceptionCount]`).
+ * @param workspace - Decoder workspace holding the unpacked exception streams.
+ * @param block - Block index within the page (for error messages).
+ * @returns The updated `bytePosIn` after consuming the exception metadata bytes.
+ *
+ * The exception metadata is stored in `byteContainer`:
+ * - `maxBits` (1 byte): the maximum bit-width of any value in the block
+ * - `exceptionCount` exception positions (1 byte each, 0..255)
+ *
+ * The exception values themselves are read from the pre-unpacked exception streams stored in `workspace`.
+ * Returns the new position in the byteContainer after consuming the exception metadata bytes.
+ */
+function applyBlockExceptions(out, blockOutPos, bitWidth, exceptionCount, byteContainer, byteContainerLen, bytePosIn, workspace, block) {
+    const { maxBits, exceptionBitWidth, bytePosIn: afterHeaderPos, } = readBlockExceptionHeader(byteContainer, byteContainerLen, bytePosIn, bitWidth, exceptionCount, block);
+    bytePosIn = afterHeaderPos;
+    if (exceptionBitWidth === 1) {
+        const shift = 1 << bitWidth;
+        for (let k = 0; k < exceptionCount; k = (k + 1) | 0) {
+            const pos = byteContainer[bytePosIn++];
+            out[(pos + blockOutPos) | 0] |= shift;
+        }
+        return bytePosIn;
+    }
+    const exceptionValues = workspace.dataToBePacked[exceptionBitWidth];
+    if (!exceptionValues) {
+        throw new Error(`FastPFOR decode: missing exception stream for exceptionBitWidth=${exceptionBitWidth} (bitWidth=${bitWidth}, maxBits=${maxBits}) at block ${block}`);
+    }
+    const exceptionPointers = workspace.dataPointers;
+    let exPtr = exceptionPointers[exceptionBitWidth] | 0;
+    const exSize = workspace.exceptionSizes[exceptionBitWidth] | 0;
+    if (exPtr + exceptionCount > exSize) {
+        throw new Error(`FastPFOR decode: exception stream overflow for exceptionBitWidth=${exceptionBitWidth} (ptr=${exPtr}, need ${exceptionCount}, size=${exSize}) at block ${block}`);
+    }
+    for (let k = 0; k < exceptionCount; k = (k + 1) | 0) {
+        const pos = byteContainer[bytePosIn++];
+        const val = exceptionValues[exPtr++] | 0;
+        out[(pos + blockOutPos) | 0] |= val << bitWidth;
+    }
+    exceptionPointers[exceptionBitWidth] = exPtr;
+    return bytePosIn;
+}
+function decodePageBlocks(inValues, pageStart, inPos, packedEnd, out, outPos, blocks, byteContainer, byteContainerLen, workspace) {
+    let tmpInPos = inPos | 0;
+    let bytePosIn = 0;
+    for (let run = 0; run < blocks; run = (run + 1) | 0) {
+        const header = readBlockHeader(byteContainer, byteContainerLen, bytePosIn, run);
+        bytePosIn = header.bytePosIn;
+        const bitWidth = header.bitWidth;
+        const exceptionCount = header.exceptionCount;
+        const blockOutPos = (outPos + run * BLOCK_SIZE) | 0;
+        switch (bitWidth) {
+            case 0:
+                out.fill(0, blockOutPos, blockOutPos + BLOCK_SIZE);
+                break;
+            case 32:
+                for (let i = 0; i < BLOCK_SIZE; i = (i + 1) | 0) {
+                    out[(blockOutPos + i) | 0] = inValues[(tmpInPos + i) | 0] | 0;
+                }
+                tmpInPos = (tmpInPos + BLOCK_SIZE) | 0;
+                break;
+            default:
+                tmpInPos = unpackBlock256(inValues, tmpInPos, out, blockOutPos, bitWidth);
+                break;
+        }
+        if (exceptionCount > 0) {
+            bytePosIn = applyBlockExceptions(out, blockOutPos, bitWidth, exceptionCount, byteContainer, byteContainerLen, bytePosIn, workspace, run);
+        }
+    }
+    if (tmpInPos !== packedEnd) {
+        throw new Error(`FastPFOR decode: packed region mismatch (pageStart=${pageStart}, packedStart=${inPos}, consumedPackedEnd=${tmpInPos}, expectedPackedEnd=${packedEnd}, packedWords=${packedEnd - inPos}, encoded.length=${inValues.length})`);
+    }
+    return;
+}
+/**
+ * Decodes one FastPFOR page (aligned to 256-value blocks).
+ */
+function decodePage(inValues, out, inPos, outPos, thisSize, workspace) {
+    const pageStart = inPos | 0;
+    const whereMeta = inValues[pageStart] | 0;
+    if (whereMeta <= 0 || pageStart + whereMeta > inValues.length - 1) {
+        throw new Error(`FastPFOR decode: invalid whereMeta=${whereMeta} at pageStart=${pageStart} (expected > 0 and pageStart+whereMeta < encoded.length=${inValues.length})`);
+    }
+    const packedStart = (pageStart + 1) | 0;
+    const packedEnd = (pageStart + whereMeta) | 0;
+    const byteSize = inValues[packedEnd] >>> 0;
+    const metaInts = (byteSize + 3) >>> 2;
+    const byteContainerStart = packedEnd + 1;
+    const bitmapPos = byteContainerStart + metaInts;
+    if (bitmapPos >= inValues.length) {
+        throw new Error(`FastPFOR decode: invalid byteSize=${byteSize} (metaInts=${metaInts}, pageStart=${pageStart}, packedEnd=${packedEnd}, byteContainerStart=${byteContainerStart}) causes bitmapPos=${bitmapPos} out of bounds (encoded.length=${inValues.length})`);
+    }
+    const byteContainer = materializeByteContainer(inValues, byteContainerStart, byteSize, workspace);
+    const byteContainerLen = byteSize;
+    const inExcept = unpackExceptionStreams(inValues, bitmapPos, workspace);
+    const exceptionPointers = workspace.dataPointers;
+    exceptionPointers.fill(0);
+    const startOutPos = outPos | 0;
+    const blocks = (thisSize / BLOCK_SIZE) | 0;
+    decodePageBlocks(inValues, pageStart, packedStart, packedEnd, out, startOutPos, blocks, byteContainer, byteContainerLen, workspace);
+    return inExcept;
+}
+function decodeAlignedPages(inValues, out, inPos, outPos, outLength, workspace) {
+    const alignedOutLength = greatestMultiple(outLength, BLOCK_SIZE);
+    const finalOut = outPos + alignedOutLength;
+    let tmpOutPos = outPos;
+    let tmpInPos = inPos;
+    while (tmpOutPos !== finalOut) {
+        const thisSize = Math.min(PAGE_SIZE, finalOut - tmpOutPos);
+        tmpInPos = decodePage(inValues, out, tmpInPos, tmpOutPos, thisSize, workspace);
+        tmpOutPos = (tmpOutPos + thisSize) | 0;
+    }
+    return tmpInPos;
+}
+/**
+ * Decodes the VariableByte tail (MSB=1 terminator, opposite of Protobuf Varint).
+ */
+function decodeVByte(inValues, inPos, inLength, out, outPos, expectedCount) {
+    if (expectedCount === 0)
+        return inPos;
+    let bitOffset = 0;
+    let wordIndex = inPos;
+    const finalWordIndex = inPos + inLength;
+    const outPos0 = outPos;
+    let tmpOutPos = outPos;
+    const targetOut = outPos + expectedCount;
+    let accumulator = 0;
+    let accumulatorShift = 0;
+    while (wordIndex < finalWordIndex && tmpOutPos < targetOut) {
+        const word = inValues[wordIndex];
+        const byte = (word >>> bitOffset) & 0xff;
+        bitOffset += 8;
+        wordIndex += bitOffset >>> 5;
+        bitOffset &= 31;
+        accumulator |= (byte & 0x7f) << accumulatorShift;
+        if ((byte & 0x80) !== 0) {
+            out[tmpOutPos++] = accumulator | 0;
+            accumulator = 0;
+            accumulatorShift = 0;
+        }
+        else {
+            accumulatorShift += 7;
+            if (accumulatorShift > 28) {
+                throw new Error(`FastPFOR VByte: unterminated value (expected MSB=1 terminator within 5 bytes; shift=${accumulatorShift}, partial=${accumulator}, decoded=${tmpOutPos - outPos0}/${expectedCount}, inPos=${wordIndex}, inEnd=${finalWordIndex})`);
+            }
+        }
+    }
+    if (tmpOutPos !== targetOut) {
+        throw new Error(`FastPFOR VByte: truncated stream (decoded=${tmpOutPos - outPos0}, expected=${expectedCount}, consumedWords=${wordIndex - inPos}/${inLength}, vbyteStart=${inPos}, vbyteEnd=${finalWordIndex})`);
+    }
+    return wordIndex;
+}
+/**
+ * Decodes a sequence of FastPFOR-encoded integers.
+ *
+ * @param encoded The input buffer containing FastPFOR encoded data.
+ * @param numValues The number of integers expected to be decoded.
+ * @param workspace Optional workspace for reuse across calls. If omitted, a new workspace is created per call.
+ */
+function decodeFastPforInt32(encoded, numValues, workspace) {
+    let inPos = 0;
+    let outPos = 0;
+    const decoded = new Uint32Array(numValues);
+    const decoderWorkspace = workspace ?? createDecoderWorkspace();
+    if (encoded.length > 0) {
+        const alignedLength = encoded[inPos] | 0;
+        inPos = (inPos + 1) | 0;
+        if ((alignedLength & (BLOCK_SIZE - 1)) !== 0) {
+            throw new Error(`FastPFOR decode: invalid alignedLength=${alignedLength} (expected multiple of ${BLOCK_SIZE})`);
+        }
+        if (outPos + alignedLength > decoded.length) {
+            throw new Error(`FastPFOR decode: output buffer too small (outPos=${outPos}, alignedLength=${alignedLength}, out.length=${decoded.length})`);
+        }
+        inPos = decodeAlignedPages(encoded, decoded, inPos, outPos, alignedLength, decoderWorkspace);
+        outPos = (outPos + alignedLength) | 0;
+    }
+    const remainingLength = (encoded.length - inPos) | 0;
+    const expectedTail = (numValues - outPos) | 0;
+    decodeVByte(encoded, inPos, remainingLength, decoded, outPos, expectedTail);
+    return decoded;
+}
+function fastUnpack32(inValues, inPos, out, outPos, bitWidth) {
+    switch (bitWidth) {
+        case 2:
+            fastUnpack32_2(inValues, inPos, out, outPos);
+            return;
+        case 3:
+            fastUnpack32_3(inValues, inPos, out, outPos);
+            return;
+        case 4:
+            fastUnpack32_4(inValues, inPos, out, outPos);
+            return;
+        case 5:
+            fastUnpack32_5(inValues, inPos, out, outPos);
+            return;
+        case 6:
+            fastUnpack32_6(inValues, inPos, out, outPos);
+            return;
+        case 7:
+            fastUnpack32_7(inValues, inPos, out, outPos);
+            return;
+        case 8:
+            fastUnpack32_8(inValues, inPos, out, outPos);
+            return;
+        case 9:
+            fastUnpack32_9(inValues, inPos, out, outPos);
+            return;
+        case 10:
+            fastUnpack32_10(inValues, inPos, out, outPos);
+            return;
+        case 11:
+            fastUnpack32_11(inValues, inPos, out, outPos);
+            return;
+        case 12:
+            fastUnpack32_12(inValues, inPos, out, outPos);
+            return;
+        case 16:
+            fastUnpack32_16(inValues, inPos, out, outPos);
+            return;
+        case 32:
+            for (let i = 0; i < 32; i = (i + 1) | 0) {
+                out[(outPos + i) | 0] = inValues[(inPos + i) | 0] | 0;
+            }
+            return;
+        default:
+            break;
+    }
+    const valueMask = MASKS[bitWidth] >>> 0;
+    let inputWordIndex = inPos;
+    let bitOffset = 0;
+    let currentWord = inValues[inputWordIndex] >>> 0;
+    for (let i = 0; i < 32; i++) {
+        if (bitOffset + bitWidth <= 32) {
+            const value = (currentWord >>> bitOffset) & valueMask;
+            out[outPos + i] = value | 0;
+            bitOffset += bitWidth;
+            if (bitOffset === 32) {
+                bitOffset = 0;
+                inputWordIndex++;
+                if (i !== 31)
+                    currentWord = inValues[inputWordIndex] >>> 0;
+            }
+        }
+        else {
+            const lowBits = 32 - bitOffset;
+            const low = currentWord >>> bitOffset;
+            inputWordIndex++;
+            currentWord = inValues[inputWordIndex] >>> 0;
+            const highMask = MASKS[bitWidth - lowBits] >>> 0;
+            const high = currentWord & highMask;
+            const value = (low | (high << lowBits)) & valueMask;
+            out[outPos + i] = value | 0;
+            bitOffset = bitWidth - lowBits;
+        }
+    }
+}
+
+/**
+ * Decodes big-endian bytes into `out` without allocating the output buffer.
+ *
+ * This function does not copy `bytes`; it writes decoded words into the provided `out` array.
+ * For aligned inputs it may create a temporary typed-array view (`Uint32Array`) over `bytes.buffer`
+ * to speed up decoding.
+ *
+ * If `byteLength` is not a multiple of 4, the final word is padded with zeros.
+ *
+ * @returns Number of int32 words written.
+ * @throws RangeError If `(offset, byteLength)` is out of bounds, or if `out` is too small.
+ */
+function decodeBigEndianInt32sInto(bytes, offset, byteLength, out) {
+    if (offset < 0 || byteLength < 0 || offset + byteLength > bytes.length) {
+        throw new RangeError(`decodeBigEndianInt32sInto: out of bounds (offset=${offset}, byteLength=${byteLength}, bytes.length=${bytes.length})`);
+    }
+    const numCompleteInts = Math.floor(byteLength / 4);
+    const hasTrailingBytes = byteLength % 4 !== 0;
+    const numInts = hasTrailingBytes ? numCompleteInts + 1 : numCompleteInts;
+    if (out.length < numInts) {
+        throw new RangeError(`decodeBigEndianInt32sInto: out.length=${out.length} < ${numInts}`);
+    }
+    if (numCompleteInts > 0) {
+        const absoluteOffset = bytes.byteOffset + offset;
+        if ((absoluteOffset & 3) === 0) {
+            const u32 = new Uint32Array(bytes.buffer, absoluteOffset, numCompleteInts);
+            for (let i = 0; i < numCompleteInts; i++) {
+                out[i] = bswap32(u32[i]) | 0;
+            }
+        }
+        else {
+            for (let i = 0; i < numCompleteInts; i++) {
+                const base = offset + i * 4;
+                out[i] = (bytes[base] << 24) | (bytes[base + 1] << 16) | (bytes[base + 2] << 8) | bytes[base + 3] | 0;
+            }
+        }
+    }
+    if (hasTrailingBytes) {
+        const base = offset + numCompleteInts * 4;
+        const remaining = byteLength - numCompleteInts * 4;
+        let v = 0;
+        for (let i = 0; i < remaining; i++) {
+            v |= bytes[base + i] << (24 - i * 8);
+        }
+        out[numCompleteInts] = v | 0;
+    }
+    return numInts;
+}
+
 //based on https://github.com/mapbox/pbf/blob/main/index.js
 function decodeVarintInt32(buf, bufferOffset, numValues) {
-    const dst = new Int32Array(numValues);
+    const dst = new Uint32Array(numValues);
     let dstOffset = 0;
     let offset = bufferOffset.get();
     for (let i = 0; i < dst.length; i++) {
@@ -34074,24 +37939,46 @@ function decodeVarintInt32(buf, bufferOffset, numValues) {
     return dst;
 }
 function decodeVarintInt64(src, offset, numValues) {
-    const dst = new BigInt64Array(numValues);
+    const dst = new BigUint64Array(numValues);
     for (let i = 0; i < dst.length; i++) {
-        dst[i] = decodeSingleVarintInt64(src, offset);
+        dst[i] = decodeVarintInt64Value(src, offset);
     }
     return dst;
 }
-/* Since decoding Int64 values to BigInt is more than an order of magnitude slower in the tests
- *  then using a Float64, this decoding method limits the max size of a Long value to 53 bits   */
-function decodeVarintFloat64(src, numValues, offset) {
+// Source: https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/util/VarInt.java
+function decodeVarintInt64Value(bytes, pos) {
+    let value = 0n;
+    let shift = 0;
+    let index = pos.get();
+    while (index < bytes.length) {
+        const b = bytes[index++];
+        value |= BigInt(b & 0x7f) << BigInt(shift);
+        if ((b & 0x80) === 0) {
+            break;
+        }
+        shift += 7;
+        if (shift >= 64) {
+            throw new Error("Varint too long");
+        }
+    }
+    pos.set(index);
+    return value;
+}
+/*
+ * Since decoding Int64 values to BigInt is more than an order of magnitude slower in the tests then using a Float64,
+ * this decoding method limits the max size of a Long value to 53 bits
+ */
+function decodeVarintFloat64(src, offset, numValues) {
     const dst = new Float64Array(numValues);
     for (let i = 0; i < numValues; i++) {
-        dst[i] = decodeSingleVarintFloat64(src, offset);
+        dst[i] = decodeVarintFloat64Value(src, offset);
     }
     return dst;
 }
 //based on https://github.com/mapbox/pbf/blob/main/index.js
-function decodeSingleVarintFloat64(buf, offset) {
-    let val, b;
+function decodeVarintFloat64Value(buf, offset) {
+    let val;
+    let b;
     b = buf[offset.get()];
     offset.increment();
     val = b & 0x7f;
@@ -34117,7 +38004,8 @@ function decodeSingleVarintFloat64(buf, offset) {
     return decodeVarintRemainder(val, buf, offset);
 }
 function decodeVarintRemainder(l, buf, offset) {
-    let h, b;
+    let h;
+    let b;
     b = buf[offset.get()];
     offset.increment();
     h = (b & 0x70) >> 4;
@@ -34150,71 +38038,59 @@ function decodeVarintRemainder(l, buf, offset) {
         return h * 0x100000000 + (l >>> 0);
     throw new Error("Expected varint not more than 10 bytes");
 }
-function decodeFastPfor(data, numValues, byteLength, offset) {
-    throw new Error("FastPFor is not implemented yet.");
+function decodeFastPfor(encodedBytes, expectedValueCount, encodedByteLength, offset) {
+    const workspace = createFastPforWireDecodeWorkspace(encodedByteLength >>> 2);
+    return decodeFastPforWithWorkspace(encodedBytes, expectedValueCount, encodedByteLength, offset, workspace);
 }
-function decodeZigZag(encodedData) {
-    for (let i = 0; i < encodedData.length; i++) {
-        const encoded = encodedData[i];
-        encodedData[i] = (encoded >>> 1) ^ -(encoded & 1);
+function decodeFastPforWithWorkspace(encodedBytes, expectedValueCount, encodedByteLength, offset, workspace) {
+    const inputByteOffset = offset.get();
+    if ((encodedByteLength & 3) !== 0) {
+        throw new Error(`FastPFOR: invalid encodedByteLength=${encodedByteLength} at offset=${inputByteOffset} (encodedBytes.length=${encodedBytes.length}; expected a multiple of 4 bytes for an int32 big-endian word stream)`);
     }
+    const encodedWordCount = encodedByteLength >>> 2;
+    const encodedWordBuffer = ensureFastPforWireEncodedWordsCapacity(workspace, encodedWordCount);
+    decodeBigEndianInt32sInto(encodedBytes, inputByteOffset, encodedByteLength, encodedWordBuffer);
+    const decodedValues = decodeFastPforInt32(encodedWordBuffer.subarray(0, encodedWordCount), expectedValueCount, workspace.decoderWorkspace);
+    offset.add(encodedByteLength);
+    return decodedValues;
+}
+function decodeZigZagInt32Value(encoded) {
+    return (encoded >>> 1) ^ -(encoded & 1);
+}
+function decodeZigZagInt64Value(encoded) {
+    return (encoded >> 1n) ^ -(encoded & 1n);
+}
+function decodeZigZagFloat64Value(encoded) {
+    return encoded % 2 === 1 ? (encoded + 1) / -2 : encoded / 2;
+}
+function decodeZigZagInt32(encodedData) {
+    const decodedValues = new Int32Array(encodedData.length);
+    for (let i = 0; i < encodedData.length; i++) {
+        decodedValues[i] = decodeZigZagInt32Value(encodedData[i]);
+    }
+    return decodedValues;
 }
 function decodeZigZagInt64(encodedData) {
+    const decodedValues = new BigInt64Array(encodedData.length);
     for (let i = 0; i < encodedData.length; i++) {
-        const encoded = encodedData[i];
-        encodedData[i] = (encoded >> 1n) ^ -(encoded & 1n);
+        decodedValues[i] = decodeZigZagInt64Value(encodedData[i]);
     }
+    return decodedValues;
 }
 function decodeZigZagFloat64(encodedData) {
     for (let i = 0; i < encodedData.length; i++) {
-        const encoded = encodedData[i];
-        //Get rid of branch? -> var v = encoded % 2 && 1; encodedData[i] = (encoded + v) / (v * 2 - 1) * 2;
-        encodedData[i] = encoded % 2 === 1 ? (encoded + 1) / -2 : encoded / 2;
+        encodedData[i] = decodeZigZagFloat64Value(encodedData[i]);
     }
 }
-function decodeZigZagValue(encoded) {
-    return (encoded >>> 1) ^ -(encoded & 1);
-}
-function decodeZigZagValueInt64(encoded) {
-    return (encoded >> 1n) ^ -(encoded & 1n);
-}
-// Source: https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/util/VarInt.java
-function decodeSingleVarintInt64(bytes, pos) {
-    let value = 0n;
-    let shift = 0;
-    let index = pos.get();
-    while (index < bytes.length) {
-        const b = bytes[index++];
-        value |= BigInt(b & 0x7f) << BigInt(shift);
-        if ((b & 0x80) === 0) {
-            break;
-        }
-        shift += 7;
-        if (shift >= 64) {
-            throw new Error("Varint too long");
+function decodeUnsignedRleInt32(encodedData, numRuns, numTotalValues) {
+    // If numTotalValues not provided, calculate from runs (nullable case)
+    if (numTotalValues === undefined) {
+        numTotalValues = 0;
+        for (let i = 0; i < numRuns; i++) {
+            numTotalValues += encodedData[i];
         }
     }
-    pos.set(index);
-    return value;
-}
-/* Logical Level Techniques Flat Vectors ------------------------------------------------------------------ */
-function decodeRle(data, streamMetadata, isSigned) {
-    return isSigned
-        ? decodeZigZagRle(data, streamMetadata.runs, streamMetadata.numRleValues)
-        : decodeUnsignedRle(data, streamMetadata.runs, streamMetadata.numRleValues);
-}
-function decodeRleInt64(data, streamMetadata, isSigned) {
-    return isSigned
-        ? decodeZigZagRleInt64(data, streamMetadata.runs, streamMetadata.numRleValues)
-        : decodeUnsignedRleInt64(data, streamMetadata.runs, streamMetadata.numRleValues);
-}
-function decodeRleFloat64(data, streamMetadata, isSigned) {
-    return isSigned
-        ? decodeZigZagRleFloat64(data, streamMetadata.runs, streamMetadata.numRleValues)
-        : decodeUnsignedRleFloat64(data, streamMetadata.runs, streamMetadata.numRleValues);
-}
-function decodeUnsignedRle(encodedData, numRuns, numTotalValues) {
-    const decodedValues = new Int32Array(numTotalValues);
+    const decodedValues = new Uint32Array(numTotalValues);
     let offset = 0;
     for (let i = 0; i < numRuns; i++) {
         const runLength = encodedData[i];
@@ -34225,7 +38101,14 @@ function decodeUnsignedRle(encodedData, numRuns, numTotalValues) {
     return decodedValues;
 }
 function decodeUnsignedRleInt64(encodedData, numRuns, numTotalValues) {
-    const decodedValues = new BigInt64Array(numTotalValues);
+    // If numTotalValues not provided, calculate from runs (nullable case)
+    if (numTotalValues === undefined) {
+        numTotalValues = 0;
+        for (let i = 0; i < numRuns; i++) {
+            numTotalValues += Number(encodedData[i]);
+        }
+    }
+    const decodedValues = new BigUint64Array(numTotalValues);
     let offset = 0;
     for (let i = 0; i < numRuns; i++) {
         const runLength = Number(encodedData[i]);
@@ -34250,8 +38133,9 @@ function decodeUnsignedRleFloat64(encodedData, numRuns, numTotalValues) {
  * In place decoding of the zigzag encoded delta values.
  * Inspired by https://github.com/lemire/JavaFastPFOR/blob/master/src/main/java/me/lemire/integercompression/differential/Delta.java
  */
-function decodeZigZagDelta(data) {
-    data[0] = (data[0] >>> 1) ^ -(data[0] & 1);
+function decodeZigZagDeltaInt32(data) {
+    const decodedValues = new Int32Array(data.length);
+    decodedValues[0] = decodeZigZagInt32Value(data[0]);
     const sz0 = (data.length / 4) * 4;
     let i = 1;
     if (sz0 >= 4) {
@@ -34260,18 +38144,20 @@ function decodeZigZagDelta(data) {
             const data2 = data[i + 1];
             const data3 = data[i + 2];
             const data4 = data[i + 3];
-            data[i] = ((data1 >>> 1) ^ -(data1 & 1)) + data[i - 1];
-            data[i + 1] = ((data2 >>> 1) ^ -(data2 & 1)) + data[i];
-            data[i + 2] = ((data3 >>> 1) ^ -(data3 & 1)) + data[i + 1];
-            data[i + 3] = ((data4 >>> 1) ^ -(data4 & 1)) + data[i + 2];
+            decodedValues[i] = decodeZigZagInt32Value(data1) + decodedValues[i - 1];
+            decodedValues[i + 1] = decodeZigZagInt32Value(data2) + decodedValues[i];
+            decodedValues[i + 2] = decodeZigZagInt32Value(data3) + decodedValues[i + 1];
+            decodedValues[i + 3] = decodeZigZagInt32Value(data4) + decodedValues[i + 2];
         }
     }
-    for (; i != data.length; ++i) {
-        data[i] = ((data[i] >>> 1) ^ -(data[i] & 1)) + data[i - 1];
+    for (; i !== data.length; ++i) {
+        decodedValues[i] = decodeZigZagInt32Value(data[i]) + decodedValues[i - 1];
     }
+    return decodedValues;
 }
 function decodeZigZagDeltaInt64(data) {
-    data[0] = (data[0] >> 1n) ^ -(data[0] & 1n);
+    const decodedValues = new BigInt64Array(data.length);
+    decodedValues[0] = decodeZigZagInt64Value(data[0]);
     const sz0 = (data.length / 4) * 4;
     let i = 1;
     if (sz0 >= 4) {
@@ -34280,18 +38166,19 @@ function decodeZigZagDeltaInt64(data) {
             const data2 = data[i + 1];
             const data3 = data[i + 2];
             const data4 = data[i + 3];
-            data[i] = ((data1 >> 1n) ^ -(data1 & 1n)) + data[i - 1];
-            data[i + 1] = ((data2 >> 1n) ^ -(data2 & 1n)) + data[i];
-            data[i + 2] = ((data3 >> 1n) ^ -(data3 & 1n)) + data[i + 1];
-            data[i + 3] = ((data4 >> 1n) ^ -(data4 & 1n)) + data[i + 2];
+            decodedValues[i] = decodeZigZagInt64Value(data1) + decodedValues[i - 1];
+            decodedValues[i + 1] = decodeZigZagInt64Value(data2) + decodedValues[i];
+            decodedValues[i + 2] = decodeZigZagInt64Value(data3) + decodedValues[i + 1];
+            decodedValues[i + 3] = decodeZigZagInt64Value(data4) + decodedValues[i + 2];
         }
     }
-    for (; i != data.length; ++i) {
-        data[i] = ((data[i] >> 1n) ^ -(data[i] & 1n)) + data[i - 1];
+    for (; i !== decodedValues.length; ++i) {
+        decodedValues[i] = decodeZigZagInt64Value(data[i]) + decodedValues[i - 1];
     }
+    return decodedValues;
 }
 function decodeZigZagDeltaFloat64(data) {
-    data[0] = data[0] % 2 === 1 ? (data[0] + 1) / -2 : data[0] / 2;
+    data[0] = decodeZigZagFloat64Value(data[0]);
     const sz0 = (data.length / 4) * 4;
     let i = 1;
     if (sz0 >= 4) {
@@ -34300,35 +38187,49 @@ function decodeZigZagDeltaFloat64(data) {
             const data2 = data[i + 1];
             const data3 = data[i + 2];
             const data4 = data[i + 3];
-            data[i] = (data1 % 2 === 1 ? (data1 + 1) / -2 : data1 / 2) + data[i - 1];
-            data[i + 1] = (data2 % 2 === 1 ? (data2 + 1) / -2 : data2 / 2) + data[i];
-            data[i + 2] = (data3 % 2 === 1 ? (data3 + 1) / -2 : data3 / 2) + data[i + 1];
-            data[i + 3] = (data4 % 2 === 1 ? (data4 + 1) / -2 : data4 / 2) + data[i + 2];
+            data[i] = decodeZigZagFloat64Value(data1) + data[i - 1];
+            data[i + 1] = decodeZigZagFloat64Value(data2) + data[i];
+            data[i + 2] = decodeZigZagFloat64Value(data3) + data[i + 1];
+            data[i + 3] = decodeZigZagFloat64Value(data4) + data[i + 2];
         }
     }
-    for (; i != data.length; ++i) {
-        data[i] = (data[i] % 2 === 1 ? (data[i] + 1) / -2 : data[i] / 2) + data[i - 1];
+    for (; i !== data.length; ++i) {
+        data[i] = decodeZigZagFloat64Value(data[i]) + data[i - 1];
     }
 }
-function decodeZigZagRle(data, numRuns, numTotalValues) {
+function decodeZigZagRleInt32(data, numRuns, numTotalValues) {
+    // If numTotalValues not provided, calculate from runs (nullable case)
+    if (numTotalValues === undefined) {
+        numTotalValues = 0;
+        for (let i = 0; i < numRuns; i++) {
+            numTotalValues += data[i];
+        }
+    }
     const decodedValues = new Int32Array(numTotalValues);
     let offset = 0;
     for (let i = 0; i < numRuns; i++) {
         const runLength = data[i];
         let value = data[i + numRuns];
-        value = (value >>> 1) ^ -(value & 1);
+        value = decodeZigZagInt32Value(value);
         decodedValues.fill(value, offset, offset + runLength);
         offset += runLength;
     }
     return decodedValues;
 }
 function decodeZigZagRleInt64(data, numRuns, numTotalValues) {
+    // If numTotalValues not provided, calculate from runs (nullable case)
+    if (numTotalValues === undefined) {
+        numTotalValues = 0;
+        for (let i = 0; i < numRuns; i++) {
+            numTotalValues += Number(data[i]);
+        }
+    }
     const decodedValues = new BigInt64Array(numTotalValues);
     let offset = 0;
     for (let i = 0; i < numRuns; i++) {
         const runLength = Number(data[i]);
         let value = data[i + numRuns];
-        value = (value >> 1n) ^ -(value & 1n);
+        value = decodeZigZagInt64Value(value);
         decodedValues.fill(value, offset, offset + runLength);
         offset += runLength;
     }
@@ -34340,8 +38241,7 @@ function decodeZigZagRleFloat64(data, numRuns, numTotalValues) {
     for (let i = 0; i < numRuns; i++) {
         const runLength = data[i];
         let value = data[i + numRuns];
-        //TODO: get rid of branch? -> var v = value % 2 && 1; a = (value + v) / (v * 2 - 1) * 2;
-        value = value % 2 === 1 ? (value + 1) / -2 : value / 2;
+        value = decodeZigZagFloat64Value(value);
         decodedValues.fill(value, offset, offset + runLength);
         offset += runLength;
     }
@@ -34361,7 +38261,7 @@ function fastInverseDelta(data) {
             a = data[i + 3] += a;
         }
     }
-    while (i != data.length) {
+    while (i !== data.length) {
         data[i] += data[i - 1];
         ++i;
     }
@@ -34378,8 +38278,11 @@ function inverseDelta(data) {
  * Inspired by https://github.com/lemire/JavaFastPFOR/blob/master/src/main/java/me/lemire/integercompression/differential/Delta.java
  */
 function decodeComponentwiseDeltaVec2(data) {
-    data[0] = (data[0] >>> 1) ^ -(data[0] & 1);
-    data[1] = (data[1] >>> 1) ^ -(data[1] & 1);
+    if (data.length < 2)
+        return new Int32Array(data);
+    const decodedData = new Int32Array(data.length);
+    decodedData[0] = decodeZigZagInt32Value(data[0]);
+    decodedData[1] = decodeZigZagInt32Value(data[1]);
     const sz0 = (data.length / 4) * 4;
     let i = 2;
     if (sz0 >= 4) {
@@ -34388,102 +38291,70 @@ function decodeComponentwiseDeltaVec2(data) {
             const y1 = data[i + 1];
             const x2 = data[i + 2];
             const y2 = data[i + 3];
-            data[i] = ((x1 >>> 1) ^ -(x1 & 1)) + data[i - 2];
-            data[i + 1] = ((y1 >>> 1) ^ -(y1 & 1)) + data[i - 1];
-            data[i + 2] = ((x2 >>> 1) ^ -(x2 & 1)) + data[i];
-            data[i + 3] = ((y2 >>> 1) ^ -(y2 & 1)) + data[i + 1];
+            decodedData[i] = decodeZigZagInt32Value(x1) + decodedData[i - 2];
+            decodedData[i + 1] = decodeZigZagInt32Value(y1) + decodedData[i - 1];
+            decodedData[i + 2] = decodeZigZagInt32Value(x2) + decodedData[i];
+            decodedData[i + 3] = decodeZigZagInt32Value(y2) + decodedData[i + 1];
         }
     }
-    for (; i != data.length; i += 2) {
-        data[i] = ((data[i] >>> 1) ^ -(data[i] & 1)) + data[i - 2];
-        data[i + 1] = ((data[i + 1] >>> 1) ^ -(data[i + 1] & 1)) + data[i - 1];
+    for (; i !== data.length; i += 2) {
+        decodedData[i] = decodeZigZagInt32Value(data[i]) + decodedData[i - 2];
+        decodedData[i + 1] = decodeZigZagInt32Value(data[i + 1]) + decodedData[i - 1];
     }
+    return decodedData;
 }
 function decodeComponentwiseDeltaVec2Scaled(data, scale, min, max) {
-    let previousVertexX = (data[0] >>> 1) ^ -(data[0] & 1);
-    let previousVertexY = (data[1] >>> 1) ^ -(data[1] & 1);
-    data[0] = clamp(Math.round(previousVertexX * scale), min, max);
-    data[1] = clamp(Math.round(previousVertexY * scale), min, max);
+    if (data.length < 2)
+        return new Int32Array(data);
+    const decodedData = new Int32Array(data.length);
+    let previousVertexX = decodeZigZagInt32Value(data[0]);
+    let previousVertexY = decodeZigZagInt32Value(data[1]);
+    decodedData[0] = clamp(Math.round(previousVertexX * scale), min, max);
+    decodedData[1] = clamp(Math.round(previousVertexY * scale), min, max);
     const sz0 = data.length / 16;
     let i = 2;
     if (sz0 >= 4) {
         for (; i < sz0 - 4; i += 4) {
             const x1 = data[i];
             const y1 = data[i + 1];
-            const currentVertexX = ((x1 >>> 1) ^ -(x1 & 1)) + previousVertexX;
-            const currentVertexY = ((y1 >>> 1) ^ -(y1 & 1)) + previousVertexY;
-            data[i] = clamp(Math.round(currentVertexX * scale), min, max);
-            data[i + 1] = clamp(Math.round(currentVertexY * scale), min, max);
+            const currentVertexX = decodeZigZagInt32Value(x1) + previousVertexX;
+            const currentVertexY = decodeZigZagInt32Value(y1) + previousVertexY;
+            decodedData[i] = clamp(Math.round(currentVertexX * scale), min, max);
+            decodedData[i + 1] = clamp(Math.round(currentVertexY * scale), min, max);
             const x2 = data[i + 2];
             const y2 = data[i + 3];
-            previousVertexX = ((x2 >>> 1) ^ -(x2 & 1)) + currentVertexX;
-            previousVertexY = ((y2 >>> 1) ^ -(y2 & 1)) + currentVertexY;
-            data[i + 2] = clamp(Math.round(previousVertexX * scale), min, max);
-            data[i + 3] = clamp(Math.round(previousVertexY * scale), min, max);
+            previousVertexX = decodeZigZagInt32Value(x2) + currentVertexX;
+            previousVertexY = decodeZigZagInt32Value(y2) + currentVertexY;
+            decodedData[i + 2] = clamp(Math.round(previousVertexX * scale), min, max);
+            decodedData[i + 3] = clamp(Math.round(previousVertexY * scale), min, max);
         }
     }
-    for (; i != data.length; i += 2) {
-        previousVertexX += (data[i] >>> 1) ^ -(data[i] & 1);
-        previousVertexY += (data[i + 1] >>> 1) ^ -(data[i + 1] & 1);
-        data[i] = clamp(Math.round(previousVertexX * scale), min, max);
-        data[i + 1] = clamp(Math.round(previousVertexY * scale), min, max);
+    for (; i !== data.length; i += 2) {
+        previousVertexX += decodeZigZagInt32Value(data[i]);
+        previousVertexY += decodeZigZagInt32Value(data[i + 1]);
+        decodedData[i] = clamp(Math.round(previousVertexX * scale), min, max);
+        decodedData[i + 1] = clamp(Math.round(previousVertexY * scale), min, max);
     }
+    return decodedData;
 }
 function clamp(n, min, max) {
     return Math.min(max, Math.max(min, n));
 }
-function decodeNullableZigZagDelta(bitVector, data) {
-    const decodedData = new Int32Array(bitVector.size());
-    let dataCounter = 0;
-    if (bitVector.get(0)) {
-        decodedData[0] = bitVector.get(0) ? (data[0] >>> 1) ^ -(data[0] & 1) : 0;
-        dataCounter = 1;
-    }
-    else {
-        decodedData[0] = 0;
-    }
-    let i = 1;
-    for (; i != decodedData.length; ++i) {
-        decodedData[i] = bitVector.get(i)
-            ? decodedData[i - 1] + ((data[dataCounter] >>> 1) ^ -(data[dataCounter++] & 1))
-            : decodedData[i - 1];
-    }
-    return decodedData;
-}
-function decodeNullableZigZagDeltaInt64(bitVector, data) {
-    const decodedData = new BigInt64Array(bitVector.size());
-    let dataCounter = 0;
-    if (bitVector.get(0)) {
-        decodedData[0] = bitVector.get(0) ? (data[0] >> 1n) ^ -(data[0] & 1n) : 0n;
-        dataCounter = 1;
-    }
-    else {
-        decodedData[0] = 0n;
-    }
-    let i = 1;
-    for (; i != decodedData.length; ++i) {
-        decodedData[i] = bitVector.get(i)
-            ? decodedData[i - 1] + ((data[dataCounter] >> 1n) ^ -(data[dataCounter++] & 1n))
-            : decodedData[i - 1];
-    }
-    return decodedData;
-}
 /* Transform data to allow util access ------------------------------------------------------------------------ */
-function zigZagDeltaOfDeltaDecoding(data) {
+function decodeZigZagDeltaOfDeltaInt32(data) {
     const decodedData = new Int32Array(data.length + 1);
     decodedData[0] = 0;
-    decodedData[1] = decodeZigZagValue(data[0]);
+    decodedData[1] = decodeZigZagInt32Value(data[0]);
     let deltaSum = decodedData[1];
-    let i = 2;
-    for (; i != decodedData.length; ++i) {
+    for (let i = 2; i !== decodedData.length; ++i) {
         const zigZagValue = data[i - 1];
-        const delta = (zigZagValue >>> 1) ^ -(zigZagValue & 1);
+        const delta = decodeZigZagInt32Value(zigZagValue);
         deltaSum += delta;
         decodedData[i] = decodedData[i - 1] + deltaSum;
     }
-    return decodedData;
+    return new Uint32Array(decodedData);
 }
-function zigZagRleDeltaDecoding(data, numRuns, numTotalValues) {
+function decodeZigZagRleDeltaInt32(data, numRuns, numTotalValues) {
     const decodedValues = new Int32Array(numTotalValues + 1);
     decodedValues[0] = 0;
     let offset = 1;
@@ -34491,7 +38362,7 @@ function zigZagRleDeltaDecoding(data, numRuns, numTotalValues) {
     for (let i = 0; i < numRuns; i++) {
         const runLength = data[i];
         let value = data[i + numRuns];
-        value = (value >>> 1) ^ -(value & 1);
+        value = decodeZigZagInt32Value(value);
         for (let j = offset; j < offset + runLength; j++) {
             decodedValues[j] = value + previousValue;
             previousValue = decodedValues[j];
@@ -34500,8 +38371,8 @@ function zigZagRleDeltaDecoding(data, numRuns, numTotalValues) {
     }
     return decodedValues;
 }
-function rleDeltaDecoding(data, numRuns, numTotalValues) {
-    const decodedValues = new Int32Array(numTotalValues + 1);
+function decodeRleDeltaInt32(data, numRuns, numTotalValues) {
+    const decodedValues = new Uint32Array(numTotalValues + 1);
     decodedValues[0] = 0;
     let offset = 1;
     let previousValue = decodedValues[0];
@@ -34516,149 +38387,6 @@ function rleDeltaDecoding(data, numRuns, numTotalValues) {
     }
     return decodedValues;
 }
-function padWithZeros(bitVector, data) {
-    const decodedData = new Int32Array(bitVector.size());
-    let dataCounter = 0;
-    let i = 0;
-    for (; i != decodedData.length; ++i) {
-        decodedData[i] = bitVector.get(i) ? data[dataCounter++] : 0;
-    }
-    return decodedData;
-}
-function padZigZagWithZeros(bitVector, data) {
-    const decodedData = new Int32Array(bitVector.size());
-    let dataCounter = 0;
-    let i = 0;
-    for (; i != decodedData.length; ++i) {
-        if (bitVector.get(i)) {
-            const value = data[dataCounter++];
-            decodedData[i] = (value >>> 1) ^ -(value & 1);
-        }
-        else {
-            decodedData[i] = 0;
-        }
-    }
-    return decodedData;
-}
-function padWithZerosInt64(bitVector, data) {
-    const decodedData = new BigInt64Array(bitVector.size());
-    let dataCounter = 0;
-    let i = 0;
-    for (; i != decodedData.length; ++i) {
-        decodedData[i] = bitVector.get(i) ? data[dataCounter++] : 0n;
-    }
-    return decodedData;
-}
-function padZigZagWithZerosInt64(bitVector, data) {
-    const decodedData = new BigInt64Array(bitVector.size());
-    let dataCounter = 0;
-    let i = 0;
-    for (; i != decodedData.length; ++i) {
-        if (bitVector.get(i)) {
-            const value = data[dataCounter++];
-            decodedData[i] = (value >> 1n) ^ -(value & 1n);
-        }
-        else {
-            decodedData[i] = 0n;
-        }
-    }
-    return decodedData;
-}
-function decodeNullableRle(data, streamMetadata, isSigned, bitVector) {
-    const rleMetadata = streamMetadata;
-    return isSigned
-        ? decodeNullableZigZagRle(bitVector, data, rleMetadata.runs)
-        : decodeNullableUnsignedRle(bitVector, data, rleMetadata.runs);
-}
-function decodeNullableUnsignedRle(bitVector, data, numRuns) {
-    const values = new Int32Array(bitVector.size());
-    let offset = 0;
-    for (let i = 0; i < numRuns; i++) {
-        const runLength = data[i];
-        const value = data[i + numRuns];
-        for (let j = offset; j < offset + runLength; j++) {
-            /* There can be null values in a run */
-            if (bitVector.get(j)) {
-                values[j] = value;
-            }
-            else {
-                values[j] = 0;
-                offset++;
-            }
-        }
-        offset += runLength;
-    }
-    return values;
-}
-function decodeNullableZigZagRle(bitVector, data, numRuns) {
-    const values = new Int32Array(bitVector.size());
-    let offset = 0;
-    for (let i = 0; i < numRuns; i++) {
-        const runLength = data[i];
-        let value = data[i + numRuns];
-        value = (value >>> 1) ^ -(value & 1);
-        for (let j = offset; j < offset + runLength; j++) {
-            /* There can be null values in a run */
-            if (bitVector.get(j)) {
-                values[j] = value;
-            }
-            else {
-                values[j] = 0;
-                offset++;
-            }
-        }
-        offset += runLength;
-    }
-    return values;
-}
-function decodeNullableRleInt64(data, streamMetadata, isSigned, bitVector) {
-    const rleMetadata = streamMetadata;
-    return isSigned
-        ? decodeNullableZigZagRleInt64(bitVector, data, rleMetadata.runs)
-        : decodeNullableUnsignedRleInt64(bitVector, data, rleMetadata.runs);
-}
-function decodeNullableUnsignedRleInt64(bitVector, data, numRuns) {
-    const values = new BigInt64Array(bitVector.size());
-    let offset = 0;
-    for (let i = 0; i < numRuns; i++) {
-        const runLength = Number(data[i]);
-        const value = data[i + numRuns];
-        for (let j = offset; j < offset + runLength; j++) {
-            /* There can be null values in a run */
-            if (bitVector.get(j)) {
-                values[j] = value;
-            }
-            else {
-                values[j] = 0n;
-                offset++;
-            }
-        }
-        offset += runLength;
-    }
-    return values;
-}
-function decodeNullableZigZagRleInt64(bitVector, data, numRuns) {
-    const values = new BigInt64Array(bitVector.size());
-    let offset = 0;
-    for (let i = 0; i < numRuns; i++) {
-        const runLength = Number(data[i]);
-        let value = data[i + numRuns];
-        value = (value >> 1n) ^ -(value & 1n);
-        for (let j = offset; j < offset + runLength; j++) {
-            /* There can be null values in a run */
-            if (bitVector.get(j)) {
-                values[j] = value;
-            }
-            else {
-                values[j] = 0n;
-                offset++;
-            }
-        }
-        offset += runLength;
-    }
-    return values;
-}
-/* Logical Level Techniques Const and Sequence Vectors ------------------------------------------------------------- */
 /**
  * Decode Delta-RLE with multiple runs by fully reconstructing values.
  *
@@ -34667,14 +38395,14 @@ function decodeNullableZigZagRleInt64(bitVector, data, numRuns) {
  * @param numValues Total number of values to reconstruct
  * @returns Reconstructed values with deltas applied
  */
-function decodeDeltaRle(data, numRuns, numValues) {
+function decodeDeltaRleInt32(data, numRuns, numValues) {
     const result = new Int32Array(numValues);
     let outPos = 0;
     let previousValue = 0;
     for (let i = 0; i < numRuns; i++) {
         const runLength = data[i];
         const zigZagDelta = data[i + numRuns];
-        const delta = decodeZigZagValue(zigZagDelta);
+        const delta = decodeZigZagInt32Value(zigZagDelta);
         for (let j = 0; j < runLength; j++) {
             previousValue += delta;
             result[outPos++] = previousValue;
@@ -34692,7 +38420,7 @@ function decodeDeltaRleInt64(data, numRuns, numValues) {
     for (let i = 0; i < numRuns; i++) {
         const runLength = Number(data[i]);
         const zigZagDelta = data[i + numRuns];
-        const delta = decodeZigZagValueInt64(zigZagDelta);
+        const delta = decodeZigZagInt64Value(zigZagDelta);
         for (let j = 0; j < runLength; j++) {
             previousValue += delta;
             result[outPos++] = previousValue;
@@ -34700,38 +38428,71 @@ function decodeDeltaRleInt64(data, numRuns, numValues) {
     }
     return result;
 }
-function decodeUnsignedConstRle(data) {
+function decodeUnsignedZigZagDeltaInt32(data) {
+    const decodedValues = new Uint32Array(data.length);
+    decodedValues[0] = decodeZigZagInt32Value(data[0]) >>> 0;
+    for (let i = 1; i < data.length; i++) {
+        decodedValues[i] = (decodedValues[i - 1] + decodeZigZagInt32Value(data[i])) >>> 0;
+    }
+    return decodedValues;
+}
+function decodeUnsignedZigZagDeltaInt64(data) {
+    const decodedValues = new BigUint64Array(data.length);
+    decodedValues[0] = BigInt.asUintN(64, decodeZigZagInt64Value(data[0]));
+    for (let i = 1; i < data.length; i++) {
+        decodedValues[i] = BigInt.asUintN(64, decodedValues[i - 1] + decodeZigZagInt64Value(data[i]));
+    }
+    return decodedValues;
+}
+function decodeUnsignedComponentwiseDeltaVec2(data) {
+    if (data.length < 2) {
+        return new Uint32Array(data);
+    }
+    const decodedData = new Uint32Array(data.length);
+    decodedData[0] = decodeZigZagInt32Value(data[0]) >>> 0;
+    decodedData[1] = decodeZigZagInt32Value(data[1]) >>> 0;
+    for (let i = 2; i < data.length; i += 2) {
+        decodedData[i] = (decodedData[i - 2] + decodeZigZagInt32Value(data[i])) >>> 0;
+        decodedData[i + 1] = (decodedData[i - 1] + decodeZigZagInt32Value(data[i + 1])) >>> 0;
+    }
+    return decodedData;
+}
+function decodeUnsignedComponentwiseDeltaVec2Scaled(data, scale, min, max) {
+    const scaledValues = decodeComponentwiseDeltaVec2Scaled(data, scale, min, max);
+    return new Uint32Array(scaledValues);
+}
+function decodeUnsignedConstRleInt32(data) {
     return data[1];
 }
-function decodeZigZagConstRle(data) {
-    return decodeZigZagValue(data[1]);
+function decodeZigZagConstRleInt32(data) {
+    return decodeZigZagInt32Value(data[1]);
 }
-function decodeZigZagSequenceRle(data) {
+function decodeZigZagSequenceRleInt32(data) {
     /* base value and delta value are equal */
-    if (data.length == 2) {
-        const value = decodeZigZagValue(data[1]);
+    if (data.length === 2) {
+        const value = decodeZigZagInt32Value(data[1]);
         return [value, value];
     }
     /* base value and delta value are not equal -> 2 runs and 2 values*/
-    const base = decodeZigZagValue(data[2]);
-    const delta = decodeZigZagValue(data[3]);
+    const base = decodeZigZagInt32Value(data[2]);
+    const delta = decodeZigZagInt32Value(data[3]);
     return [base, delta];
 }
 function decodeUnsignedConstRleInt64(data) {
     return data[1];
 }
 function decodeZigZagConstRleInt64(data) {
-    return decodeZigZagValueInt64(data[1]);
+    return decodeZigZagInt64Value(data[1]);
 }
 function decodeZigZagSequenceRleInt64(data) {
     /* base value and delta value are equal */
-    if (data.length == 2) {
-        const value = decodeZigZagValueInt64(data[1]);
+    if (data.length === 2) {
+        const value = decodeZigZagInt64Value(data[1]);
         return [value, value];
     }
     /* base value and delta value are not equal -> 2 runs and 2 values*/
-    const base = decodeZigZagValueInt64(data[2]);
-    const delta = decodeZigZagValueInt64(data[3]);
+    const base = decodeZigZagInt64Value(data[2]);
+    const delta = decodeZigZagInt64Value(data[3]);
     return [base, delta];
 }
 
@@ -34742,26 +38503,6 @@ var PhysicalStreamType;
     PhysicalStreamType["OFFSET"] = "OFFSET";
     PhysicalStreamType["LENGTH"] = "LENGTH";
 })(PhysicalStreamType || (PhysicalStreamType = {}));
-
-class LogicalStreamType {
-    _dictionaryType;
-    _offsetType;
-    _lengthType;
-    constructor(_dictionaryType, _offsetType, _lengthType) {
-        this._dictionaryType = _dictionaryType;
-        this._offsetType = _offsetType;
-        this._lengthType = _lengthType;
-    }
-    get dictionaryType() {
-        return this._dictionaryType;
-    }
-    get offsetType() {
-        return this._offsetType;
-    }
-    get lengthType() {
-        return this._lengthType;
-    }
-}
 
 var DictionaryType;
 (function (DictionaryType) {
@@ -34840,13 +38581,19 @@ function decodeStreamMetadataInternal(tile, offset) {
     let logicalStreamType = null;
     switch (physicalStreamType) {
         case PhysicalStreamType.DATA:
-            logicalStreamType = new LogicalStreamType(Object.values(DictionaryType)[stream_type & 0xf]);
+            logicalStreamType = {
+                dictionaryType: Object.values(DictionaryType)[stream_type & 0xf],
+            };
             break;
         case PhysicalStreamType.OFFSET:
-            logicalStreamType = new LogicalStreamType(null, Object.values(OffsetType)[stream_type & 0xf]);
+            logicalStreamType = {
+                offsetType: Object.values(OffsetType)[stream_type & 0xf],
+            };
             break;
         case PhysicalStreamType.LENGTH:
-            logicalStreamType = new LogicalStreamType(null, null, Object.values(LengthType)[stream_type & 0xf]);
+            logicalStreamType = {
+                lengthType: Object.values(LengthType)[stream_type & 0xf],
+            };
             break;
     }
     offset.increment();
@@ -34880,8 +38627,6 @@ var VectorType;
 })(VectorType || (VectorType = {}));
 
 class BitVector {
-    values;
-    _size;
     /**
      * @param values The byte buffer containing the bit values in least-significant bit (LSB)
      *     numbering
@@ -34916,9 +38661,63 @@ class BitVector {
     }
 }
 
-function decodeIntStream(data, offset, streamMetadata, isSigned, scalingData) {
+/**
+ * Generic unpacking function.
+ * Reconstructs the full array by inserting default values at null positions.
+ *
+ * @param dataStream The compact data stream containing only non-null values
+ * @param presentBits BitVector indicating which positions have values (null if non-nullable)
+ * @param defaultValue The default value to insert at null positions (0, 0n, etc.)
+ * @returns Full array with default values at null positions
+ */
+function unpackNullable(dataStream, presentBits, defaultValue) {
+    // Non-nullable case: return data stream as-is
+    if (!presentBits) {
+        return dataStream;
+    }
+    const size = presentBits.size();
+    // Create new array of same type with full size
+    const constructor = dataStream.constructor;
+    const result = new constructor(size);
+    let counter = 0;
+    for (let i = 0; i < size; i++) {
+        // If position has a value, take from data stream; otherwise use default
+        result[i] = presentBits.get(i) ? dataStream[counter++] : defaultValue;
+    }
+    return result;
+}
+/**
+ * Special case for boolean columns because BitVector is not directly compatible with TypedArray.
+ *
+ * @param dataStream The compact BitVector data containing only non-null boolean values
+ * @param dataStreamSize The number of actual values in dataStream
+ * @param presentBits BitVector indicating which positions have values (null if non-nullable)
+ * @returns Uint8Array buffer for BitVector with false at null positions
+ */
+function unpackNullableBoolean(dataStream, dataStreamSize, presentBits) {
+    // Non-nullable case
+    if (!presentBits) {
+        return dataStream;
+    }
+    const numFeatures = presentBits.size();
+    const bitVector = new BitVector(dataStream, dataStreamSize);
+    const result = new BitVector(new Uint8Array(Math.ceil(numFeatures / 8)), numFeatures);
+    let counter = 0;
+    for (let i = 0; i < numFeatures; i++) {
+        // If position has a value, take from data stream; otherwise use false
+        const value = presentBits.get(i) ? bitVector.get(counter++) : false;
+        result.set(i, value);
+    }
+    return result.getBuffer();
+}
+
+function decodeSignedInt32Stream(data, offset, streamMetadata, scalingData, nullabilityBuffer) {
     const values = decodePhysicalLevelTechnique(data, offset, streamMetadata);
-    return decodeIntBuffer(values, streamMetadata, isSigned, scalingData);
+    return decodeSignedInt32(values, streamMetadata, scalingData, nullabilityBuffer);
+}
+function decodeUnsignedInt32Stream(data, offset, streamMetadata, scalingData, nullabilityBuffer) {
+    const values = decodePhysicalLevelTechnique(data, offset, streamMetadata);
+    return decodeUnsignedInt32(values, streamMetadata, scalingData, nullabilityBuffer);
 }
 function decodeLengthStreamToOffsetBuffer(data, offset, streamMetadata) {
     const values = decodePhysicalLevelTechnique(data, offset, streamMetadata);
@@ -34926,115 +38725,222 @@ function decodeLengthStreamToOffsetBuffer(data, offset, streamMetadata) {
 }
 function decodePhysicalLevelTechnique(data, offset, streamMetadata) {
     const physicalLevelTechnique = streamMetadata.physicalLevelTechnique;
-    if (physicalLevelTechnique === PhysicalLevelTechnique.FAST_PFOR) {
-        return decodeFastPfor(data, streamMetadata.numValues, streamMetadata.byteLength, offset);
+    switch (physicalLevelTechnique) {
+        case PhysicalLevelTechnique.FAST_PFOR:
+            return decodeFastPfor(data, streamMetadata.numValues, streamMetadata.byteLength, offset);
+        case PhysicalLevelTechnique.VARINT:
+            return decodeVarintInt32(data, offset, streamMetadata.numValues);
+        case PhysicalLevelTechnique.NONE: {
+            const dataOffset = offset.get();
+            const byteLength = streamMetadata.byteLength;
+            offset.add(byteLength);
+            const slice = data.subarray(dataOffset, offset.get());
+            return new Uint32Array(slice);
+        }
+        default:
+            throw new Error(`Specified physicalLevelTechnique ${physicalLevelTechnique} is not supported (yet).`);
     }
-    if (physicalLevelTechnique === PhysicalLevelTechnique.VARINT) {
-        return decodeVarintInt32(data, offset, streamMetadata.numValues);
-    }
-    if (physicalLevelTechnique === PhysicalLevelTechnique.NONE) {
-        const dataOffset = offset.get();
-        const byteLength = streamMetadata.byteLength;
-        offset.add(byteLength);
-        //TODO: use Byte Rle for geometry type encoding
-        const slice = data.subarray(dataOffset, offset.get());
-        return new Int32Array(slice);
-    }
-    throw new Error("Specified physicalLevelTechnique is not supported (yet).");
 }
-function decodeConstIntStream(data, offset, streamMetadata, isSigned) {
+function decodeSignedConstInt32Stream(data, offset, streamMetadata) {
     const values = decodePhysicalLevelTechnique(data, offset, streamMetadata);
     if (values.length === 1) {
-        const value = values[0];
-        return isSigned ? decodeZigZagValue(value) : value;
+        return decodeZigZagInt32Value(values[0]);
     }
-    return isSigned ? decodeZigZagConstRle(values) : decodeUnsignedConstRle(values);
+    return decodeZigZagConstRleInt32(values);
 }
-function decodeSequenceIntStream(data, offset, streamMetadata) {
+function decodeUnsignedConstInt32Stream(data, offset, streamMetadata) {
     const values = decodePhysicalLevelTechnique(data, offset, streamMetadata);
-    return decodeZigZagSequenceRle(values);
+    if (values.length === 1) {
+        return values[0];
+    }
+    return decodeUnsignedConstRleInt32(values);
 }
-function decodeSequenceLongStream(data, offset, streamMetadata) {
+function decodeSequenceInt32Stream(data, offset, streamMetadata) {
+    const values = decodePhysicalLevelTechnique(data, offset, streamMetadata);
+    return decodeZigZagSequenceRleInt32(values);
+}
+function decodeSequenceInt64Stream(data, offset, streamMetadata) {
     const values = decodeVarintInt64(data, offset, streamMetadata.numValues);
     return decodeZigZagSequenceRleInt64(values);
 }
-function decodeLongStream(data, offset, streamMetadata, isSigned) {
+function decodeSignedInt64Stream(data, offset, streamMetadata, nullabilityBuffer) {
     const values = decodeVarintInt64(data, offset, streamMetadata.numValues);
-    return decodeLongBuffer(values, streamMetadata, isSigned);
+    return decodeSignedInt64(values, streamMetadata, nullabilityBuffer);
 }
-function decodeLongFloat64Stream(data, offset, streamMetadata, isSigned) {
-    const values = decodeVarintFloat64(data, streamMetadata.numValues, offset);
-    return decodeFloat64Buffer(values, streamMetadata, isSigned);
+function decodeUnsignedInt64Stream(data, offset, streamMetadata, nullabilityBuffer) {
+    const values = decodeVarintInt64(data, offset, streamMetadata.numValues);
+    return decodeUnsignedInt64(values, streamMetadata, nullabilityBuffer);
 }
-function decodeConstLongStream(data, offset, streamMetadata, isSigned) {
+function decodeSignedInt64AsFloat64Stream(data, offset, streamMetadata) {
+    const values = decodeVarintFloat64(data, offset, streamMetadata.numValues);
+    return decodeFloat64Values(values, streamMetadata, true);
+}
+function decodeUnsignedInt64AsFloat64Stream(data, offset, streamMetadata) {
+    const values = decodeVarintFloat64(data, offset, streamMetadata.numValues);
+    return decodeFloat64Values(values, streamMetadata, false);
+}
+function decodeSignedConstInt64Stream(data, offset, streamMetadata) {
     const values = decodeVarintInt64(data, offset, streamMetadata.numValues);
     if (values.length === 1) {
-        const value = values[0];
-        return isSigned ? decodeZigZagValueInt64(value) : value;
+        return decodeZigZagInt64Value(values[0]);
     }
-    return isSigned ? decodeZigZagConstRleInt64(values) : decodeUnsignedConstRleInt64(values);
+    return decodeZigZagConstRleInt64(values);
 }
-function decodeIntBuffer(values, streamMetadata, isSigned, scalingData) {
-    /*
-     * Currently the encoder uses only fixed combinations of encodings.
-     * For performance reasons it is also used a fixed combination of the encodings on the decoding side.
-     * The following encodings and combinations are used:
-     *   - Morton Delta -> always sorted so not ZigZag encoding needed
-     *   - Delta -> currently always in combination with ZigZag encoding
-     *   - Rle -> in combination with ZigZag encoding if data type is signed
-     *   - Delta Rle
-     *   - Componentwise Delta -> always ZigZag encoding is used
-     * */
+function decodeUnsignedConstInt64Stream(data, offset, streamMetadata) {
+    const values = decodeVarintInt64(data, offset, streamMetadata.numValues);
+    if (values.length === 1) {
+        return values[0];
+    }
+    return decodeUnsignedConstRleInt64(values);
+}
+/**
+ * This method decodes integer streams.
+ * Currently the encoder uses only fixed combinations of encodings.
+ * For performance reasons it is also uses a fixed combination of the encodings on the decoding side.
+ * The following encodings and combinations are used:
+ *   - Morton Delta -> always sorted so not ZigZag encoding needed
+ *   - Delta -> currently always in combination with ZigZag encoding
+ *   - Rle -> in combination with ZigZag encoding if data type is signed
+ *   - Delta Rle
+ *   - Componentwise Delta -> always ZigZag encoding is used
+ */
+function decodeSignedInt32(values, streamMetadata, scalingData, nullabilityBuffer) {
+    let decodedValues;
     switch (streamMetadata.logicalLevelTechnique1) {
         case LogicalLevelTechnique.DELTA:
             if (streamMetadata.logicalLevelTechnique2 === LogicalLevelTechnique.RLE) {
                 const rleMetadata = streamMetadata;
-                return decodeDeltaRle(values, rleMetadata.runs, rleMetadata.numRleValues);
+                if (!nullabilityBuffer) {
+                    return decodeDeltaRleInt32(values, rleMetadata.runs, rleMetadata.numRleValues);
+                }
+                values = decodeUnsignedRleInt32(values, rleMetadata.runs, rleMetadata.numRleValues);
+                decodedValues = decodeZigZagDeltaInt32(values);
             }
-            decodeZigZagDelta(values);
-            return values;
+            else {
+                decodedValues = decodeZigZagDeltaInt32(values);
+            }
+            break;
         case LogicalLevelTechnique.RLE:
-            return decodeRle(values, streamMetadata, isSigned);
+            decodedValues = decodeZigZagRleInt32(values, streamMetadata.runs, streamMetadata.numRleValues);
+            break;
         case LogicalLevelTechnique.MORTON:
             fastInverseDelta(values);
-            return values;
+            decodedValues = new Int32Array(values);
+            break;
         case LogicalLevelTechnique.COMPONENTWISE_DELTA:
-            if (scalingData) {
-                decodeComponentwiseDeltaVec2Scaled(values, scalingData.scale, scalingData.min, scalingData.max);
-                return values;
+            if (scalingData && !nullabilityBuffer) {
+                return decodeComponentwiseDeltaVec2Scaled(values, scalingData.scale, scalingData.min, scalingData.max);
             }
-            decodeComponentwiseDeltaVec2(values);
-            return values;
+            decodedValues = decodeComponentwiseDeltaVec2(values);
+            break;
         case LogicalLevelTechnique.NONE:
-            if (isSigned) {
-                decodeZigZag(values);
-            }
-            return values;
+            decodedValues = decodeZigZagInt32(values);
+            break;
         default:
             throw new Error(`The specified Logical level technique is not supported: ${streamMetadata.logicalLevelTechnique1}`);
     }
+    if (nullabilityBuffer) {
+        return unpackNullable(decodedValues, nullabilityBuffer, 0);
+    }
+    return decodedValues;
 }
-function decodeLongBuffer(values, streamMetadata, isSigned) {
+function decodeUnsignedInt32(values, streamMetadata, scalingData, nullabilityBuffer) {
+    let decodedValues;
     switch (streamMetadata.logicalLevelTechnique1) {
         case LogicalLevelTechnique.DELTA:
             if (streamMetadata.logicalLevelTechnique2 === LogicalLevelTechnique.RLE) {
                 const rleMetadata = streamMetadata;
-                return decodeDeltaRleInt64(values, rleMetadata.runs, rleMetadata.numRleValues);
+                const deltaValues = decodeUnsignedRleInt32(values, rleMetadata.runs, rleMetadata.numRleValues);
+                decodedValues = decodeUnsignedZigZagDeltaInt32(deltaValues);
             }
-            decodeZigZagDeltaInt64(values);
-            return values;
+            else {
+                decodedValues = decodeUnsignedZigZagDeltaInt32(values);
+            }
+            break;
         case LogicalLevelTechnique.RLE:
-            return decodeRleInt64(values, streamMetadata, isSigned);
-        case LogicalLevelTechnique.NONE:
-            if (isSigned) {
-                decodeZigZagInt64(values);
+            decodedValues = decodeUnsignedRleInt32(values, streamMetadata.runs, streamMetadata.numRleValues);
+            break;
+        case LogicalLevelTechnique.MORTON:
+            fastInverseDelta(values);
+            decodedValues = values;
+            break;
+        case LogicalLevelTechnique.COMPONENTWISE_DELTA:
+            if (scalingData && !nullabilityBuffer) {
+                decodedValues = decodeUnsignedComponentwiseDeltaVec2Scaled(values, scalingData.scale, scalingData.min, scalingData.max);
             }
-            return values;
+            else {
+                decodedValues = decodeUnsignedComponentwiseDeltaVec2(values);
+            }
+            break;
+        case LogicalLevelTechnique.NONE:
+            decodedValues = values;
+            break;
         default:
             throw new Error(`The specified Logical level technique is not supported: ${streamMetadata.logicalLevelTechnique1}`);
     }
+    if (nullabilityBuffer) {
+        return unpackNullable(decodedValues, nullabilityBuffer, 0);
+    }
+    return decodedValues;
 }
-function decodeFloat64Buffer(values, streamMetadata, isSigned) {
+function decodeSignedInt64(values, streamMetadata, nullabilityBuffer) {
+    let decodedValues;
+    switch (streamMetadata.logicalLevelTechnique1) {
+        case LogicalLevelTechnique.DELTA:
+            if (streamMetadata.logicalLevelTechnique2 === LogicalLevelTechnique.RLE) {
+                const rleMetadata = streamMetadata;
+                if (!nullabilityBuffer) {
+                    return decodeDeltaRleInt64(values, rleMetadata.runs, rleMetadata.numRleValues);
+                }
+                values = decodeUnsignedRleInt64(values, rleMetadata.runs, rleMetadata.numRleValues);
+                decodedValues = decodeZigZagDeltaInt64(values);
+            }
+            else {
+                decodedValues = decodeZigZagDeltaInt64(values);
+            }
+            break;
+        case LogicalLevelTechnique.RLE:
+            decodedValues = decodeZigZagRleInt64(values, streamMetadata.runs, streamMetadata.numRleValues);
+            break;
+        case LogicalLevelTechnique.NONE:
+            decodedValues = decodeZigZagInt64(values);
+            break;
+        default:
+            throw new Error(`The specified Logical level technique is not supported: ${streamMetadata.logicalLevelTechnique1}`);
+    }
+    if (nullabilityBuffer) {
+        return unpackNullable(decodedValues, nullabilityBuffer, 0n);
+    }
+    return decodedValues;
+}
+function decodeUnsignedInt64(values, streamMetadata, nullabilityBuffer) {
+    let decodedValues;
+    switch (streamMetadata.logicalLevelTechnique1) {
+        case LogicalLevelTechnique.DELTA:
+            if (streamMetadata.logicalLevelTechnique2 === LogicalLevelTechnique.RLE) {
+                const rleMetadata = streamMetadata;
+                const deltaValues = decodeUnsignedRleInt64(values, rleMetadata.runs, rleMetadata.numRleValues);
+                decodedValues = decodeUnsignedZigZagDeltaInt64(deltaValues);
+            }
+            else {
+                decodedValues = decodeUnsignedZigZagDeltaInt64(values);
+            }
+            break;
+        case LogicalLevelTechnique.RLE:
+            decodedValues = decodeUnsignedRleInt64(values, streamMetadata.runs, streamMetadata.numRleValues);
+            break;
+        case LogicalLevelTechnique.NONE:
+            decodedValues = values;
+            break;
+        default:
+            throw new Error(`The specified Logical level technique is not supported: ${streamMetadata.logicalLevelTechnique1}`);
+    }
+    if (nullabilityBuffer) {
+        return unpackNullable(decodedValues, nullabilityBuffer, 0n);
+    }
+    return decodedValues;
+}
+function decodeFloat64Values(values, streamMetadata, isSigned) {
     switch (streamMetadata.logicalLevelTechnique1) {
         case LogicalLevelTechnique.DELTA:
             if (streamMetadata.logicalLevelTechnique2 === LogicalLevelTechnique.RLE) {
@@ -35057,21 +38963,19 @@ function decodeFloat64Buffer(values, streamMetadata, isSigned) {
 function decodeLengthToOffsetBuffer(values, streamMetadata) {
     if (streamMetadata.logicalLevelTechnique1 === LogicalLevelTechnique.DELTA &&
         streamMetadata.logicalLevelTechnique2 === LogicalLevelTechnique.NONE) {
-        const decodedValues = zigZagDeltaOfDeltaDecoding(values);
-        return decodedValues;
+        return decodeZigZagDeltaOfDeltaInt32(values);
     }
     if (streamMetadata.logicalLevelTechnique1 === LogicalLevelTechnique.RLE &&
         streamMetadata.logicalLevelTechnique2 === LogicalLevelTechnique.NONE) {
         const rleMetadata = streamMetadata;
-        const decodedValues = rleDeltaDecoding(values, rleMetadata.runs, rleMetadata.numRleValues);
-        return decodedValues;
+        return decodeRleDeltaInt32(values, rleMetadata.runs, rleMetadata.numRleValues);
     }
     if (streamMetadata.logicalLevelTechnique1 === LogicalLevelTechnique.NONE &&
         streamMetadata.logicalLevelTechnique2 === LogicalLevelTechnique.NONE) {
         //TODO: use fastInverseDelta again and check what are the performance problems in zoom 14
         //fastInverseDelta(values);
         inverseDelta(values);
-        const offsets = new Int32Array(streamMetadata.numValues + 1);
+        const offsets = new Uint32Array(streamMetadata.numValues + 1);
         offsets[0] = 0;
         offsets.set(values, 1);
         return offsets;
@@ -35079,134 +38983,78 @@ function decodeLengthToOffsetBuffer(values, streamMetadata) {
     if (streamMetadata.logicalLevelTechnique1 === LogicalLevelTechnique.DELTA &&
         streamMetadata.logicalLevelTechnique2 === LogicalLevelTechnique.RLE) {
         const rleMetadata = streamMetadata;
-        const decodedValues = zigZagRleDeltaDecoding(values, rleMetadata.runs, rleMetadata.numRleValues);
+        const decodedValues = decodeZigZagRleDeltaInt32(values, rleMetadata.runs, rleMetadata.numRleValues);
         fastInverseDelta(decodedValues);
-        return decodedValues;
+        return new Uint32Array(decodedValues);
     }
     throw new Error("Only delta encoding is supported for transforming length to offset streams yet.");
 }
-function decodeNullableIntStream(data, offset, streamMetadata, isSigned, bitVector) {
-    const values = streamMetadata.physicalLevelTechnique === PhysicalLevelTechnique.FAST_PFOR
-        ? decodeFastPfor(data, streamMetadata.numValues, streamMetadata.byteLength, offset)
-        : decodeVarintInt32(data, offset, streamMetadata.numValues);
-    return decodeNullableIntBuffer(values, streamMetadata, isSigned, bitVector);
-}
-function decodeNullableLongStream(data, offset, streamMetadata, isSigned, bitVector) {
-    const values = decodeVarintInt64(data, offset, streamMetadata.numValues);
-    return decodeNullableLongBuffer(values, streamMetadata, isSigned, bitVector);
-}
-function decodeNullableIntBuffer(values, streamMetadata, isSigned, bitVector) {
-    switch (streamMetadata.logicalLevelTechnique1) {
-        case LogicalLevelTechnique.DELTA:
-            if (streamMetadata.logicalLevelTechnique2 === LogicalLevelTechnique.RLE) {
-                const rleMetadata = streamMetadata;
-                values = decodeUnsignedRle(values, rleMetadata.runs, rleMetadata.numRleValues);
-            }
-            return decodeNullableZigZagDelta(bitVector, values);
-        case LogicalLevelTechnique.RLE:
-            return decodeNullableRle(values, streamMetadata, isSigned, bitVector);
-        case LogicalLevelTechnique.MORTON:
-            fastInverseDelta(values);
-            return values;
-        case LogicalLevelTechnique.COMPONENTWISE_DELTA:
-            decodeComponentwiseDeltaVec2(values);
-            return values;
-        case LogicalLevelTechnique.NONE:
-            values = isSigned ? padZigZagWithZeros(bitVector, values) : padWithZeros(bitVector, values);
-            return values;
-        default:
-            throw new Error("The specified Logical level technique is not supported");
-    }
-}
-function decodeNullableLongBuffer(values, streamMetadata, isSigned, bitVector) {
-    switch (streamMetadata.logicalLevelTechnique1) {
-        case LogicalLevelTechnique.DELTA:
-            if (streamMetadata.logicalLevelTechnique2 === LogicalLevelTechnique.RLE) {
-                const rleMetadata = streamMetadata;
-                values = decodeUnsignedRleInt64(values, rleMetadata.runs, rleMetadata.numRleValues);
-            }
-            return decodeNullableZigZagDeltaInt64(bitVector, values);
-        case LogicalLevelTechnique.RLE:
-            return decodeNullableRleInt64(values, streamMetadata, isSigned, bitVector);
-        case LogicalLevelTechnique.NONE:
-            values = isSigned ? padZigZagWithZerosInt64(bitVector, values) : padWithZerosInt64(bitVector, values);
-            return values;
-        default:
-            throw new Error("The specified Logical level technique is not supported");
-    }
-}
-function getVectorType(streamMetadata, sizeOrNullabilityBuffer, data, offset) {
+function getVectorType(streamMetadata, sizeOrNullabilityBuffer, data, offset, varintWidth = "int32") {
     const logicalLevelTechnique1 = streamMetadata.logicalLevelTechnique1;
     if (logicalLevelTechnique1 === LogicalLevelTechnique.RLE) {
         return streamMetadata.runs === 1 ? VectorType.CONST : VectorType.FLAT;
     }
+    if (logicalLevelTechnique1 !== LogicalLevelTechnique.DELTA ||
+        streamMetadata.logicalLevelTechnique2 !== LogicalLevelTechnique.RLE) {
+        return streamMetadata.numValues === 1 ? VectorType.CONST : VectorType.FLAT;
+    }
     const numFeatures = sizeOrNullabilityBuffer instanceof BitVector ? sizeOrNullabilityBuffer.size() : sizeOrNullabilityBuffer;
-    if (logicalLevelTechnique1 === LogicalLevelTechnique.DELTA &&
-        streamMetadata.logicalLevelTechnique2 === LogicalLevelTechnique.RLE) {
-        const rleMetadata = streamMetadata;
-        const runs = rleMetadata.runs;
-        const zigZagOne = 2;
-        if (rleMetadata.numRleValues !== numFeatures) {
-            return VectorType.FLAT;
-        }
-        // Single run is always a sequence
-        if (runs === 1) {
+    const rleMetadata = streamMetadata;
+    if (rleMetadata.numRleValues !== numFeatures) {
+        return VectorType.FLAT;
+    }
+    // Single run is always a sequence
+    if (rleMetadata.runs === 1) {
+        return VectorType.SEQUENCE;
+    }
+    if (rleMetadata.runs !== 2) {
+        return streamMetadata.numValues === 1 ? VectorType.CONST : VectorType.FLAT;
+    }
+    // Two runs can be a sequence if both deltas are equal to 1
+    const savedOffset = offset.get();
+    if (streamMetadata.physicalLevelTechnique === PhysicalLevelTechnique.VARINT) {
+        if (isDeltaRleSequenceVarintWidth(data, offset, varintWidth)) {
             return VectorType.SEQUENCE;
         }
-        // Two runs can be a sequence if both deltas are equal to 1
-        if (runs === 2) {
-            const savedOffset = offset.get();
-            let values;
-            if (streamMetadata.physicalLevelTechnique === PhysicalLevelTechnique.VARINT) {
-                values = decodeVarintInt32(data, offset, 4);
-            }
-            else {
-                const byteOffset = offset.get();
-                values = new Int32Array(data.buffer, data.byteOffset + byteOffset, 4);
-            }
-            offset.set(savedOffset);
-            // Check if both deltas are encoded 1
-            if (values[2] === zigZagOne && values[3] === zigZagOne) {
-                return VectorType.SEQUENCE;
-            }
-        }
+        return streamMetadata.numValues === 1 ? VectorType.CONST : VectorType.FLAT;
+    }
+    const byteOffset = offset.get();
+    const values = new Int32Array(data.buffer, data.byteOffset + byteOffset, 4);
+    offset.set(savedOffset);
+    // Check if both deltas are encoded 1
+    const zigZagOne = 2;
+    if (values[2] === zigZagOne && values[3] === zigZagOne) {
+        return VectorType.SEQUENCE;
     }
     return streamMetadata.numValues === 1 ? VectorType.CONST : VectorType.FLAT;
 }
+function isDeltaRleSequenceVarintWidth(data, offset, varintWidth) {
+    const peekOffset = new IntWrapper(offset.get());
+    if (varintWidth === "int64") {
+        const values = decodeVarintInt64(data, peekOffset, 4);
+        return values[2] === 2n && values[3] === 2n;
+    }
+    const values = decodeVarintInt32(data, peekOffset, 4);
+    return values[2] === 2 && values[3] === 2;
+}
+function decodeRleFloat64(data, streamMetadata, isSigned) {
+    return isSigned
+        ? decodeZigZagRleFloat64(data, streamMetadata.runs, streamMetadata.numRleValues)
+        : decodeUnsignedRleFloat64(data, streamMetadata.runs, streamMetadata.numRleValues);
+}
 
-class LongFlatVector extends FixedSizeVector {
+class Int64FlatVector extends FixedSizeVector {
     getValueFromBuffer(index) {
         return this.dataBuffer[index];
     }
 }
 
-class LongSequenceVector extends SequenceVector {
+class Int64SequenceVector extends SequenceVector {
     constructor(name, baseValue, delta, size) {
         super(name, BigInt64Array.of(baseValue), delta, size);
     }
     getValueFromBuffer(index) {
         return this.dataBuffer[0] + BigInt(index) * this.delta;
-    }
-}
-
-class TopologyVector {
-    _geometryOffsets;
-    _partOffsets;
-    _ringOffsets;
-    //TODO: refactor to use unsigned integers
-    constructor(_geometryOffsets, _partOffsets, _ringOffsets) {
-        this._geometryOffsets = _geometryOffsets;
-        this._partOffsets = _partOffsets;
-        this._ringOffsets = _ringOffsets;
-    }
-    get geometryOffsets() {
-        return this._geometryOffsets;
-    }
-    get partOffsets() {
-        return this._partOffsets;
-    }
-    get ringOffsets() {
-        return this._ringOffsets;
     }
 }
 
@@ -35246,34 +39094,12 @@ var VertexBufferType;
     VertexBufferType[VertexBufferType["VEC_3"] = 2] = "VEC_3";
 })(VertexBufferType || (VertexBufferType = {}));
 
-class MvtGeometryFactory {
-    createPoint(coordinate) {
-        return [[coordinate]];
-    }
-    createMultiPoint(points) {
-        return points.map((point) => [point]);
-    }
-    createLineString(vertices) {
-        return [vertices];
-    }
-    createMultiLineString(lineStrings) {
-        return lineStrings;
-    }
-    createPolygon(shell, rings) {
-        return [shell].concat(rings);
-    }
-    createMultiPolygon(polygons) {
-        //TODO: check winding order of shell and holes
-        return polygons.flat();
-    }
-}
 function convertGeometryVector(geometryVector) {
     const geometries = new Array(geometryVector.numGeometries);
     let partOffsetCounter = 1;
     let ringOffsetsCounter = 1;
     let geometryOffsetsCounter = 1;
     let geometryCounter = 0;
-    const geometryFactory = new MvtGeometryFactory();
     let vertexBufferOffset = 0;
     let vertexOffsetsOffset = 0;
     const mortonSettings = geometryVector.mortonSettings;
@@ -35282,129 +39108,70 @@ function convertGeometryVector(geometryVector) {
     const partOffsets = topologyVector.partOffsets;
     const ringOffsets = topologyVector.ringOffsets;
     const vertexOffsets = geometryVector.vertexOffsets;
+    const nonOffset = !vertexOffsets || vertexOffsets.length === 0;
     const containsPolygon = geometryVector.containsPolygonGeometry();
     const vertexBuffer = geometryVector.vertexBuffer;
     for (let i = 0; i < geometryVector.numGeometries; i++) {
         const geometryType = geometryVector.geometryType(i);
-        if (geometryType === GEOMETRY_TYPE.POINT) {
-            if (!vertexOffsets || vertexOffsets.length === 0) {
-                const x = vertexBuffer[vertexBufferOffset++];
-                const y = vertexBuffer[vertexBufferOffset++];
-                const coordinate = new Point(x, y);
-                geometries[geometryCounter++] = geometryFactory.createPoint(coordinate);
-            }
-            else if (geometryVector.vertexBufferType === VertexBufferType.VEC_2) {
-                const offset = vertexOffsets[vertexOffsetsOffset++] * 2;
-                const x = vertexBuffer[offset];
-                const y = vertexBuffer[offset + 1];
-                const coordinate = new Point(x, y);
-                geometries[geometryCounter++] = geometryFactory.createPoint(coordinate);
-            }
-            else {
-                const offset = vertexOffsets[vertexOffsetsOffset++];
-                const mortonCode = vertexBuffer[offset];
-                const vertex = decodeZOrderCurve(mortonCode, mortonSettings.numBits, mortonSettings.coordinateShift);
-                const coordinate = new Point(vertex.x, vertex.y);
-                geometries[geometryCounter++] = geometryFactory.createPoint(coordinate);
-            }
-            if (geometryOffsets)
-                geometryOffsetsCounter++;
-            if (partOffsets)
-                partOffsetCounter++;
-            if (ringOffsets)
-                ringOffsetsCounter++;
-        }
-        else if (geometryType === GEOMETRY_TYPE.MULTIPOINT) {
-            const numPoints = geometryOffsets[geometryOffsetsCounter] - geometryOffsets[geometryOffsetsCounter - 1];
-            geometryOffsetsCounter++;
-            const points = new Array(numPoints);
-            if (!vertexOffsets || vertexOffsets.length === 0) {
-                for (let j = 0; j < numPoints; j++) {
-                    const x = vertexBuffer[vertexBufferOffset++];
-                    const y = vertexBuffer[vertexBufferOffset++];
-                    points[j] = new Point(x, y);
+        switch (geometryType) {
+            case GEOMETRY_TYPE.POINT:
+                {
+                    let x;
+                    let y;
+                    if (nonOffset) {
+                        x = vertexBuffer[vertexBufferOffset++];
+                        y = vertexBuffer[vertexBufferOffset++];
+                    }
+                    else if (geometryVector.vertexBufferType === VertexBufferType.MORTON) {
+                        const offset = vertexOffsets[vertexOffsetsOffset++];
+                        const mortonCode = vertexBuffer[offset];
+                        const vertex = decodeZOrderCurve(mortonCode, mortonSettings.numBits, mortonSettings.coordinateShift);
+                        x = vertex.x;
+                        y = vertex.y;
+                    }
+                    else {
+                        const offset = vertexOffsets[vertexOffsetsOffset++] * 2;
+                        x = vertexBuffer[offset];
+                        y = vertexBuffer[offset + 1];
+                    }
+                    geometries[geometryCounter++] = [[new Point(x, y)]];
+                    if (geometryOffsets)
+                        geometryOffsetsCounter++;
+                    if (partOffsets)
+                        partOffsetCounter++;
+                    if (ringOffsets)
+                        ringOffsetsCounter++;
                 }
-                geometries[geometryCounter++] = geometryFactory.createMultiPoint(points);
-            }
-            else {
-                for (let j = 0; j < numPoints; j++) {
-                    const offset = vertexOffsets[vertexOffsetsOffset++] * 2;
-                    const x = vertexBuffer[offset];
-                    const y = vertexBuffer[offset + 1];
-                    points[j] = new Point(x, y);
+                break;
+            case GEOMETRY_TYPE.MULTIPOINT:
+                {
+                    const numPoints = geometryOffsets[geometryOffsetsCounter] - geometryOffsets[geometryOffsetsCounter - 1];
+                    geometryOffsetsCounter++;
+                    const points = new Array(numPoints);
+                    if (nonOffset) {
+                        for (let j = 0; j < numPoints; j++) {
+                            const x = vertexBuffer[vertexBufferOffset++];
+                            const y = vertexBuffer[vertexBufferOffset++];
+                            points[j] = new Point(x, y);
+                        }
+                    }
+                    else {
+                        for (let j = 0; j < numPoints; j++) {
+                            const offset = vertexOffsets[vertexOffsetsOffset++] * 2;
+                            const x = vertexBuffer[offset];
+                            const y = vertexBuffer[offset + 1];
+                            points[j] = new Point(x, y);
+                        }
+                    }
+                    geometries[geometryCounter++] = points.map((point) => [point]);
+                    // MULTIPOINT must increment offset counters like POINT does
+                    partOffsetCounter += numPoints;
+                    ringOffsetsCounter += numPoints;
                 }
-                geometries[geometryCounter++] = geometryFactory.createMultiPoint(points);
-            }
-        }
-        else if (geometryType === GEOMETRY_TYPE.LINESTRING) {
-            let numVertices = 0;
-            if (containsPolygon) {
-                numVertices = ringOffsets[ringOffsetsCounter] - ringOffsets[ringOffsetsCounter - 1];
-                ringOffsetsCounter++;
-            }
-            else {
-                numVertices = partOffsets[partOffsetCounter] - partOffsets[partOffsetCounter - 1];
-            }
-            partOffsetCounter++;
-            let vertices;
-            if (!vertexOffsets || vertexOffsets.length === 0) {
-                vertices = getLineString(vertexBuffer, vertexBufferOffset, numVertices, false);
-                vertexBufferOffset += numVertices * 2;
-            }
-            else {
-                vertices =
-                    geometryVector.vertexBufferType === VertexBufferType.VEC_2
-                        ? decodeDictionaryEncodedLineString(vertexBuffer, vertexOffsets, vertexOffsetsOffset, numVertices, false)
-                        : decodeMortonDictionaryEncodedLineString(vertexBuffer, vertexOffsets, vertexOffsetsOffset, numVertices, false, mortonSettings);
-                vertexOffsetsOffset += numVertices;
-            }
-            geometries[geometryCounter++] = geometryFactory.createLineString(vertices);
-            if (geometryOffsets)
-                geometryOffsetsCounter++;
-        }
-        else if (geometryType === GEOMETRY_TYPE.POLYGON) {
-            const numRings = partOffsets[partOffsetCounter] - partOffsets[partOffsetCounter - 1];
-            partOffsetCounter++;
-            const rings = new Array(numRings - 1);
-            let numVertices = ringOffsets[ringOffsetsCounter] - ringOffsets[ringOffsetsCounter - 1];
-            ringOffsetsCounter++;
-            if (!vertexOffsets || vertexOffsets.length === 0) {
-                const shell = getLinearRing(vertexBuffer, vertexBufferOffset, numVertices);
-                vertexBufferOffset += numVertices * 2;
-                for (let j = 0; j < rings.length; j++) {
-                    numVertices = ringOffsets[ringOffsetsCounter] - ringOffsets[ringOffsetsCounter - 1];
-                    ringOffsetsCounter++;
-                    rings[j] = getLinearRing(vertexBuffer, vertexBufferOffset, numVertices);
-                    vertexBufferOffset += numVertices * 2;
-                }
-                geometries[geometryCounter++] = geometryFactory.createPolygon(shell, rings);
-            }
-            else {
-                const shell = geometryVector.vertexBufferType === VertexBufferType.VEC_2
-                    ? decodeDictionaryEncodedLinearRing(vertexBuffer, vertexOffsets, vertexOffsetsOffset, numVertices)
-                    : decodeMortonDictionaryEncodedLinearRing(vertexBuffer, vertexOffsets, vertexOffsetsOffset, numVertices, geometryFactory, mortonSettings);
-                vertexOffsetsOffset += numVertices;
-                for (let j = 0; j < rings.length; j++) {
-                    numVertices = ringOffsets[ringOffsetsCounter] - ringOffsets[ringOffsetsCounter - 1];
-                    ringOffsetsCounter++;
-                    rings[j] =
-                        geometryVector.vertexBufferType === VertexBufferType.VEC_2
-                            ? decodeDictionaryEncodedLinearRing(vertexBuffer, vertexOffsets, vertexOffsetsOffset, numVertices)
-                            : decodeMortonDictionaryEncodedLinearRing(vertexBuffer, vertexOffsets, vertexOffsetsOffset, numVertices, geometryFactory, mortonSettings);
-                    vertexOffsetsOffset += numVertices;
-                }
-                geometries[geometryCounter++] = geometryFactory.createPolygon(shell, rings);
-            }
-            if (geometryOffsets)
-                geometryOffsetsCounter++;
-        }
-        else if (geometryType === GEOMETRY_TYPE.MULTILINESTRING) {
-            const numLineStrings = geometryOffsets[geometryOffsetsCounter] - geometryOffsets[geometryOffsetsCounter - 1];
-            geometryOffsetsCounter++;
-            const lineStrings = new Array(numLineStrings);
-            if (!vertexOffsets || vertexOffsets.length === 0) {
-                for (let j = 0; j < numLineStrings; j++) {
-                    let numVertices = 0;
+                break;
+            case GEOMETRY_TYPE.LINESTRING:
+                {
+                    let numVertices;
                     if (containsPolygon) {
                         numVertices = ringOffsets[ringOffsetsCounter] - ringOffsets[ringOffsetsCounter - 1];
                         ringOffsetsCounter++;
@@ -35413,96 +39180,133 @@ function convertGeometryVector(geometryVector) {
                         numVertices = partOffsets[partOffsetCounter] - partOffsets[partOffsetCounter - 1];
                     }
                     partOffsetCounter++;
-                    lineStrings[j] = getLineString(vertexBuffer, vertexBufferOffset, numVertices, false);
-                    vertexBufferOffset += numVertices * 2;
-                }
-                geometries[geometryCounter++] = geometryFactory.createMultiLineString(lineStrings);
-            }
-            else {
-                for (let j = 0; j < numLineStrings; j++) {
-                    let numVertices = 0;
-                    if (containsPolygon) {
-                        numVertices = ringOffsets[ringOffsetsCounter] - ringOffsets[ringOffsetsCounter - 1];
-                        ringOffsetsCounter++;
+                    let vertices;
+                    if (nonOffset) {
+                        vertices = getLineStringOrRing(vertexBuffer, vertexBufferOffset, numVertices, false);
+                        vertexBufferOffset += numVertices * 2;
                     }
                     else {
-                        numVertices = partOffsets[partOffsetCounter] - partOffsets[partOffsetCounter - 1];
-                    }
-                    partOffsetCounter++;
-                    const vertices = geometryVector.vertexBufferType === VertexBufferType.VEC_2
-                        ? decodeDictionaryEncodedLineString(vertexBuffer, vertexOffsets, vertexOffsetsOffset, numVertices, false)
-                        : decodeMortonDictionaryEncodedLineString(vertexBuffer, vertexOffsets, vertexOffsetsOffset, numVertices, false, mortonSettings);
-                    lineStrings[j] = vertices;
-                    vertexOffsetsOffset += numVertices;
-                }
-                geometries[geometryCounter++] = geometryFactory.createMultiLineString(lineStrings);
-            }
-        }
-        else if (geometryType === GEOMETRY_TYPE.MULTIPOLYGON) {
-            const numPolygons = geometryOffsets[geometryOffsetsCounter] - geometryOffsets[geometryOffsetsCounter - 1];
-            geometryOffsetsCounter++;
-            const polygons = new Array(numPolygons);
-            let numVertices = 0;
-            if (!vertexOffsets || vertexOffsets.length === 0) {
-                for (let j = 0; j < numPolygons; j++) {
-                    const numRings = partOffsets[partOffsetCounter] - partOffsets[partOffsetCounter - 1];
-                    partOffsetCounter++;
-                    const rings = new Array(numRings - 1);
-                    numVertices = ringOffsets[ringOffsetsCounter] - ringOffsets[ringOffsetsCounter - 1];
-                    ringOffsetsCounter++;
-                    const shell = getLinearRing(vertexBuffer, vertexBufferOffset, numVertices);
-                    vertexBufferOffset += numVertices * 2;
-                    for (let k = 0; k < rings.length; k++) {
-                        const numRingVertices = ringOffsets[ringOffsetsCounter] - ringOffsets[ringOffsetsCounter - 1];
-                        ringOffsetsCounter++;
-                        rings[k] = getLinearRing(vertexBuffer, vertexBufferOffset, numRingVertices);
-                        vertexBufferOffset += numRingVertices * 2;
-                    }
-                    polygons[j] = geometryFactory.createPolygon(shell, rings);
-                }
-                geometries[geometryCounter++] = geometryFactory.createMultiPolygon(polygons);
-            }
-            else {
-                for (let j = 0; j < numPolygons; j++) {
-                    const numRings = partOffsets[partOffsetCounter] - partOffsets[partOffsetCounter - 1];
-                    partOffsetCounter++;
-                    const rings = new Array(numRings - 1);
-                    numVertices = ringOffsets[ringOffsetsCounter] - ringOffsets[ringOffsetsCounter - 1];
-                    ringOffsetsCounter++;
-                    const shell = geometryVector.vertexBufferType === VertexBufferType.VEC_2
-                        ? decodeDictionaryEncodedLinearRing(vertexBuffer, vertexOffsets, vertexOffsetsOffset, numVertices)
-                        : decodeMortonDictionaryEncodedLinearRing(vertexBuffer, vertexOffsets, vertexOffsetsOffset, numVertices, geometryFactory, mortonSettings);
-                    vertexOffsetsOffset += numVertices;
-                    for (let k = 0; k < rings.length; k++) {
-                        numVertices = ringOffsets[ringOffsetsCounter] - ringOffsets[ringOffsetsCounter - 1];
-                        ringOffsetsCounter++;
-                        rings[k] =
-                            geometryVector.vertexBufferType === VertexBufferType.VEC_2
-                                ? decodeDictionaryEncodedLinearRing(vertexBuffer, vertexOffsets, vertexOffsetsOffset, numVertices)
-                                : decodeMortonDictionaryEncodedLinearRing(vertexBuffer, vertexOffsets, vertexOffsetsOffset, numVertices, geometryFactory, mortonSettings);
+                        vertices = decodeDictionaryEncodedLineStringOrRing(geometryVector.vertexBufferType, vertexBuffer, vertexOffsets, vertexOffsetsOffset, numVertices, false, mortonSettings);
                         vertexOffsetsOffset += numVertices;
                     }
-                    polygons[j] = geometryFactory.createPolygon(shell, rings);
+                    geometries[geometryCounter++] = [vertices];
+                    if (geometryOffsets)
+                        geometryOffsetsCounter++;
                 }
-                geometries[geometryCounter++] = geometryFactory.createMultiPolygon(polygons);
-            }
-        }
-        else {
-            throw new Error("The specified geometry type is currently not supported.");
+                break;
+            case GEOMETRY_TYPE.POLYGON:
+                {
+                    const numRings = partOffsets[partOffsetCounter] - partOffsets[partOffsetCounter - 1];
+                    partOffsetCounter++;
+                    const rings = new Array(numRings - 1);
+                    let shell;
+                    let numVertices = ringOffsets[ringOffsetsCounter] - ringOffsets[ringOffsetsCounter - 1];
+                    ringOffsetsCounter++;
+                    if (nonOffset) {
+                        shell = getLineStringOrRing(vertexBuffer, vertexBufferOffset, numVertices, true);
+                        vertexBufferOffset += numVertices * 2;
+                        for (let j = 0; j < rings.length; j++) {
+                            numVertices = ringOffsets[ringOffsetsCounter] - ringOffsets[ringOffsetsCounter - 1];
+                            ringOffsetsCounter++;
+                            rings[j] = getLineStringOrRing(vertexBuffer, vertexBufferOffset, numVertices, true);
+                            vertexBufferOffset += numVertices * 2;
+                        }
+                    }
+                    else {
+                        shell = decodeDictionaryEncodedLineStringOrRing(geometryVector.vertexBufferType, vertexBuffer, vertexOffsets, vertexOffsetsOffset, numVertices, true, mortonSettings);
+                        vertexOffsetsOffset += numVertices;
+                        for (let j = 0; j < rings.length; j++) {
+                            numVertices = ringOffsets[ringOffsetsCounter] - ringOffsets[ringOffsetsCounter - 1];
+                            ringOffsetsCounter++;
+                            rings[j] = decodeDictionaryEncodedLineStringOrRing(geometryVector.vertexBufferType, vertexBuffer, vertexOffsets, vertexOffsetsOffset, numVertices, true, mortonSettings);
+                            vertexOffsetsOffset += numVertices;
+                        }
+                    }
+                    geometries[geometryCounter++] = [shell].concat(rings);
+                    if (geometryOffsets)
+                        geometryOffsetsCounter++;
+                }
+                break;
+            case GEOMETRY_TYPE.MULTILINESTRING:
+                {
+                    const numLineStrings = geometryOffsets[geometryOffsetsCounter] - geometryOffsets[geometryOffsetsCounter - 1];
+                    geometryOffsetsCounter++;
+                    const lineStrings = new Array(numLineStrings);
+                    for (let j = 0; j < numLineStrings; j++) {
+                        let numVertices;
+                        if (containsPolygon) {
+                            numVertices = ringOffsets[ringOffsetsCounter] - ringOffsets[ringOffsetsCounter - 1];
+                            ringOffsetsCounter++;
+                        }
+                        else {
+                            numVertices = partOffsets[partOffsetCounter] - partOffsets[partOffsetCounter - 1];
+                        }
+                        partOffsetCounter++;
+                        if (nonOffset) {
+                            lineStrings[j] = getLineStringOrRing(vertexBuffer, vertexBufferOffset, numVertices, false);
+                            vertexBufferOffset += numVertices * 2;
+                        }
+                        else {
+                            const vertices = decodeDictionaryEncodedLineStringOrRing(geometryVector.vertexBufferType, vertexBuffer, vertexOffsets, vertexOffsetsOffset, numVertices, false, mortonSettings);
+                            lineStrings[j] = vertices;
+                            vertexOffsetsOffset += numVertices;
+                        }
+                    }
+                    geometries[geometryCounter++] = lineStrings;
+                }
+                break;
+            case GEOMETRY_TYPE.MULTIPOLYGON:
+                {
+                    const numPolygons = geometryOffsets[geometryOffsetsCounter] - geometryOffsets[geometryOffsetsCounter - 1];
+                    geometryOffsetsCounter++;
+                    const polygons = new Array(numPolygons);
+                    for (let j = 0; j < numPolygons; j++) {
+                        const numRings = partOffsets[partOffsetCounter] - partOffsets[partOffsetCounter - 1];
+                        partOffsetCounter++;
+                        let shell;
+                        const rings = new Array(numRings - 1);
+                        const numVertices = ringOffsets[ringOffsetsCounter] - ringOffsets[ringOffsetsCounter - 1];
+                        ringOffsetsCounter++;
+                        if (nonOffset) {
+                            shell = getLineStringOrRing(vertexBuffer, vertexBufferOffset, numVertices, true);
+                            vertexBufferOffset += numVertices * 2;
+                        }
+                        else {
+                            shell = decodeDictionaryEncodedLineStringOrRing(geometryVector.vertexBufferType, vertexBuffer, vertexOffsets, vertexOffsetsOffset, numVertices, true, mortonSettings);
+                            vertexOffsetsOffset += numVertices;
+                        }
+                        for (let k = 0; k < rings.length; k++) {
+                            const numRingVertices = ringOffsets[ringOffsetsCounter] - ringOffsets[ringOffsetsCounter - 1];
+                            ringOffsetsCounter++;
+                            if (nonOffset) {
+                                rings[k] = getLineStringOrRing(vertexBuffer, vertexBufferOffset, numRingVertices, true);
+                                vertexBufferOffset += numRingVertices * 2;
+                            }
+                            else {
+                                rings[k] = decodeDictionaryEncodedLineStringOrRing(geometryVector.vertexBufferType, vertexBuffer, vertexOffsets, vertexOffsetsOffset, numRingVertices, true, mortonSettings);
+                                vertexOffsetsOffset += numRingVertices;
+                            }
+                        }
+                        polygons[j] = [shell].concat(rings);
+                    }
+                    geometries[geometryCounter++] = polygons.flat();
+                }
+                break;
+            default:
+                throw new Error("The specified geometry type is currently not supported.");
         }
     }
     return geometries;
 }
-function getLinearRing(vertexBuffer, startIndex, numVertices) {
-    return getLineString(vertexBuffer, startIndex, numVertices, true);
+function decodeDictionaryEncodedLineStringOrRing(vertexBufferType, vertexBuffer, vertexOffsets, vertexOffset, numVertices, closeLineString, mortonSettings) {
+    if (vertexBufferType === VertexBufferType.MORTON) {
+        return decodeMortonDictionaryEncodedLineString(vertexBuffer, vertexOffsets, vertexOffset, numVertices, closeLineString, mortonSettings);
+    }
+    else {
+        return decodeDictionaryEncodedLineString(vertexBuffer, vertexOffsets, vertexOffset, numVertices, closeLineString);
+    }
 }
-function decodeDictionaryEncodedLinearRing(vertexBuffer, vertexOffsets, vertexOffset, numVertices) {
-    return decodeDictionaryEncodedLineString(vertexBuffer, vertexOffsets, vertexOffset, numVertices, true);
-}
-function decodeMortonDictionaryEncodedLinearRing(vertexBuffer, vertexOffsets, vertexOffset, numVertices, geometryFactory, mortonSettings) {
-    return decodeMortonDictionaryEncodedLineString(vertexBuffer, vertexOffsets, vertexOffset, numVertices, true, mortonSettings);
-}
-function getLineString(vertexBuffer, startIndex, numVertices, closeLineString) {
+function getLineStringOrRing(vertexBuffer, startIndex, numVertices, closeLineString) {
     const vertices = new Array(closeLineString ? numVertices + 1 : numVertices);
     for (let i = 0; i < numVertices * 2; i += 2) {
         const x = vertexBuffer[startIndex + i];
@@ -35542,11 +39346,6 @@ function decodeMortonDictionaryEncodedLineString(vertexBuffer, vertexOffsets, ve
 }
 
 class GeometryVector {
-    _vertexBufferType;
-    _topologyVector;
-    _vertexOffsets;
-    _vertexBuffer;
-    _mortonSettings;
     constructor(_vertexBufferType, _topologyVector, _vertexOffsets, _vertexBuffer, _mortonSettings) {
         this._vertexBufferType = _vertexBufferType;
         this._topologyVector = _topologyVector;
@@ -35565,14 +39364,6 @@ class GeometryVector {
     }
     get vertexBuffer() {
         return this._vertexBuffer;
-    }
-    *[Symbol.iterator]() {
-        const geometries = convertGeometryVector(this);
-        let index = 0;
-        while (index < this.numGeometries) {
-            yield { coordinates: geometries[index], type: this.geometryType(index) };
-            index++;
-        }
     }
     /* Allows faster access to the vertices since morton encoding is currently not used in the POC. Morton encoding
        will be used after adapting the shader to decode the morton codes on the GPU. */
@@ -35612,14 +39403,12 @@ function createMortonEncodedConstGeometryVector(numGeometries, geometryType, top
     return new ConstGeometryVector(numGeometries, geometryType, VertexBufferType.MORTON, topologyVector, vertexOffsets, vertexBuffer, mortonInfo);
 }
 class ConstGeometryVector extends GeometryVector {
-    _numGeometries;
-    _geometryType;
     constructor(_numGeometries, _geometryType, vertexBufferType, topologyVector, vertexOffsets, vertexBuffer, mortonSettings) {
         super(vertexBufferType, topologyVector, vertexOffsets, vertexBuffer, mortonSettings);
         this._numGeometries = _numGeometries;
         this._geometryType = _geometryType;
     }
-    geometryType(index) {
+    geometryType(_index) {
         return this._geometryType;
     }
     get numGeometries() {
@@ -35637,14 +39426,10 @@ function createFlatGeometryVector(geometryTypes, topologyVector, vertexOffsets, 
     return new FlatGeometryVector(VertexBufferType.VEC_2, geometryTypes, topologyVector, vertexOffsets, vertexBuffer);
 }
 function createFlatGeometryVectorMortonEncoded(geometryTypes, topologyVector, vertexOffsets, vertexBuffer, mortonInfo) {
-    //TODO: refactor to use unsigned integers
     return new FlatGeometryVector(VertexBufferType.MORTON, geometryTypes, topologyVector, vertexOffsets, vertexBuffer, mortonInfo);
 }
 class FlatGeometryVector extends GeometryVector {
-    _geometryTypes;
-    constructor(vertexBufferType, 
-    //TODO: refactor -> use UInt8Array
-    _geometryTypes, topologyVector, vertexOffsets, vertexBuffer, mortonSettings) {
+    constructor(vertexBufferType, _geometryTypes, topologyVector, vertexOffsets, vertexBuffer, mortonSettings) {
         super(vertexBufferType, topologyVector, vertexOffsets, vertexBuffer, mortonSettings);
         this._geometryTypes = _geometryTypes;
     }
@@ -35668,10 +39453,6 @@ class FlatGeometryVector extends GeometryVector {
 }
 
 class GpuVector {
-    _triangleOffsets;
-    _indexBuffer;
-    _vertexBuffer;
-    _topologyVector;
     constructor(_triangleOffsets, _indexBuffer, _vertexBuffer, _topologyVector) {
         this._triangleOffsets = _triangleOffsets;
         this._indexBuffer = _indexBuffer;
@@ -35792,14 +39573,12 @@ function createConstGpuVector(numGeometries, geometryType, triangleOffsets, inde
 }
 //TODO: extend from GeometryVector -> make topology vector optional
 class ConstGpuVector extends GpuVector {
-    _numGeometries;
-    _geometryType;
     constructor(_numGeometries, _geometryType, triangleOffsets, indexBuffer, vertexBuffer, topologyVector) {
         super(triangleOffsets, indexBuffer, vertexBuffer, topologyVector);
         this._numGeometries = _numGeometries;
         this._geometryType = _geometryType;
     }
-    geometryType(index) {
+    geometryType(_index) {
         return this._geometryType;
     }
     get numGeometries() {
@@ -35815,7 +39594,6 @@ function createFlatGpuVector(geometryTypes, triangleOffsets, indexBuffer, vertex
 }
 //TODO: extend from GeometryVector -> make topology vector optional
 class FlatGpuVector extends GpuVector {
-    _geometryTypes;
     constructor(_geometryTypes, triangleOffsets, indexBuffer, vertexBuffer, topologyVector) {
         super(triangleOffsets, indexBuffer, vertexBuffer, topologyVector);
         this._geometryTypes = _geometryTypes;
@@ -35835,19 +39613,20 @@ class FlatGpuVector extends GpuVector {
 function decodeGeometryColumn(tile, numStreams, offset, numFeatures, scalingData) {
     const geometryTypeMetadata = decodeStreamMetadata(tile, offset);
     const geometryTypesVectorType = getVectorType(geometryTypeMetadata, numFeatures, tile, offset);
-    let geometryOffsets = null;
-    let partOffsets = null;
-    let ringOffsets = null;
-    let vertexOffsets = null;
-    let vertexBuffer = null;
-    let mortonSettings = null;
-    //TODO: use geometryOffsets for that? -> but then tessellated polygons can't be used with normal polygons
-    // in one FeatureTable?
-    let triangleOffsets = null;
-    let indexBuffer = null;
+    let vertexOffsets;
+    let vertexBuffer;
+    let mortonSettings;
+    let indexBuffer;
     if (geometryTypesVectorType === VectorType.CONST) {
-        /* All geometries in the colum have the same geometry type */
-        const geometryType = decodeConstIntStream(tile, offset, geometryTypeMetadata, false);
+        /* All geometries in the column have the same geometry type */
+        const geometryType = decodeUnsignedConstInt32Stream(tile, offset, geometryTypeMetadata);
+        // Variables for const geometry path (directly decoded as offsets)
+        let geometryOffsets;
+        let partOffsets;
+        let ringOffsets;
+        //TODO: use geometryOffsets for that? -> but then tessellated polygons can't be used with normal polygons
+        // in one FeatureTable?
+        let triangleOffsets;
         for (let i = 0; i < numStreams - 1; i++) {
             const geometryStreamMetadata = decodeStreamMetadata(tile, offset);
             switch (geometryStreamMetadata.physicalStreamType) {
@@ -35869,17 +39648,17 @@ function decodeGeometryColumn(tile, numStreams, offset, numFeatures, scalingData
                 case PhysicalStreamType.OFFSET: {
                     switch (geometryStreamMetadata.logicalStreamType.offsetType) {
                         case OffsetType.VERTEX:
-                            vertexOffsets = decodeIntStream(tile, offset, geometryStreamMetadata, false);
+                            vertexOffsets = decodeUnsignedInt32Stream(tile, offset, geometryStreamMetadata);
                             break;
                         case OffsetType.INDEX:
-                            indexBuffer = decodeIntStream(tile, offset, geometryStreamMetadata, false);
+                            indexBuffer = decodeUnsignedInt32Stream(tile, offset, geometryStreamMetadata);
                             break;
                     }
                     break;
                 }
                 case PhysicalStreamType.DATA: {
                     if (DictionaryType.VERTEX === geometryStreamMetadata.logicalStreamType.dictionaryType) {
-                        vertexBuffer = decodeIntStream(tile, offset, geometryStreamMetadata, true, scalingData);
+                        vertexBuffer = decodeSignedInt32Stream(tile, offset, geometryStreamMetadata, scalingData);
                     }
                     else {
                         const mortonMetadata = geometryStreamMetadata;
@@ -35887,41 +39666,48 @@ function decodeGeometryColumn(tile, numStreams, offset, numFeatures, scalingData
                             numBits: mortonMetadata.numBits,
                             coordinateShift: mortonMetadata.coordinateShift,
                         };
-                        vertexBuffer = decodeIntStream(tile, offset, geometryStreamMetadata, false, scalingData);
+                        vertexBuffer = decodeUnsignedInt32Stream(tile, offset, geometryStreamMetadata, scalingData);
                     }
                     break;
                 }
             }
         }
-        if (indexBuffer !== null) {
-            if (geometryOffsets != null || partOffsets != null) {
+        if (indexBuffer) {
+            if (geometryOffsets !== undefined || partOffsets !== undefined) {
                 /* Case when the indices of a Polygon outline are encoded in the tile */
-                const topologyVector = new TopologyVector(geometryOffsets, partOffsets, ringOffsets);
+                const topologyVector = { geometryOffsets, partOffsets, ringOffsets };
                 return createConstGpuVector(numFeatures, geometryType, triangleOffsets, indexBuffer, vertexBuffer, topologyVector);
             }
             /* Case when the no Polygon outlines are encoded in the tile */
             return createConstGpuVector(numFeatures, geometryType, triangleOffsets, indexBuffer, vertexBuffer);
         }
-        return mortonSettings === null
+        return mortonSettings === undefined
             ? /* Currently only 2D coordinates (Vec2) are implemented in the encoder  */
-                createConstGeometryVector(numFeatures, geometryType, new TopologyVector(geometryOffsets, partOffsets, ringOffsets), vertexOffsets, vertexBuffer)
-            : createMortonEncodedConstGeometryVector(numFeatures, geometryType, new TopologyVector(geometryOffsets, partOffsets, ringOffsets), vertexOffsets, vertexBuffer, mortonSettings);
+                createConstGeometryVector(numFeatures, geometryType, { geometryOffsets, partOffsets, ringOffsets }, vertexOffsets, vertexBuffer)
+            : createMortonEncodedConstGeometryVector(numFeatures, geometryType, { geometryOffsets, partOffsets, ringOffsets }, vertexOffsets, vertexBuffer, mortonSettings);
     }
     /* Different geometry types are mixed in the geometry column */
-    const geometryTypeVector = decodeIntStream(tile, offset, geometryTypeMetadata, false);
+    const geometryTypeVector = decodeUnsignedInt32Stream(tile, offset, geometryTypeMetadata);
+    // Variables for flat geometry path (decoded as lengths, then converted to offsets)
+    let geometryLengths;
+    let partLengths;
+    let ringLengths;
+    //TODO: use geometryOffsets for that? -> but then tessellated polygons can't be used with normal polygons
+    // in one FeatureTable?
+    let triangleOffsets;
     for (let i = 0; i < numStreams - 1; i++) {
         const geometryStreamMetadata = decodeStreamMetadata(tile, offset);
         switch (geometryStreamMetadata.physicalStreamType) {
             case PhysicalStreamType.LENGTH:
                 switch (geometryStreamMetadata.logicalStreamType.lengthType) {
                     case LengthType.GEOMETRIES:
-                        geometryOffsets = decodeIntStream(tile, offset, geometryStreamMetadata, false);
+                        geometryLengths = decodeUnsignedInt32Stream(tile, offset, geometryStreamMetadata);
                         break;
                     case LengthType.PARTS:
-                        partOffsets = decodeIntStream(tile, offset, geometryStreamMetadata, false);
+                        partLengths = decodeUnsignedInt32Stream(tile, offset, geometryStreamMetadata);
                         break;
                     case LengthType.RINGS:
-                        ringOffsets = decodeIntStream(tile, offset, geometryStreamMetadata, false);
+                        ringLengths = decodeUnsignedInt32Stream(tile, offset, geometryStreamMetadata);
                         break;
                     case LengthType.TRIANGLES:
                         triangleOffsets = decodeLengthStreamToOffsetBuffer(tile, offset, geometryStreamMetadata);
@@ -35930,16 +39716,16 @@ function decodeGeometryColumn(tile, numStreams, offset, numFeatures, scalingData
             case PhysicalStreamType.OFFSET:
                 switch (geometryStreamMetadata.logicalStreamType.offsetType) {
                     case OffsetType.VERTEX:
-                        vertexOffsets = decodeIntStream(tile, offset, geometryStreamMetadata, false);
+                        vertexOffsets = decodeUnsignedInt32Stream(tile, offset, geometryStreamMetadata);
                         break;
                     case OffsetType.INDEX:
-                        indexBuffer = decodeIntStream(tile, offset, geometryStreamMetadata, false);
+                        indexBuffer = decodeUnsignedInt32Stream(tile, offset, geometryStreamMetadata);
                         break;
                 }
                 break;
             case PhysicalStreamType.DATA:
                 if (DictionaryType.VERTEX === geometryStreamMetadata.logicalStreamType.dictionaryType) {
-                    vertexBuffer = decodeIntStream(tile, offset, geometryStreamMetadata, true, scalingData);
+                    vertexBuffer = decodeSignedInt32Stream(tile, offset, geometryStreamMetadata, scalingData);
                 }
                 else {
                     const mortonMetadata = geometryStreamMetadata;
@@ -35947,49 +39733,56 @@ function decodeGeometryColumn(tile, numStreams, offset, numFeatures, scalingData
                         numBits: mortonMetadata.numBits,
                         coordinateShift: mortonMetadata.coordinateShift,
                     };
-                    vertexBuffer = decodeIntStream(tile, offset, geometryStreamMetadata, false, scalingData);
+                    vertexBuffer = decodeUnsignedInt32Stream(tile, offset, geometryStreamMetadata, scalingData);
                 }
                 break;
         }
     }
-    if (indexBuffer !== null && partOffsets === null) {
+    // TODO: refactor the following instructions -> decode in one pass for performance reasons
+    /* Calculate the offsets from the length buffer for util access */
+    let geometryOffsets;
+    let partOffsets;
+    let ringOffsets;
+    if (geometryLengths) {
+        geometryOffsets = decodeRootLengthStream(geometryTypeVector, geometryLengths, 2);
+        if (partLengths && ringLengths) {
+            partOffsets = decodeLevel1LengthStream(geometryTypeVector, geometryOffsets, partLengths, false);
+            ringOffsets = decodeLevel2LengthStream(geometryTypeVector, geometryOffsets, partOffsets, ringLengths);
+        }
+        else if (partLengths) {
+            partOffsets = decodeLevel1WithoutRingBufferLengthStream(geometryTypeVector, geometryOffsets, partLengths);
+        }
+    }
+    else if (partLengths && ringLengths) {
+        partOffsets = decodeRootLengthStream(geometryTypeVector, partLengths, 1);
+        ringOffsets = decodeLevel1LengthStream(geometryTypeVector, partOffsets, ringLengths, true);
+    }
+    else if (partLengths) {
+        partOffsets = decodeRootLengthStream(geometryTypeVector, partLengths, 0);
+    }
+    if (indexBuffer && !partOffsets) {
         /* Case when the indices of a Polygon outline are not encoded in the data so no
          *  topology data are present in the tile */
         return createFlatGpuVector(geometryTypeVector, triangleOffsets, indexBuffer, vertexBuffer);
     }
-    // TODO: refactor the following instructions -> decode in one pass for performance reasons
-    /* Calculate the offsets from the length buffer for util access */
-    if (geometryOffsets !== null) {
-        geometryOffsets = decodeRootLengthStream(geometryTypeVector, geometryOffsets, 2);
-        if (partOffsets !== null && ringOffsets !== null) {
-            partOffsets = decodeLevel1LengthStream(geometryTypeVector, geometryOffsets, partOffsets, false);
-            ringOffsets = decodeLevel2LengthStream(geometryTypeVector, geometryOffsets, partOffsets, ringOffsets);
-        }
-        else if (partOffsets !== null) {
-            partOffsets = decodeLevel1WithoutRingBufferLengthStream(geometryTypeVector, geometryOffsets, partOffsets);
-        }
-    }
-    else if (partOffsets !== null && ringOffsets !== null) {
-        partOffsets = decodeRootLengthStream(geometryTypeVector, partOffsets, 1);
-        ringOffsets = decodeLevel1LengthStream(geometryTypeVector, partOffsets, ringOffsets, true);
-    }
-    else if (partOffsets !== null) {
-        partOffsets = decodeRootLengthStream(geometryTypeVector, partOffsets, 0);
-    }
-    if (indexBuffer !== null) {
+    if (indexBuffer) {
         /* Case when the indices of a Polygon outline are encoded in the tile */
-        return createFlatGpuVector(geometryTypeVector, triangleOffsets, indexBuffer, vertexBuffer, new TopologyVector(geometryOffsets, partOffsets, ringOffsets));
+        return createFlatGpuVector(geometryTypeVector, triangleOffsets, indexBuffer, vertexBuffer, {
+            geometryOffsets,
+            partOffsets,
+            ringOffsets,
+        });
     }
-    return mortonSettings === null /* Currently only 2D coordinates (Vec2) are implemented in the encoder  */
-        ? createFlatGeometryVector(geometryTypeVector, new TopologyVector(geometryOffsets, partOffsets, ringOffsets), vertexOffsets, vertexBuffer)
-        : createFlatGeometryVectorMortonEncoded(geometryTypeVector, new TopologyVector(geometryOffsets, partOffsets, ringOffsets), vertexOffsets, vertexBuffer, mortonSettings);
+    return mortonSettings === undefined /* Currently only 2D coordinates (Vec2) are implemented in the encoder  */
+        ? createFlatGeometryVector(geometryTypeVector, { geometryOffsets, partOffsets, ringOffsets }, vertexOffsets, vertexBuffer)
+        : createFlatGeometryVectorMortonEncoded(geometryTypeVector, { geometryOffsets, partOffsets, ringOffsets }, vertexOffsets, vertexBuffer, mortonSettings);
 }
 /*
  * Handle the parsing of the different topology length buffers separate not generic to reduce the
  * branching and improve the performance
  */
 function decodeRootLengthStream(geometryTypes, rootLengthStream, bufferId) {
-    const rootBufferOffsets = new Int32Array(geometryTypes.length + 1);
+    const rootBufferOffsets = new Uint32Array(geometryTypes.length + 1);
     let previousOffset = 0;
     rootBufferOffsets[0] = previousOffset;
     let rootLengthCounter = 0;
@@ -36005,7 +39798,7 @@ function decodeRootLengthStream(geometryTypes, rootLengthStream, bufferId) {
     return rootBufferOffsets;
 }
 function decodeLevel1LengthStream(geometryTypes, rootOffsetBuffer, level1LengthBuffer, isLineStringPresent) {
-    const level1BufferOffsets = new Int32Array(rootOffsetBuffer[rootOffsetBuffer.length - 1] + 1);
+    const level1BufferOffsets = new Uint32Array(rootOffsetBuffer[rootOffsetBuffer.length - 1] + 1);
     let previousOffset = 0;
     level1BufferOffsets[0] = previousOffset;
     let level1BufferCounter = 1;
@@ -36037,7 +39830,7 @@ function decodeLevel1LengthStream(geometryTypes, rootOffsetBuffer, level1LengthB
  * Case where no ring buffer exists so no MultiPolygon or Polygon geometry is part of the buffer
  */
 function decodeLevel1WithoutRingBufferLengthStream(geometryTypes, rootOffsetBuffer, level1LengthBuffer) {
-    const level1BufferOffsets = new Int32Array(rootOffsetBuffer[rootOffsetBuffer.length - 1] + 1);
+    const level1BufferOffsets = new Uint32Array(rootOffsetBuffer[rootOffsetBuffer.length - 1] + 1);
     let previousOffset = 0;
     level1BufferOffsets[0] = previousOffset;
     let level1OffsetBufferCounter = 1;
@@ -36062,7 +39855,7 @@ function decodeLevel1WithoutRingBufferLengthStream(geometryTypes, rootOffsetBuff
     return level1BufferOffsets;
 }
 function decodeLevel2LengthStream(geometryTypes, rootOffsetBuffer, level1OffsetBuffer, level2LengthBuffer) {
-    const level2BufferOffsets = new Int32Array(level1OffsetBuffer[level1OffsetBuffer.length - 1] + 1);
+    const level2BufferOffsets = new Uint32Array(level1OffsetBuffer[level1OffsetBuffer.length - 1] + 1);
     let previousOffset = 0;
     level2BufferOffsets[0] = previousOffset;
     let level1OffsetBufferCounter = 1;
@@ -36095,7 +39888,6 @@ function decodeLevel2LengthStream(geometryTypes, rootOffsetBuffer, level1OffsetB
 }
 
 class BooleanFlatVector extends Vector {
-    dataVector;
     constructor(name, dataVector, sizeOrNullabilityBuffer) {
         super(name, dataVector.getBuffer(), sizeOrNullabilityBuffer);
         this.dataVector = dataVector;
@@ -36111,11 +39903,11 @@ class FloatFlatVector extends FixedSizeVector {
     }
 }
 
-class LongConstVector extends Vector {
-    constructor(name, value, sizeOrNullabilityBuffer) {
-        super(name, BigInt64Array.of(value), sizeOrNullabilityBuffer);
+class Int64ConstVector extends Vector {
+    constructor(name, value, sizeOrNullabilityBuffer, isSigned) {
+        super(name, isSigned ? BigInt64Array.of(value) : BigUint64Array.of(value), sizeOrNullabilityBuffer);
     }
-    getValueFromBuffer(index) {
+    getValueFromBuffer(_index) {
         return this.dataBuffer[0];
     }
 }
@@ -36127,90 +39919,63 @@ function skipColumn(numStreams, tile, offset) {
         offset.add(streamMetadata.byteLength);
     }
 }
-function decodeBooleanRle(buffer, numBooleans, pos) {
+function decodeBooleanRle(buffer, numBooleans, byteLength, pos, nullabilityBuffer) {
     const numBytes = Math.ceil(numBooleans / 8.0);
-    return decodeByteRle(buffer, numBytes, pos);
-}
-function decodeNullableBooleanRle(buffer, numBooleans, pos, nullabilityBuffer) {
-    // TODO: refactor quick and dirty solution -> use solution in one pass
-    const numBytes = Math.ceil(numBooleans / 8);
-    const values = decodeByteRle(buffer, numBytes, pos);
-    const bitVector = new BitVector(values, numBooleans);
-    const size = nullabilityBuffer.size();
-    const nullableBitvector = new BitVector(new Uint8Array(size), size);
-    let valueCounter = 0;
-    for (let i = 0; i < nullabilityBuffer.size(); i++) {
-        const value = nullabilityBuffer.get(i) ? bitVector.get(valueCounter++) : false;
-        nullableBitvector.set(i, value);
+    const values = decodeByteRle(buffer, numBytes, byteLength, pos);
+    if (nullabilityBuffer) {
+        return unpackNullableBoolean(values, numBooleans, nullabilityBuffer);
     }
-    return nullableBitvector.getBuffer();
+    return values;
 }
-function decodeByteRle(buffer, numBytes, pos) {
+function decodeByteRle(buffer, numBytes, byteLength, pos) {
     const values = new Uint8Array(numBytes);
     let valueOffset = 0;
+    const streamEndPos = pos.get() + byteLength;
     while (valueOffset < numBytes) {
+        if (pos.get() >= streamEndPos) {
+            break;
+        }
         const header = buffer[pos.increment()];
         /* Runs */
         if (header <= 0x7f) {
             const numRuns = header + 3;
             const value = buffer[pos.increment()];
-            const endValueOffset = valueOffset + numRuns;
+            const endValueOffset = Math.min(valueOffset + numRuns, numBytes);
             values.fill(value, valueOffset, endValueOffset);
             valueOffset = endValueOffset;
         }
         else {
             /* Literals */
             const numLiterals = 256 - header;
-            for (let i = 0; i < numLiterals; i++) {
+            for (let i = 0; i < numLiterals && valueOffset < numBytes; i++) {
                 values[valueOffset++] = buffer[pos.increment()];
             }
         }
     }
+    pos.set(streamEndPos);
     return values;
 }
-function decodeFloatsLE(encodedValues, pos, numValues) {
+function decodeFloatsLE(encodedValues, pos, numValues, nullabilityBuffer) {
     const currentPos = pos.get();
     const newOffset = currentPos + numValues * Float32Array.BYTES_PER_ELEMENT;
     const newBuf = new Uint8Array(encodedValues.subarray(currentPos, newOffset)).buffer;
     const fb = new Float32Array(newBuf);
     pos.set(newOffset);
+    if (nullabilityBuffer) {
+        return unpackNullable(fb, nullabilityBuffer, 0);
+    }
     return fb;
 }
-function decodeDoublesLE(encodedValues, pos, numValues) {
+function decodeDoublesLE(encodedValues, pos, numValues, nullabilityBuffer) {
     const currentPos = pos.get();
     const newOffset = currentPos + numValues * Float64Array.BYTES_PER_ELEMENT;
     const newBuf = new Uint8Array(encodedValues.subarray(currentPos, newOffset)).buffer;
     const fb = new Float64Array(newBuf);
     pos.set(newOffset);
+    if (nullabilityBuffer) {
+        return unpackNullable(fb, nullabilityBuffer, 0);
+    }
     return fb;
-}
-function decodeNullableFloatsLE(encodedValues, pos, nullabilityBuffer, numValues) {
-    const currentPos = pos.get();
-    const newOffset = currentPos + numValues * Float32Array.BYTES_PER_ELEMENT;
-    const newBuf = new Uint8Array(encodedValues.subarray(currentPos, newOffset)).buffer;
-    const fb = new Float32Array(newBuf);
-    pos.set(newOffset);
-    const numTotalValues = nullabilityBuffer.size();
-    const nullableFloatsBuffer = new Float32Array(numTotalValues);
-    let offset = 0;
-    for (let i = 0; i < numTotalValues; i++) {
-        nullableFloatsBuffer[i] = nullabilityBuffer.get(i) ? fb[offset++] : 0;
-    }
-    return nullableFloatsBuffer;
-}
-function decodeNullableDoublesLE(encodedValues, pos, nullabilityBuffer, numValues) {
-    const currentPos = pos.get();
-    const newOffset = currentPos + numValues * Float64Array.BYTES_PER_ELEMENT;
-    const newBuf = new Uint8Array(encodedValues.subarray(currentPos, newOffset)).buffer;
-    const fb = new Float64Array(newBuf);
-    pos.set(newOffset);
-    const numTotalValues = nullabilityBuffer.size();
-    const nullableDoubleBuffer = new Float64Array(numTotalValues);
-    let offset = 0;
-    for (let i = 0; i < numTotalValues; i++) {
-        nullableDoubleBuffer[i] = nullabilityBuffer.get(i) ? fb[offset++] : 0;
-    }
-    return nullableDoubleBuffer;
 }
 const TEXT_DECODER_MIN_LENGTH = 12;
 const utf8TextDecoder = new TextDecoder();
@@ -36232,7 +39997,9 @@ function readUtf8(buf, pos, end) {
         let bytesPerSequence = b0 > 0xef ? 4 : b0 > 0xdf ? 3 : b0 > 0xbf ? 2 : 1;
         if (i + bytesPerSequence > end)
             break;
-        let b1, b2, b3;
+        let b1;
+        let b2;
+        let b3;
         if (bytesPerSequence === 1) {
             if (b0 < 0x80) {
                 c = b0;
@@ -36285,7 +40052,7 @@ function readUtf8(buf, pos, end) {
 function getVectorTypeBooleanStream(numFeatures, byteLength, data, offset) {
     const valuesPerRun = 0x83;
     // TODO: use VectorType metadata field for to test which VectorType is used
-    return Math.ceil(numFeatures / valuesPerRun) * 2 == byteLength &&
+    return Math.ceil(numFeatures / valuesPerRun) * 2 === byteLength &&
         /* Test the first value byte if all bits are set to true */
         (data[offset.get() + 1] & 0xff) === (bitCount(numFeatures) << 2) - 1
         ? VectorType.CONST
@@ -36297,8 +40064,6 @@ function bitCount(number) {
 }
 
 class VariableSizeVector extends Vector {
-    offsetBuffer;
-    //TODO: switch to Uint32Array by changing the decodings
     constructor(name, offsetBuffer, dataBuffer, sizeOrNullabilityBuffer) {
         super(name, dataBuffer, sizeOrNullabilityBuffer);
         this.offsetBuffer = offsetBuffer;
@@ -36306,10 +40071,8 @@ class VariableSizeVector extends Vector {
 }
 
 class StringFlatVector extends VariableSizeVector {
-    textEncoder;
     constructor(name, offsetBuffer, dataBuffer, nullabilityBuffer) {
         super(name, offsetBuffer, dataBuffer, nullabilityBuffer ?? offsetBuffer.length - 1);
-        this.textEncoder = new TextEncoder();
     }
     getValueFromBuffer(index) {
         const start = this.offsetBuffer[index];
@@ -36319,13 +40082,10 @@ class StringFlatVector extends VariableSizeVector {
 }
 
 class StringDictionaryVector extends VariableSizeVector {
-    indexBuffer;
-    textEncoder;
     constructor(name, indexBuffer, offsetBuffer, dictionaryBuffer, nullabilityBuffer) {
         super(name, offsetBuffer, dictionaryBuffer, nullabilityBuffer ?? indexBuffer.length);
         this.indexBuffer = indexBuffer;
         this.indexBuffer = indexBuffer;
-        this.textEncoder = new TextEncoder();
     }
     getValueFromBuffer(index) {
         const offset = this.indexBuffer[index];
@@ -36367,59 +40127,17 @@ function decodeFsst(symbols, symbolLengths, compressedData) {
 }
 
 class StringFsstDictionaryVector extends VariableSizeVector {
-    indexBuffer;
-    symbolOffsetBuffer;
-    symbolTableBuffer;
-    textEncoder;
-    // TODO: extend from StringVector
-    symbolLengthBuffer;
-    lengthBuffer;
-    decodedDictionary;
     constructor(name, indexBuffer, offsetBuffer, dictionaryBuffer, symbolOffsetBuffer, symbolTableBuffer, nullabilityBuffer) {
         super(name, offsetBuffer, dictionaryBuffer, nullabilityBuffer);
         this.indexBuffer = indexBuffer;
         this.symbolOffsetBuffer = symbolOffsetBuffer;
         this.symbolTableBuffer = symbolTableBuffer;
-        this.textEncoder = new TextEncoder();
     }
     getValueFromBuffer(index) {
-        //if (this.decodedValues == null) {
-        /*if (this.decodedDictionary == null) {
-            if (this.symbolLengthBuffer == null) {
-                // TODO: change FsstEncoder to take offsets instead of length to get rid of this conversion
-                this.symbolLengthBuffer = this.offsetToLengthBuffer(this.symbolOffsetBuffer);
-                this.lengthBuffer = this.offsetToLengthBuffer(this.offsetBuffer);
-            }
-
-            const dictionaryBuffer = decodeFsst(this.symbolTableBuffer, this.symbolLengthBuffer,
-                this.dataBuffer);
-
-            this.decodedDictionary = new Array<string>(this.lengthBuffer.length);
-            let i = 0;
-            let strStart = 0;
-            for (const strLength of this.lengthBuffer) {
-                this.decodedDictionary[i++] = decodeString(dictionaryBuffer, strStart, strStart + strLength);
-                strStart += strLength;
-            }
-
-            /!*this.decodedValues = new Array(this.indexBuffer.length);
-            i = 0;
-            for (const index of this.indexBuffer) {
-                const value = decodedDictionary[index];
-                this.decodedValues[i++] = value;
-            }*!/
-        }*/
-        /*this.decodedValues = new Array(this.indexBuffer.length);
-            i = 0;
-            for (const index of this.indexBuffer) {
-                const value = decodedDictionary[index];
-                this.decodedValues[i++] = value;
-            }*/
         if (this.decodedDictionary == null) {
             if (this.symbolLengthBuffer == null) {
                 // TODO: change FsstEncoder to take offsets instead of length to get rid of this conversion
                 this.symbolLengthBuffer = this.offsetToLengthBuffer(this.symbolOffsetBuffer);
-                this.lengthBuffer = this.offsetToLengthBuffer(this.offsetBuffer);
             }
             this.decodedDictionary = decodeFsst(this.symbolTableBuffer, this.symbolLengthBuffer, this.dataBuffer);
         }
@@ -36441,70 +40159,62 @@ class StringFsstDictionaryVector extends VariableSizeVector {
     }
 }
 
-const ROOT_COLUMN_NAME = "default";
-const NESTED_COLUMN_SEPARATOR = ":";
 function decodeString$1(name, data, offset, numStreams, bitVector) {
     let dictionaryLengthStream = null;
     let offsetStream = null;
     let dictionaryStream = null;
     let symbolLengthStream = null;
     let symbolTableStream = null;
-    let presentStream = null;
+    let nullabilityBuffer = bitVector ?? null;
     let plainLengthStream = null;
     let plainDataStream = null;
     for (let i = 0; i < numStreams; i++) {
         const streamMetadata = decodeStreamMetadata(data, offset);
-        if (streamMetadata.byteLength === 0) {
-            continue;
-        }
         switch (streamMetadata.physicalStreamType) {
             case PhysicalStreamType.PRESENT: {
-                const presentData = decodeBooleanRle(data, streamMetadata.numValues, offset);
-                presentStream = new BitVector(presentData, streamMetadata.numValues);
+                const presentData = decodeBooleanRle(data, streamMetadata.numValues, streamMetadata.byteLength, offset);
+                const presentStream = new BitVector(presentData, streamMetadata.numValues);
+                nullabilityBuffer = bitVector ?? presentStream;
                 break;
             }
             case PhysicalStreamType.OFFSET: {
-                const isNullable = bitVector != null || presentStream != null;
-                const nullabilityBuffer = bitVector ?? presentStream;
-                offsetStream = isNullable
-                    ? decodeNullableIntStream(data, offset, streamMetadata, false, nullabilityBuffer)
-                    : decodeIntStream(data, offset, streamMetadata, false);
+                offsetStream = decodeUnsignedInt32Stream(data, offset, streamMetadata, undefined, nullabilityBuffer);
                 break;
             }
             case PhysicalStreamType.LENGTH: {
-                const ls = decodeLengthStreamToOffsetBuffer(data, offset, streamMetadata);
+                const lengthStream = decodeLengthStreamToOffsetBuffer(data, offset, streamMetadata);
                 if (LengthType.DICTIONARY === streamMetadata.logicalStreamType.lengthType) {
-                    dictionaryLengthStream = ls;
+                    dictionaryLengthStream = lengthStream;
                 }
                 else if (LengthType.SYMBOL === streamMetadata.logicalStreamType.lengthType) {
-                    symbolLengthStream = ls;
+                    symbolLengthStream = lengthStream;
                 }
                 else {
                     // Plain string encoding uses VAR_BINARY length type
-                    plainLengthStream = ls;
+                    plainLengthStream = lengthStream;
                 }
                 break;
             }
             case PhysicalStreamType.DATA: {
-                const ds = data.subarray(offset.get(), offset.get() + streamMetadata.byteLength);
+                const dataStream = data.subarray(offset.get(), offset.get() + streamMetadata.byteLength);
                 offset.add(streamMetadata.byteLength);
                 const dictType = streamMetadata.logicalStreamType.dictionaryType;
                 if (DictionaryType.FSST === dictType) {
-                    symbolTableStream = ds;
+                    symbolTableStream = dataStream;
                 }
                 else if (DictionaryType.SINGLE === dictType || DictionaryType.SHARED === dictType) {
-                    dictionaryStream = ds;
+                    dictionaryStream = dataStream;
                 }
                 else if (DictionaryType.NONE === dictType) {
-                    plainDataStream = ds;
+                    plainDataStream = dataStream;
                 }
                 break;
             }
         }
     }
-    return (decodeFsstDictionaryVector(name, symbolTableStream, offsetStream, dictionaryLengthStream, dictionaryStream, symbolLengthStream, bitVector ?? presentStream) ??
-        decodeDictionaryVector(name, dictionaryStream, offsetStream, dictionaryLengthStream, bitVector ?? presentStream) ??
-        decodePlainStringVector(name, plainLengthStream, plainDataStream, offsetStream, bitVector ?? presentStream));
+    return (decodeFsstDictionaryVector(name, symbolTableStream, offsetStream, dictionaryLengthStream, dictionaryStream, symbolLengthStream, nullabilityBuffer) ??
+        decodeDictionaryVector(name, dictionaryStream, offsetStream, dictionaryLengthStream, nullabilityBuffer) ??
+        decodePlainStringVector(name, plainLengthStream, plainDataStream, offsetStream, nullabilityBuffer));
 }
 function decodeFsstDictionaryVector(name, symbolTableStream, offsetStream, dictionaryLengthStream, dictionaryStream, symbolLengthStream, nullabilityBuffer) {
     if (!symbolTableStream) {
@@ -36530,7 +40240,7 @@ function decodePlainStringVector(name, plainLengthStream, plainDataStream, offse
             : new StringDictionaryVector(name, offsetStream, plainLengthStream, plainDataStream);
     }
     if (nullabilityBuffer && nullabilityBuffer.size() !== plainLengthStream.length - 1) {
-        const sparseOffsetStream = new Int32Array(nullabilityBuffer.size());
+        const sparseOffsetStream = new Uint32Array(nullabilityBuffer.size());
         let valueIndex = 0;
         for (let i = 0; i < nullabilityBuffer.size(); i++) {
             if (nullabilityBuffer.get(i)) {
@@ -36581,11 +40291,11 @@ function decodeSharedDictionary(data, offset, column, numFeatures, propertyColum
     let i = 0;
     for (const childField of childFields) {
         const numStreams = decodeVarintInt32(data, offset, 1)[0];
-        if (numStreams == 0) {
+        if (numStreams === 0) {
             /* Column is not present in the tile */
             continue;
         }
-        const columnName = `${column.name}${childField.name === ROOT_COLUMN_NAME ? "" : NESTED_COLUMN_SEPARATOR + childField.name}`;
+        const columnName = childField.name ? `${column.name}${childField.name}` : column.name;
         if (propertyColumnNames) {
             if (!propertyColumnNames.has(columnName)) {
                 //TODO: add size of sub column to Mlt for faster skipping
@@ -36599,13 +40309,11 @@ function decodeSharedDictionary(data, offset, column, numFeatures, propertyColum
             throw new Error("Currently only optional string fields are implemented for a struct.");
         }
         const presentStreamMetadata = decodeStreamMetadata(data, offset);
-        const presentStream = decodeBooleanRle(data, presentStreamMetadata.numValues, offset);
+        const presentStream = decodeBooleanRle(data, presentStreamMetadata.numValues, presentStreamMetadata.byteLength, offset);
         const offsetStreamMetadata = decodeStreamMetadata(data, offset);
         const offsetCount = offsetStreamMetadata.decompressedCount;
         const isNullable = offsetCount !== numFeatures;
-        const offsetStream = isNullable
-            ? decodeNullableIntStream(data, offset, offsetStreamMetadata, false, new BitVector(presentStream, presentStreamMetadata.numValues))
-            : decodeIntStream(data, offset, offsetStreamMetadata, false);
+        const offsetStream = decodeUnsignedInt32Stream(data, offset, offsetStreamMetadata, undefined, isNullable ? new BitVector(presentStream, presentStreamMetadata.numValues) : undefined);
         stringDictionaryVectors[i++] = symbolTableBuffer
             ? new StringFsstDictionaryVector(columnName, offsetStream, dictionaryOffsetBuffer, dictionaryBuffer, symbolOffsetBuffer, symbolTableBuffer, new BitVector(presentStream, presentStreamMetadata.numValues))
             : new StringDictionaryVector(columnName, offsetStream, dictionaryOffsetBuffer, dictionaryBuffer, new BitVector(presentStream, presentStreamMetadata.numValues));
@@ -36621,27 +40329,21 @@ function decodePropertyColumn(data, offset, columnMetadata, numStreams, numFeatu
         }
         return decodeScalarPropertyColumn(numStreams, data, offset, numFeatures, columnMetadata.scalarType, columnMetadata);
     }
-    if (numStreams != 1) {
+    if (numStreams === 0) {
         return null;
     }
     return decodeSharedDictionary(data, offset, columnMetadata, numFeatures, propertyColumnNames);
 }
 function decodeScalarPropertyColumn(numStreams, data, offset, numFeatures, column, columnMetadata) {
     let nullabilityBuffer = null;
-    let numValues = 0;
     if (numStreams === 0) {
-        /* Skip since this column has no values */
         return null;
     }
-    // Read nullability stream if column is nullable
     if (columnMetadata.nullable) {
         const presentStreamMetadata = decodeStreamMetadata(data, offset);
-        numValues = presentStreamMetadata.numValues;
+        const numValues = presentStreamMetadata.numValues;
         const streamDataStart = offset.get();
-        // Decode the RLE boolean data
-        const presentVector = decodeBooleanRle(data, numValues, offset);
-        // FIX: decodeBooleanRle doesn't consume all bytes!
-        // We must advance to the end of the stream using byteLength from metadata
+        const presentVector = decodeBooleanRle(data, numValues, presentStreamMetadata.byteLength, offset);
         offset.set(streamDataStart + presentStreamMetadata.byteLength);
         nullabilityBuffer = new BitVector(presentVector, presentStreamMetadata.numValues);
     }
@@ -36650,16 +40352,17 @@ function decodeScalarPropertyColumn(numStreams, data, offset, numFeatures, colum
     switch (scalarType) {
         case ScalarType.UINT_32:
         case ScalarType.INT_32:
-            return decodeIntColumn(data, offset, columnMetadata, column, sizeOrNullabilityBuffer);
-        case ScalarType.STRING:
+            return decodeInt32Column(data, offset, columnMetadata, column, sizeOrNullabilityBuffer);
+        case ScalarType.STRING: {
             // In embedded format: numStreams includes nullability stream if column is nullable
             const stringDataStreams = columnMetadata.nullable ? numStreams - 1 : numStreams;
             return decodeString$1(columnMetadata.name, data, offset, stringDataStreams, nullabilityBuffer);
+        }
         case ScalarType.BOOLEAN:
             return decodeBooleanColumn(data, offset, columnMetadata, numFeatures, sizeOrNullabilityBuffer);
         case ScalarType.UINT_64:
         case ScalarType.INT_64:
-            return decodeLongColumn(data, offset, columnMetadata, sizeOrNullabilityBuffer, column);
+            return decodeInt64Column(data, offset, columnMetadata, sizeOrNullabilityBuffer, column);
         case ScalarType.FLOAT:
             return decodeFloatColumn(data, offset, columnMetadata, sizeOrNullabilityBuffer);
         case ScalarType.DOUBLE:
@@ -36668,70 +40371,67 @@ function decodeScalarPropertyColumn(numStreams, data, offset, numFeatures, colum
             throw new Error(`The specified data type for the field is currently not supported: ${column}`);
     }
 }
-function decodeBooleanColumn(data, offset, column, numFeatures, sizeOrNullabilityBuffer) {
+function decodeBooleanColumn(data, offset, column, _numFeatures, sizeOrNullabilityBuffer) {
     const dataStreamMetadata = decodeStreamMetadata(data, offset);
     const numValues = dataStreamMetadata.numValues;
     const streamDataStart = offset.get();
-    const dataStream = isNullabilityBuffer(sizeOrNullabilityBuffer)
-        ? decodeNullableBooleanRle(data, numValues, offset, sizeOrNullabilityBuffer)
-        : decodeBooleanRle(data, numValues, offset);
-    // TODO: refactor decodeNullableBooleanRle
-    // Fix offset: RLE decoders don't consume all compressed bytes
+    const nullabilityBuffer = isNullabilityBuffer(sizeOrNullabilityBuffer) ? sizeOrNullabilityBuffer : undefined;
+    const dataStream = decodeBooleanRle(data, numValues, dataStreamMetadata.byteLength, offset, nullabilityBuffer);
     offset.set(streamDataStart + dataStreamMetadata.byteLength);
     const dataVector = new BitVector(dataStream, numValues);
     return new BooleanFlatVector(column.name, dataVector, sizeOrNullabilityBuffer);
 }
 function decodeFloatColumn(data, offset, column, sizeOrNullabilityBuffer) {
     const dataStreamMetadata = decodeStreamMetadata(data, offset);
-    const dataStream = isNullabilityBuffer(sizeOrNullabilityBuffer)
-        ? decodeNullableFloatsLE(data, offset, sizeOrNullabilityBuffer, dataStreamMetadata.numValues)
-        : decodeFloatsLE(data, offset, dataStreamMetadata.numValues);
+    const nullabilityBuffer = isNullabilityBuffer(sizeOrNullabilityBuffer) ? sizeOrNullabilityBuffer : undefined;
+    const dataStream = decodeFloatsLE(data, offset, dataStreamMetadata.numValues, nullabilityBuffer);
     return new FloatFlatVector(column.name, dataStream, sizeOrNullabilityBuffer);
 }
 function decodeDoubleColumn(data, offset, column, sizeOrNullabilityBuffer) {
     const dataStreamMetadata = decodeStreamMetadata(data, offset);
-    const dataStream = isNullabilityBuffer(sizeOrNullabilityBuffer)
-        ? decodeNullableDoublesLE(data, offset, sizeOrNullabilityBuffer, dataStreamMetadata.numValues)
-        : decodeDoublesLE(data, offset, dataStreamMetadata.numValues);
+    const nullabilityBuffer = isNullabilityBuffer(sizeOrNullabilityBuffer) ? sizeOrNullabilityBuffer : undefined;
+    const dataStream = decodeDoublesLE(data, offset, dataStreamMetadata.numValues, nullabilityBuffer);
     return new DoubleFlatVector(column.name, dataStream, sizeOrNullabilityBuffer);
 }
-function decodeLongColumn(data, offset, column, sizeOrNullabilityBuffer, scalarColumn) {
+function decodeInt64Column(data, offset, column, sizeOrNullabilityBuffer, scalarColumn) {
     const dataStreamMetadata = decodeStreamMetadata(data, offset);
-    const vectorType = getVectorType(dataStreamMetadata, sizeOrNullabilityBuffer, data, offset);
+    const vectorType = getVectorType(dataStreamMetadata, sizeOrNullabilityBuffer, data, offset, "int64");
     const isSigned = scalarColumn.physicalType === ScalarType.INT_64;
     if (vectorType === VectorType.FLAT) {
-        const dataStream = isNullabilityBuffer(sizeOrNullabilityBuffer)
-            ? decodeNullableLongStream(data, offset, dataStreamMetadata, isSigned, sizeOrNullabilityBuffer)
-            : decodeLongStream(data, offset, dataStreamMetadata, isSigned);
-        return new LongFlatVector(column.name, dataStream, sizeOrNullabilityBuffer);
+        const nullabilityBuffer = isNullabilityBuffer(sizeOrNullabilityBuffer) ? sizeOrNullabilityBuffer : undefined;
+        const dataStream = isSigned
+            ? decodeSignedInt64Stream(data, offset, dataStreamMetadata, nullabilityBuffer)
+            : decodeUnsignedInt64Stream(data, offset, dataStreamMetadata, nullabilityBuffer);
+        return new Int64FlatVector(column.name, dataStream, sizeOrNullabilityBuffer);
     }
-    else if (vectorType === VectorType.SEQUENCE) {
-        const id = decodeSequenceLongStream(data, offset, dataStreamMetadata);
-        return new LongSequenceVector(column.name, id[0], id[1], dataStreamMetadata.numRleValues);
+    if (vectorType === VectorType.SEQUENCE) {
+        const id = decodeSequenceInt64Stream(data, offset, dataStreamMetadata);
+        return new Int64SequenceVector(column.name, id[0], id[1], dataStreamMetadata.numRleValues);
     }
-    else {
-        const constValue = decodeConstLongStream(data, offset, dataStreamMetadata, isSigned);
-        return new LongConstVector(column.name, constValue, sizeOrNullabilityBuffer);
-    }
+    const constValue = isSigned
+        ? decodeSignedConstInt64Stream(data, offset, dataStreamMetadata)
+        : decodeUnsignedConstInt64Stream(data, offset, dataStreamMetadata);
+    return new Int64ConstVector(column.name, constValue, sizeOrNullabilityBuffer, isSigned);
 }
-function decodeIntColumn(data, offset, column, scalarColumn, sizeOrNullabilityBuffer) {
+function decodeInt32Column(data, offset, column, scalarColumn, sizeOrNullabilityBuffer) {
     const dataStreamMetadata = decodeStreamMetadata(data, offset);
     const vectorType = getVectorType(dataStreamMetadata, sizeOrNullabilityBuffer, data, offset);
     const isSigned = scalarColumn.physicalType === ScalarType.INT_32;
     if (vectorType === VectorType.FLAT) {
-        const dataStream = isNullabilityBuffer(sizeOrNullabilityBuffer)
-            ? decodeNullableIntStream(data, offset, dataStreamMetadata, isSigned, sizeOrNullabilityBuffer)
-            : decodeIntStream(data, offset, dataStreamMetadata, isSigned);
-        return new IntFlatVector(column.name, dataStream, sizeOrNullabilityBuffer);
+        const nullabilityBuffer = isNullabilityBuffer(sizeOrNullabilityBuffer) ? sizeOrNullabilityBuffer : undefined;
+        const dataStream = isSigned
+            ? decodeSignedInt32Stream(data, offset, dataStreamMetadata, undefined, nullabilityBuffer)
+            : decodeUnsignedInt32Stream(data, offset, dataStreamMetadata, undefined, nullabilityBuffer);
+        return new Int32FlatVector(column.name, dataStream, sizeOrNullabilityBuffer);
     }
-    else if (vectorType === VectorType.SEQUENCE) {
-        const id = decodeSequenceIntStream(data, offset, dataStreamMetadata);
-        return new IntSequenceVector(column.name, id[0], id[1], dataStreamMetadata.numRleValues);
+    if (vectorType === VectorType.SEQUENCE) {
+        const id = decodeSequenceInt32Stream(data, offset, dataStreamMetadata);
+        return new Int32SequenceVector(column.name, id[0], id[1], dataStreamMetadata.numRleValues);
     }
-    else {
-        const constValue = decodeConstIntStream(data, offset, dataStreamMetadata, isSigned);
-        return new IntConstVector(column.name, constValue, sizeOrNullabilityBuffer);
-    }
+    const constValue = isSigned
+        ? decodeSignedConstInt32Stream(data, offset, dataStreamMetadata)
+        : decodeUnsignedConstInt32Stream(data, offset, dataStreamMetadata);
+    return new Int32ConstVector(column.name, constValue, sizeOrNullabilityBuffer, isSigned);
 }
 function isNullabilityBuffer(sizeOrNullabilityBuffer) {
     return sizeOrNullabilityBuffer instanceof BitVector;
@@ -36747,7 +40447,13 @@ function isNullabilityBuffer(sizeOrNullabilityBuffer) {
  */
 /**
  * Decodes a type code into a Column structure.
- * ID columns (0-3) are represented as physical UINT_32 or UINT_64 types in TypeScript
+ *
+ * ID type codes (0..3):
+ * - Bit 0: nullable
+ * - Bit 1: longID (0/1 -> uint32 IDs, 2/3 -> uint64 IDs)
+ *
+ * ID columns are kept as logical types so they remain distinguishable
+ * from feature properties that may also be named "id".
  */
 function decodeColumnType(typeCode) {
     switch (typeCode) {
@@ -36755,15 +40461,13 @@ function decodeColumnType(typeCode) {
         case 1:
         case 2:
         case 3: {
-            // ID columns: 0=uint32, 1=uint64, 2=nullable uint32, 3=nullable uint64
             const column = {};
-            column.nullable = (typeCode & 1) !== 0; // Bit 0 = nullable;
+            column.nullable = (typeCode & 1) !== 0;
             column.columnScope = ColumnScope.FEATURE;
             const scalarCol = {};
-            // Map to physical type since TS schema doesn't have LogicalScalarType.ID
-            const physicalType = typeCode > 1 ? ScalarType.UINT_64 : ScalarType.UINT_32; // Bit 1 = longID
-            scalarCol.physicalType = physicalType;
-            scalarCol.type = "physicalType";
+            scalarCol.type = "logicalType";
+            scalarCol.logicalType = LogicalScalarType.ID;
+            scalarCol.longID = (typeCode & 2) !== 0;
             column.scalarType = scalarCol;
             column.type = "scalarType";
             return column;
@@ -36813,13 +40517,9 @@ function columnTypeHasChildren(typeCode) {
 }
 /**
  * Determines if a stream count needs to be read for this column.
- * Mirrors the logic in cpp/include/mlt/metadata/type_map.hpp lines 81-118
+ * Mirrors the logic in cpp/include/mlt/metadata/type_map.hpp lines 85-122
  */
 function hasStreamCount(column) {
-    // ID columns don't have stream count (identified by name)
-    if (column.name === "id") {
-        return false;
-    }
     if (column.type === "scalarType") {
         const scalarCol = column.scalarType;
         if (scalarCol.type === "physicalType") {
@@ -36841,7 +40541,7 @@ function hasStreamCount(column) {
                     return false;
             }
         }
-        else if (scalarCol.type === "logicalType") {
+        if (scalarCol.type === "logicalType") {
             return false;
         }
     }
@@ -36861,13 +40561,23 @@ function hasStreamCount(column) {
     console.warn("Unexpected column type in hasStreamCount", column);
     return false;
 }
+function isLogicalIdColumn(column) {
+    return (column.type === "scalarType" &&
+        column.scalarType?.type === "logicalType" &&
+        column.scalarType.logicalType === LogicalScalarType.ID);
+}
+function isGeometryColumn(column) {
+    return (column.type === "complexType" &&
+        column.complexType?.type === "physicalType" &&
+        column.complexType.physicalType === ComplexType.GEOMETRY);
+}
 /**
  * Maps a scalar type code to a Column with ScalarType.
  * Type codes 10-29 encode scalar types with nullable flag.
  * Even codes are non-nullable, odd codes are nullable.
  */
 function mapScalarType(typeCode) {
-    let scalarType = null;
+    let scalarType;
     switch (typeCode) {
         case 10:
         case 11:
@@ -36924,6 +40634,8 @@ function mapScalarType(typeCode) {
 }
 
 const textDecoder = new TextDecoder();
+const SUPPORTED_COLUMN_TYPES = "0-3(ID), 4(GEOMETRY), 10-29(scalars), 30(STRUCT)";
+const SUPPORTED_FIELD_TYPES = "10-29(scalars), 30(STRUCT)";
 /**
  * Decodes a length-prefixed UTF-8 string.
  * Layout: [len: varint32][bytes: len]
@@ -36940,52 +40652,38 @@ function decodeString(src, offset) {
     return textDecoder.decode(view);
 }
 /**
+ * Converts a Column to a Field.
+ * Used when decoding Field metadata which has the same format as Column.
+ */
+function columnToField(column) {
+    return {
+        name: column.name,
+        nullable: column.nullable,
+        scalarField: column.scalarType,
+        complexField: column.complexType,
+        type: column.type === "scalarType" ? "scalarField" : "complexField",
+    };
+}
+/**
  * Decodes a Field used as part of complex types (STRUCT children).
- * Unlike Column, Field still uses the fieldOptions bitfield for flexibility.
  */
 function decodeField(src, offset) {
-    const fieldOptions = decodeVarintInt32(src, offset, 1)[0] >>> 0;
-    const isLogical = (fieldOptions & 4 /* FieldOptions.logicalType */) !== 0;
-    const isComplex = (fieldOptions & 2 /* FieldOptions.complexType */) !== 0;
-    const typeValue = decodeVarintInt32(src, offset, 1)[0] >>> 0;
-    const field = {};
-    if ((fieldOptions & 1 /* FieldOptions.nullable */) !== 0) {
-        field.nullable = true;
+    const typeCode = decodeVarintInt32(src, offset, 1)[0] >>> 0;
+    if (typeCode < 10 || typeCode > 30) {
+        throw new Error(`Unsupported field type code ${typeCode}. Supported: ${SUPPORTED_FIELD_TYPES}`);
     }
-    if (isComplex) {
-        const complex = {};
-        if (isLogical) {
-            complex.type = "logicalType";
-            complex.logicalType = typeValue;
-        }
-        else {
-            complex.type = "physicalType";
-            complex.physicalType = typeValue;
-        }
-        if ((fieldOptions & 8 /* FieldOptions.hasChildren */) !== 0) {
-            const childCount = decodeVarintInt32(src, offset, 1)[0] >>> 0;
-            complex.children = new Array(childCount);
-            for (let i = 0; i < childCount; i++) {
-                complex.children[i] = decodeField(src, offset);
-            }
-        }
-        field.type = "complexField";
-        field.complexField = complex;
+    const column = decodeColumnType(typeCode);
+    if (columnTypeHasName(typeCode)) {
+        column.name = decodeString(src, offset);
     }
-    else {
-        const scalar = {};
-        if (isLogical) {
-            scalar.type = "logicalType";
-            scalar.logicalType = typeValue;
+    if (columnTypeHasChildren(typeCode)) {
+        const childCount = decodeVarintInt32(src, offset, 1)[0] >>> 0;
+        column.complexType.children = new Array(childCount);
+        for (let i = 0; i < childCount; i++) {
+            column.complexType.children[i] = decodeField(src, offset);
         }
-        else {
-            scalar.type = "physicalType";
-            scalar.physicalType = typeValue;
-        }
-        field.type = "scalarField";
-        field.scalarField = scalar;
     }
-    return field;
+    return columnToField(column);
 }
 /**
  * The typeCode encodes the column type, nullable flag, and whether it has name/children.
@@ -36994,7 +40692,7 @@ function decodeColumn(src, offset) {
     const typeCode = decodeVarintInt32(src, offset, 1)[0] >>> 0;
     const column = decodeColumnType(typeCode);
     if (!column) {
-        throw new Error(`Unsupported column type code: ${typeCode}`);
+        throw new Error(`Unsupported column type code ${typeCode}. Supported: ${SUPPORTED_COLUMN_TYPES}`);
     }
     if (columnTypeHasName(typeCode)) {
         column.name = decodeString(src, offset);
@@ -37041,8 +40739,6 @@ function decodeEmbeddedTileSetMetadata(bytes, offset) {
     return [meta, extent];
 }
 
-const ID_COLUMN_NAME = "id";
-const GEOMETRY_COLUMN_NAME = "geometry";
 /**
  * Decodes a tile with embedded metadata (Tag 0x01 format).
  * This is the primary decoder function for MLT tiles.
@@ -37067,34 +40763,30 @@ function decodeTile(tile, geometryScaling, idWithinMaxSafeInteger = true) {
             offset.set(blockEnd);
             continue;
         }
-        // Decode embedded metadata and extent (one of each per block)
-        const decode = decodeEmbeddedTileSetMetadata(tile, offset);
-        const metadata = decode[0];
-        const extent = decode[1];
+        const [metadata, extent] = decodeEmbeddedTileSetMetadata(tile, offset);
         const featureTableMetadata = metadata.featureTables[0];
-        // Decode columns from streams
         let idVector = null;
         let geometryVector = null;
         const propertyVectors = [];
         let numFeatures = 0;
         for (const columnMetadata of featureTableMetadata.columns) {
             const columnName = columnMetadata.name;
-            if (columnName === ID_COLUMN_NAME) {
+            if (isLogicalIdColumn(columnMetadata)) {
                 let nullabilityBuffer = null;
                 // Check column metadata nullable flag, not numStreams (ID columns don't have stream count)
                 if (columnMetadata.nullable) {
                     const presentStreamMetadata = decodeStreamMetadata(tile, offset);
                     const streamDataStart = offset.get();
-                    const values = decodeBooleanRle(tile, presentStreamMetadata.numValues, offset);
-                    // Fix offset: decodeBooleanRle doesn't consume all compressed bytes
+                    const values = decodeBooleanRle(tile, presentStreamMetadata.numValues, presentStreamMetadata.byteLength, offset);
                     offset.set(streamDataStart + presentStreamMetadata.byteLength);
                     nullabilityBuffer = new BitVector(values, presentStreamMetadata.numValues);
                 }
                 const idDataStreamMetadata = decodeStreamMetadata(tile, offset);
-                numFeatures = idDataStreamMetadata.decompressedCount;
+                // decompressedCount is the count WITHOUT nulls, but we may have nulls
+                numFeatures = nullabilityBuffer ? nullabilityBuffer.size() : idDataStreamMetadata.decompressedCount;
                 idVector = decodeIdColumn(tile, columnMetadata, offset, columnName, idDataStreamMetadata, nullabilityBuffer ?? numFeatures, idWithinMaxSafeInteger);
             }
-            else if (columnName === GEOMETRY_COLUMN_NAME) {
+            else if (isGeometryColumn(columnMetadata)) {
                 const numStreams = decodeVarintInt32(tile, offset, 1)[0];
                 // If no ID column, get numFeatures from geometry type stream metadata
                 if (numFeatures === 0) {
@@ -37109,10 +40801,9 @@ function decodeTile(tile, geometryScaling, idWithinMaxSafeInteger = true) {
                 geometryVector = decodeGeometryColumn(tile, numStreams, offset, numFeatures, geometryScaling);
             }
             else {
-                // Property columns: STRING and STRUCT have stream count, others don't
-                const hasStreamCnt = hasStreamCount(columnMetadata);
-                const numStreams = hasStreamCnt ? decodeVarintInt32(tile, offset, 1)[0] : 1;
-                if (numStreams === 0 && columnMetadata.type === "scalarType") {
+                const columnHasStreamCount = hasStreamCount(columnMetadata);
+                const numStreams = columnHasStreamCount ? decodeVarintInt32(tile, offset, 1)[0] : 1;
+                if (numStreams === 0) {
                     continue;
                 }
                 const propertyVector = decodePropertyColumn(tile, offset, columnMetadata, numStreams, numFeatures, undefined);
@@ -37135,42 +40826,47 @@ function decodeTile(tile, geometryScaling, idWithinMaxSafeInteger = true) {
     return featureTables;
 }
 function decodeIdColumn(tile, columnMetadata, offset, columnName, idDataStreamMetadata, sizeOrNullabilityBuffer, idWithinMaxSafeInteger = false) {
-    const idDataType = columnMetadata.scalarType.physicalType;
-    const vectorType = getVectorType(idDataStreamMetadata, sizeOrNullabilityBuffer, tile, offset);
+    const scalarTypeMetadata = columnMetadata.scalarType;
+    if (!scalarTypeMetadata ||
+        scalarTypeMetadata.type !== "logicalType" ||
+        scalarTypeMetadata.logicalType !== LogicalScalarType.ID) {
+        throw new Error(`ID column must be a logical ID scalar type: ${columnName}`);
+    }
+    const idDataType = scalarTypeMetadata.longID ? ScalarType.UINT_64 : ScalarType.UINT_32;
+    const nullabilityBuffer = typeof sizeOrNullabilityBuffer === "number" ? undefined : sizeOrNullabilityBuffer;
+    const vectorType = getVectorType(idDataStreamMetadata, sizeOrNullabilityBuffer, tile, offset, idDataType === ScalarType.UINT_64 ? "int64" : "int32");
     if (idDataType === ScalarType.UINT_32) {
         switch (vectorType) {
             case VectorType.FLAT: {
-                const id = decodeIntStream(tile, offset, idDataStreamMetadata, false);
-                return new IntFlatVector(columnName, id, sizeOrNullabilityBuffer);
+                const id = decodeUnsignedInt32Stream(tile, offset, idDataStreamMetadata, undefined, nullabilityBuffer);
+                return new Int32FlatVector(columnName, id, sizeOrNullabilityBuffer);
             }
             case VectorType.SEQUENCE: {
-                const id = decodeSequenceIntStream(tile, offset, idDataStreamMetadata);
-                return new IntSequenceVector(columnName, id[0], id[1], idDataStreamMetadata.numRleValues);
+                const id = decodeSequenceInt32Stream(tile, offset, idDataStreamMetadata);
+                return new Int32SequenceVector(columnName, id[0], id[1], idDataStreamMetadata.numRleValues);
             }
             case VectorType.CONST: {
-                const id = decodeConstIntStream(tile, offset, idDataStreamMetadata, false);
-                return new IntConstVector(columnName, id, sizeOrNullabilityBuffer);
+                const id = decodeUnsignedConstInt32Stream(tile, offset, idDataStreamMetadata);
+                return new Int32ConstVector(columnName, id, sizeOrNullabilityBuffer, false);
             }
         }
     }
-    else {
-        switch (vectorType) {
-            case VectorType.FLAT: {
-                if (idWithinMaxSafeInteger) {
-                    const id = decodeLongFloat64Stream(tile, offset, idDataStreamMetadata, false);
-                    return new DoubleFlatVector(columnName, id, sizeOrNullabilityBuffer);
-                }
-                const id = decodeLongStream(tile, offset, idDataStreamMetadata, false);
-                return new LongFlatVector(columnName, id, sizeOrNullabilityBuffer);
+    switch (vectorType) {
+        case VectorType.FLAT: {
+            if (idWithinMaxSafeInteger) {
+                const id = decodeUnsignedInt64AsFloat64Stream(tile, offset, idDataStreamMetadata);
+                return new DoubleFlatVector(columnName, id, sizeOrNullabilityBuffer);
             }
-            case VectorType.SEQUENCE: {
-                const id = decodeSequenceLongStream(tile, offset, idDataStreamMetadata);
-                return new LongSequenceVector(columnName, id[0], id[1], idDataStreamMetadata.numRleValues);
-            }
-            case VectorType.CONST: {
-                const id = decodeConstLongStream(tile, offset, idDataStreamMetadata, false);
-                return new LongConstVector(columnName, id, sizeOrNullabilityBuffer);
-            }
+            const id = decodeUnsignedInt64Stream(tile, offset, idDataStreamMetadata, nullabilityBuffer);
+            return new Int64FlatVector(columnName, id, sizeOrNullabilityBuffer);
+        }
+        case VectorType.SEQUENCE: {
+            const id = decodeSequenceInt64Stream(tile, offset, idDataStreamMetadata);
+            return new Int64SequenceVector(columnName, id[0], id[1], idDataStreamMetadata.numRleValues);
+        }
+        case VectorType.CONST: {
+            const id = decodeUnsignedConstInt64Stream(tile, offset, idDataStreamMetadata);
+            return new Int64ConstVector(columnName, id, sizeOrNullabilityBuffer, false);
         }
     }
     throw new Error("Vector type not supported for id column.");
@@ -37341,7 +41037,206 @@ class Bounds {
     }
 }
 
-class i{constructor(e,t){this.feature=e,this.type=e.type,this.properties=e.tags?e.tags:{},this.extent=t,"id"in e&&("string"==typeof e.id?this.id=parseInt(e.id,10):"number"!=typeof e.id||isNaN(e.id)||(this.id=e.id));}loadGeometry(){const e=[],i=1===this.feature.type?[this.feature.geometry]:this.feature.geometry;for(const n of i){const i=[];for(const e of n)i.push(new Point(e[0],e[1]));e.push(i);}return e}}const n="_geojsonTileLayer";class r{constructor(e,t){this.layers={[n]:this},this.name=n,this.version=t?t.version:1,this.extent=t?t.extent:4096,this.length=e.length,this.features=e;}feature(e){return new i(this.features[e],this.extent)}}function o(t){const i=new Pbf;return function(e,t){for(const i in e.layers)t.writeMessage(3,a,e.layers[i]);}(t,i),i.finish()}function s(e,t){const i={};for(const n in e)i[n]=new r(e[n].features,t),i[n].name=n,i[n].version=t?t.version:1,i[n].extent=t?t.extent:4096;return o({layers:i})}function a(e,t){t.writeVarintField(15,e.version||1),t.writeStringField(1,e.name||""),t.writeVarintField(5,e.extent||4096);const i={keys:[],values:[],keycache:{},valuecache:{}};for(let n=0;n<e.length;n++)i.feature=e.feature(n),t.writeMessage(2,f,i);const n=i.keys;for(const e of n)t.writeStringField(3,e);const r=i.values;for(const e of r)t.writeMessage(4,y,e);}function f(e,t){if(!e.feature)return;const i=e.feature;void 0!==i.id&&t.writeVarintField(1,i.id),t.writeMessage(2,c,e),t.writeVarintField(3,i.type),t.writeMessage(4,h,i);}function c(e,t){for(const i in e.feature?.properties){let n=e.feature.properties[i],r=e.keycache[i];if(null==n)continue;void 0===r&&(e.keys.push(i),r=e.keys.length-1,e.keycache[i]=r),t.writeVarint(r),"string"!=typeof n&&"boolean"!=typeof n&&"number"!=typeof n&&(n=JSON.stringify(n));const o=typeof n+":"+n;let s=e.valuecache[o];void 0===s&&(e.values.push(n),s=e.values.length-1,e.valuecache[o]=s),t.writeVarint(s);}}function u(e,t){return (t<<3)+(7&e)}function l(e){return e<<1^e>>31}function h(e,t){const i=e.loadGeometry(),n=e.type;let r=0,o=0;for(const s of i){let i=1;1===n&&(i=s.length),t.writeVarint(u(1,i));const a=3===n?s.length-1:s.length;for(let e=0;e<a;e++){1===e&&1!==n&&t.writeVarint(u(2,a-1));const i=s[e].x-r,f=s[e].y-o;t.writeVarint(l(i)),t.writeVarint(l(f)),r+=i,o+=f;}3===e.type&&t.writeVarint(u(7,1));}}function y(e,t){const i=typeof e;"string"===i?t.writeStringField(1,e):"boolean"===i?t.writeBooleanField(7,e):"number"===i&&(e%1!=0?t.writeDoubleField(3,e):e<0?t.writeSVarintField(6,e):t.writeVarintField(5,e));}
+class FeatureWrapper {
+    constructor(feature, extent) {
+        this.feature = feature;
+        this.type = feature.type;
+        this.properties = feature.tags ? feature.tags : {};
+        this.extent = extent;
+        // If the feature has a top-level `id` property, copy it over, but only
+        // if it can be coerced to an integer, because this wrapper is used for
+        // serializing geojson feature data into vector tile PBF data, and the
+        // vector tile spec only supports integer values for feature ids --
+        // allowing non-integer values here results in a non-compliant PBF
+        // that causes an exception when it is parsed with vector-tile-js
+        if ('id' in feature) {
+            if (typeof feature.id === 'string') {
+                this.id = parseInt(feature.id, 10);
+            }
+            else if (typeof feature.id === 'number' && !isNaN(feature.id)) {
+                this.id = feature.id;
+            }
+        }
+    }
+    loadGeometry() {
+        const geometry = [];
+        const rawGeo = this.feature.type === 1 ? [this.feature.geometry] : this.feature.geometry;
+        for (const ring of rawGeo) {
+            const newRing = [];
+            for (const point of ring) {
+                newRing.push(new Point(point[0], point[1]));
+            }
+            geometry.push(newRing);
+        }
+        return geometry;
+    }
+}
+const GEOJSON_TILE_LAYER_NAME = "_geojsonTileLayer";
+class GeoJSONWrapper {
+    constructor(features, options) {
+        this.layers = { [GEOJSON_TILE_LAYER_NAME]: this };
+        this.name = GEOJSON_TILE_LAYER_NAME;
+        this.version = options ? options.version : 1;
+        this.extent = options ? options.extent : 4096;
+        this.length = features.length;
+        this.features = features;
+    }
+    feature(i) {
+        return new FeatureWrapper(this.features[i], this.extent);
+    }
+}
+
+/**
+ * Serialize a vector-tile-js-created tile to pbf
+ *
+ * @param tile - the tile to serialize
+ * @param jsonPrefix - a string prefix to prepend to JSON-stringified non-primitive property values, used to distinguish them from regular string values when parsing the tile later. Default is "".
+ * @return uncompressed, pbf-serialized tile data
+ */
+function fromVectorTileJs(tile, jsonPrefix = "") {
+    const out = new Pbf();
+    writeTile(tile, out, jsonPrefix);
+    return out.finish();
+}
+/**
+ * Serialized a geojson-vt-created tile to pbf.
+ *
+ * @param layers - An object mapping layer names to geojson-vt-created vector tile objects
+ * @param options - An object specifying the vector-tile specification version and extent that were used to create `layers`.
+ * @return uncompressed, pbf-serialized tile data
+ */
+function fromGeojsonVt(layers, options) {
+    const l = {};
+    // eslint-disable-next-line @typescript-eslint/no-for-in-array
+    for (const k in layers) {
+        l[k] = new GeoJSONWrapper(layers[k].features, options);
+        l[k].name = k;
+        l[k].version = options ? options.version : 1;
+        l[k].extent = options ? options.extent : 4096;
+    }
+    return fromVectorTileJs({ layers: l });
+}
+function writeTile(tile, pbf, jsonPrefix = "") {
+    for (const key in tile.layers) {
+        pbf.writeMessage(3, (layer, pbf) => writeLayer(layer, pbf, jsonPrefix), tile.layers[key]);
+    }
+}
+function writeLayer(layer, pbf, jsonPrefix = "") {
+    pbf.writeVarintField(15, layer.version || 1);
+    pbf.writeStringField(1, layer.name || '');
+    pbf.writeVarintField(5, layer.extent || 4096);
+    const context = {
+        jsonPrefix,
+        keys: [],
+        values: [],
+        keycache: {},
+        valuecache: {}
+    };
+    for (let i = 0; i < layer.length; i++) {
+        context.feature = layer.feature(i);
+        pbf.writeMessage(2, writeFeature, context);
+    }
+    const keys = context.keys;
+    for (const key of keys) {
+        pbf.writeStringField(3, key);
+    }
+    const values = context.values;
+    for (const value of values) {
+        pbf.writeMessage(4, writeValue, value);
+    }
+}
+function writeFeature(context, pbf) {
+    if (!context.feature) {
+        return;
+    }
+    const feature = context.feature;
+    if (feature.id !== undefined) {
+        pbf.writeVarintField(1, feature.id);
+    }
+    pbf.writeMessage(2, writeProperties, context);
+    pbf.writeVarintField(3, feature.type);
+    pbf.writeMessage(4, writeGeometry, feature);
+}
+function writeProperties(context, pbf) {
+    for (const key in context.feature?.properties) {
+        let value = context.feature.properties[key];
+        let keyIndex = context.keycache[key];
+        if (value == null)
+            continue; // don't encode null/undefined value properties
+        if (typeof keyIndex === 'undefined') {
+            context.keys.push(key);
+            keyIndex = context.keys.length - 1;
+            context.keycache[key] = keyIndex;
+        }
+        pbf.writeVarint(keyIndex);
+        if (typeof value !== 'string' && typeof value !== 'boolean' && typeof value !== 'number') {
+            value = context.jsonPrefix + JSON.stringify(value);
+        }
+        const valueKey = typeof value + ':' + value;
+        let valueIndex = context.valuecache[valueKey];
+        if (typeof valueIndex === 'undefined') {
+            context.values.push(value);
+            valueIndex = context.values.length - 1;
+            context.valuecache[valueKey] = valueIndex;
+        }
+        pbf.writeVarint(valueIndex);
+    }
+}
+function command(cmd, length) {
+    return (length << 3) + (cmd & 0x7);
+}
+function zigzag(num) {
+    return (num << 1) ^ (num >> 31);
+}
+function writeGeometry(feature, pbf) {
+    const geometry = feature.loadGeometry();
+    const type = feature.type;
+    let x = 0;
+    let y = 0;
+    for (const ring of geometry) {
+        let count = 1;
+        if (type === 1) {
+            count = ring.length;
+        }
+        pbf.writeVarint(command(1, count)); // moveto
+        // do not write polygon closing path as lineto
+        const lineCount = type === 3 ? ring.length - 1 : ring.length;
+        for (let i = 0; i < lineCount; i++) {
+            if (i === 1 && type !== 1) {
+                pbf.writeVarint(command(2, lineCount - 1)); // lineto
+            }
+            const dx = ring[i].x - x;
+            const dy = ring[i].y - y;
+            pbf.writeVarint(zigzag(dx));
+            pbf.writeVarint(zigzag(dy));
+            x += dx;
+            y += dy;
+        }
+        if (feature.type === 3) {
+            pbf.writeVarint(command(7, 1)); // closepath
+        }
+    }
+}
+function writeValue(value, pbf) {
+    const type = typeof value;
+    if (type === 'string') {
+        pbf.writeStringField(1, value);
+    }
+    else if (type === 'boolean') {
+        pbf.writeBooleanField(7, value);
+    }
+    else if (type === 'number') {
+        if (value % 1 !== 0) {
+            pbf.writeDoubleField(3, value);
+        }
+        else if (value < 0) {
+            pbf.writeSVarintField(6, value);
+        }
+        else {
+            pbf.writeVarintField(5, value);
+        }
+    }
+}
 
 /**
  * An in memory index class to allow fast interaction with features
@@ -37384,7 +41279,7 @@ class FeatureIndex {
             this.vtLayers = this.encoding !== 'mlt'
                 ? new VectorTile(new Pbf(this.rawTileData)).layers
                 : new MLTVectorTile(this.rawTileData).layers;
-            this.sourceLayerCoder = new DictionaryCoder(this.vtLayers ? Object.keys(this.vtLayers).sort() : [n]);
+            this.sourceLayerCoder = new DictionaryCoder(this.vtLayers ? Object.keys(this.vtLayers).sort() : [GEOJSON_TILE_LAYER_NAME]);
         }
         return this.vtLayers;
     }
@@ -37464,9 +41359,9 @@ class FeatureIndex {
             let featureState = {};
             if (id && sourceFeatureState) {
                 // `feature-state` expression evaluation requires feature state to be available
-                featureState = sourceFeatureState.getState(styleLayer.sourceLayer || n, id);
+                featureState = sourceFeatureState.getState(styleLayer.sourceLayer || GEOJSON_TILE_LAYER_NAME, id);
             }
-            const serializedLayer = extend$1({}, serializedLayers[layerID]);
+            const serializedLayer = extend({}, serializedLayers[layerID]);
             serializedLayer.paint = evaluateProperties(serializedLayer.paint, styleLayer.paint, feature, featureState, availableImages);
             serializedLayer.layout = evaluateProperties(serializedLayer.layout, styleLayer.layout, feature, featureState, availableImages);
             const intersectionZ = !intersectionTest || intersectionTest(feature, styleLayer, featureState);
@@ -37568,7 +41463,7 @@ class StyleLayerIndex {
             if (!sourceGroup) {
                 sourceGroup = this.familiesBySource[sourceId] = {};
             }
-            const sourceLayerId = layer.sourceLayer || n;
+            const sourceLayerId = layer.sourceLayer || GEOJSON_TILE_LAYER_NAME;
             let sourceLayerFamilies = sourceGroup[sourceLayerId];
             if (!sourceLayerFamilies) {
                 sourceLayerFamilies = sourceGroup[sourceLayerId] = [];
@@ -37765,7 +41660,7 @@ function resample(line, offset, spacing, angleWindowSize, maxAngle, labelLength,
  * @param y2 - the bottom edge of the box
  * @returns lines
  */
-function clipLine$1(lines, x1, y1, x2, y2) {
+function clipLine(lines, x1, y1, x2, y2) {
     const clippedLines = [];
     for (let l = 0; l < lines.length; l++) {
         const line = lines[l];
@@ -37851,15 +41746,15 @@ function clipGeometry(geometry, type, x1, y1, x2, y2) {
 function clipGeometryOnAxis(geometry, type, start, end, axis) {
     switch (type) {
         case 1: // POINT
-            return clipPoints$1(geometry, start, end, axis);
+            return clipPoints(geometry, start, end, axis);
         case 2: // LINESTRING
-            return clipLines$1(geometry, start, end, axis, false);
+            return clipLines(geometry, start, end, axis, false);
         case 3: // POLYGON
-            return clipLines$1(geometry, start, end, axis, true);
+            return clipLines(geometry, start, end, axis, true);
     }
     return [];
 }
-function clipPoints$1(geometry, start, end, axis) {
+function clipPoints(geometry, start, end, axis) {
     const newGeometry = [];
     for (const ring of geometry) {
         for (const point of ring) {
@@ -37935,7 +41830,7 @@ function clipLineInternal(line, start, end, axis, isPolygon) {
     }
     return newLine;
 }
-function clipLines$1(geometry, start, end, axis, isPolygon) {
+function clipLines(geometry, start, end, axis, isPolygon) {
     const newGeometry = [];
     for (const line of geometry) {
         const clippedLines = clipLineInternal(line, start, end, axis, isPolygon);
@@ -38581,6 +42476,7 @@ function getTextVariableAnchorOffset(layer, feature, canonical) {
 }
 
 function performSymbolLayout(args) {
+    var _a;
     args.bucket.createArrays();
     const tileSize = 512 * args.bucket.overscaling;
     args.bucket.tilePixelRatio = EXTENT$1 / tileSize;
@@ -38731,9 +42627,9 @@ function performSymbolLayout(args) {
             }
         }
         const shapedText = getDefaultHorizontalShaping(shapedTextOrientations.horizontal) || shapedTextOrientations.vertical;
-        args.bucket.iconsInText = shapedText ? shapedText.iconsInText : false;
+        (_a = args.bucket).iconsInText || (_a.iconsInText = shapedText ? shapedText.iconsInText : false);
         if (shapedText || shapedIcon) {
-            addFeature$1(args.bucket, feature, shapedTextOrientations, shapedIcon, args.imageMap, sizes, layoutTextSize, layoutIconSize, textOffset, isSDFIcon, args.canonical, args.subdivisionGranularity);
+            addFeature(args.bucket, feature, shapedTextOrientations, shapedIcon, args.imageMap, sizes, layoutTextSize, layoutIconSize, textOffset, isSDFIcon, args.canonical, args.subdivisionGranularity);
         }
     }
     if (args.showCollisionBoxes) {
@@ -38760,7 +42656,7 @@ function getAnchorJustification(anchor) {
  * (At render it selects which of these instances to
  * show or hide based on collisions with symbols in other layers.)
  */
-function addFeature$1(bucket, feature, shapedTextOrientations, shapedIcon, imageMap, sizes, layoutTextSize, layoutIconSize, textOffset, isSDFIcon, canonical, subdivisionGranularity) {
+function addFeature(bucket, feature, shapedTextOrientations, shapedIcon, imageMap, sizes, layoutTextSize, layoutIconSize, textOffset, isSDFIcon, canonical, subdivisionGranularity) {
     // To reduce the number of labels that jump around when zooming we need
     // to use a text-size value that is the same for all zoom levels.
     // bucket calculates text-size at a high zoom level so that all tiles can
@@ -38795,7 +42691,7 @@ function addFeature$1(bucket, feature, shapedTextOrientations, shapedIcon, image
         addSymbol(bucket, anchor, line, shapedTextOrientations, shapedIcon, imageMap, verticallyShapedIcon, bucket.layers[0], bucket.collisionBoxArray, feature.index, feature.sourceLayerIndex, bucket.index, textBoxScale, [textPadding, textPadding, textPadding, textPadding], textAlongLine, textOffset, iconBoxScale, iconPadding, iconAlongLine, iconOffset, feature, sizes, isSDFIcon, canonical, layoutTextSize);
     };
     if (symbolPlacement === 'line') {
-        for (const line of clipLine$1(feature.geometry, 0, 0, EXTENT$1, EXTENT$1)) {
+        for (const line of clipLine(feature.geometry, 0, 0, EXTENT$1, EXTENT$1)) {
             const subdividedLine = subdivideVertexLine(line, granularity);
             const anchors = getAnchors(subdividedLine, symbolMinDistance, textMaxAngle, shapedTextOrientations.vertical || defaultHorizontalShaping, shapedIcon, glyphSize, textMaxBoxScale, bucket.overscaling, EXTENT$1);
             for (const anchor of anchors) {
@@ -39630,6 +43526,52 @@ class OverscaledTileID {
     getTilePoint(coord) {
         return this.canonical.getTilePoint(new MercatorCoordinate(coord.x - this.wrap, coord.y));
     }
+    /**
+     * Maps tile-local coordinates that may fall outside the `[0, extent)` range
+     * to the correct neighbor tile and the corresponding in-tile position.
+     *
+     * Coordinates can exceed tile bounds when geometry (e.g. symbol labels along
+     * lines) extends across tile edges. This method resolves such coordinates to
+     * the appropriate adjacent tile, wrapping horizontally across world boundaries
+     * and returning `null` when the target falls beyond the polar tile-grid limits.
+     *
+     * When the coordinates are already in bounds, the original tile ID is returned.
+     *
+     * @param x - x coordinate relative to this tile, may be outside `[0, extent)`
+     * @param y - y coordinate relative to this tile, may be outside `[0, extent)`
+     * @param extent - tile coordinate extent, default {@link EXTENT}
+     * @returns the resolved tile ID and in-tile coordinates, or `null` if the
+     *          target is beyond the tile grid (e.g. past the poles)
+     */
+    normalizeCoordinates(x, y, extent = EXTENT$1) {
+        if (x >= 0 && x < extent && y >= 0 && y < extent) {
+            return { tileID: this, x, y };
+        }
+        const tileOffsetX = Math.floor(x / extent);
+        const tileOffsetY = Math.floor(y / extent);
+        const newX = x - tileOffsetX * extent;
+        const newY = y - tileOffsetY * extent;
+        const z = this.canonical.z;
+        const dim = 1 << z;
+        const newCanonicalY = this.canonical.y + tileOffsetY;
+        if (newCanonicalY < 0 || newCanonicalY >= dim)
+            return null;
+        let newCanonicalX = this.canonical.x + tileOffsetX;
+        let newWrap = this.wrap;
+        if (newCanonicalX < 0) {
+            newWrap -= Math.ceil(-newCanonicalX / dim);
+            newCanonicalX = ((newCanonicalX % dim) + dim) % dim;
+        }
+        else if (newCanonicalX >= dim) {
+            newWrap += Math.floor(newCanonicalX / dim);
+            newCanonicalX = newCanonicalX % dim;
+        }
+        return {
+            tileID: new OverscaledTileID(this.overscaledZ, newWrap, z, newCanonicalX, newCanonicalY),
+            x: newX,
+            y: newY,
+        };
+    }
 }
 function calculateTileKey(wrap, overscaledZ, z, x, y) {
     wrap *= 2;
@@ -39805,6 +43747,55 @@ function recalculateLayers(layers, zoom, availableImages) {
     const parameters = new EvaluationParameters(zoom);
     for (const layer of layers) {
         layer.recalculate(parameters, availableImages);
+    }
+}
+
+class WorkerTileState {
+    constructor() {
+        this.loading = {};
+        this.loaded = {};
+        this.parsing = {};
+    }
+    startLoading(uid, tile) {
+        this.loading[uid] = tile;
+    }
+    finishLoading(uid) {
+        delete this.loading[uid];
+    }
+    abort(uid) {
+        const tile = this.loading[uid];
+        if (!(tile === null || tile === void 0 ? void 0 : tile.abort))
+            return;
+        tile.abort.abort();
+        delete this.loading[uid];
+    }
+    setParsing(uid, state) {
+        this.parsing[uid] = state;
+    }
+    consumeParsing(uid) {
+        const state = this.parsing[uid];
+        if (!state)
+            return undefined;
+        delete this.parsing[uid];
+        return state;
+    }
+    clearParsing(uid) {
+        delete this.parsing[uid];
+    }
+    markLoaded(uid, tile) {
+        this.loaded[uid] = tile;
+    }
+    getLoaded(uid) {
+        const tile = this.loaded[uid];
+        if (!tile)
+            return undefined;
+        return tile;
+    }
+    removeLoaded(uid) {
+        delete this.loaded[uid];
+    }
+    clearLoaded() {
+        this.loaded = {};
     }
 }
 
@@ -40034,48 +44025,74 @@ const minFramerateTarget = 60;
 const frameTimeTarget = 1000 / minFramerateTarget;
 const loadTimeKey = 'loadTime';
 const fullLoadTimeKey = 'fullLoadTime';
+/**
+ * Monitors and reports map performance metrics
+ */
 const PerformanceUtils = {
+    /**
+    * Marks point in time of the map lifecycle.
+    */
     mark(marker) {
         performance.mark(marker);
     },
-    frame(timestamp) {
-        const currTimestamp = timestamp;
+    /**
+    * Records the time of a new animation frame.
+    * Used internally for FPS calculation.
+    * @param currentTimestamp - The current timestamp provided by requestAnimationFrame.
+    */
+    recordStartOfFrameAt(currentTimestamp) {
         if (lastFrameTime != null) {
-            const frameTime = currTimestamp - lastFrameTime;
+            const frameTime = currentTimestamp - lastFrameTime;
             frameTimes.push(frameTime);
         }
-        lastFrameTime = currTimestamp;
+        lastFrameTime = currentTimestamp;
     },
-    clearMetrics() {
+    resetRuntimeMetrics() {
         lastFrameTime = null;
         frameTimes = [];
+    },
+    /**
+    * @internal
+    * Clear browser performance entries associated with this monitor
+    */
+    clearInitializationMetrics() {
         performance.clearMeasures(loadTimeKey);
         performance.clearMeasures(fullLoadTimeKey);
         for (const marker in PerformanceMarkers) {
             performance.clearMarks(PerformanceMarkers[marker]);
         }
     },
+    /**
+     * Clears both the runtime and initialisation metrics
+     */
+    remove() {
+        this.resetRuntimeMetrics();
+        this.clearInitializationMetrics();
+    },
+    /**
+    * Calculates and returns the current performance metrics for this monitor instance.
+    * @returns An object containing various performance metrics.
+    */
     getPerformanceMetrics() {
         performance.measure(loadTimeKey, PerformanceMarkers.create, PerformanceMarkers.load);
         performance.measure(fullLoadTimeKey, PerformanceMarkers.create, PerformanceMarkers.fullLoad);
-        const loadTime = performance.getEntriesByName(loadTimeKey)[0].duration;
-        const fullLoadTime = performance.getEntriesByName(fullLoadTimeKey)[0].duration;
-        const totalFrames = frameTimes.length;
-        const avgFrameTime = frameTimes.reduce((prev, curr) => prev + curr, 0) / totalFrames / 1000;
-        const fps = 1 / avgFrameTime;
+        const loadTimeMs = performance.getEntriesByName(loadTimeKey)[0].duration;
+        const fullLoadTimeMs = performance.getEntriesByName(fullLoadTimeKey)[0].duration;
+        const totalFramesCount = frameTimes.length;
+        const avgFrameTime = frameTimes.reduce((prev, curr) => prev + curr, 0) / totalFramesCount / 1000;
+        const averageFramesPerSecond = 1 / avgFrameTime;
         // count frames that missed our framerate target
-        const droppedFrames = frameTimes
+        const virtualDroppedFramesCount = frameTimes
             .filter((frameTime) => frameTime > frameTimeTarget)
             .reduce((acc, curr) => {
             return acc + (curr - frameTimeTarget) / frameTimeTarget;
         }, 0);
-        const percentDroppedFrames = (droppedFrames / (totalFrames + droppedFrames)) * 100;
         return {
-            loadTime,
-            fullLoadTime,
-            fps,
-            percentDroppedFrames,
-            totalFrames
+            loadTimeMs,
+            fullLoadTimeMs,
+            averageFramesPerSecond,
+            virtualDroppedFramesCount,
+            totalFramesCount
         };
     }
 };
@@ -40084,30 +44101,27 @@ const PerformanceUtils = {
  * Safe wrapper for the performance resource timing API in web workers with graceful degradation
  */
 class RequestPerformance {
-    constructor(request) {
-        this._marks = {
-            start: [request.url, 'start'].join('#'),
-            end: [request.url, 'end'].join('#'),
-            measure: request.url.toString()
-        };
-        performance.mark(this._marks.start);
+    constructor(url) {
+        this.start = `${url}#start`;
+        this.end = `${url}#end`;
+        this.measure = url;
+        performance.mark(this.start);
     }
     finish() {
-        performance.mark(this._marks.end);
-        let resourceTimingData = performance.getEntriesByName(this._marks.measure);
+        performance.mark(this.end);
+        let resourceTimingData = performance.getEntriesByName(this.measure);
         // fallback if web worker implementation of perf.getEntriesByName returns empty
         if (resourceTimingData.length === 0) {
-            performance.measure(this._marks.measure, this._marks.start, this._marks.end);
-            resourceTimingData = performance.getEntriesByName(this._marks.measure);
+            performance.measure(this.measure, this.start, this.end);
+            resourceTimingData = performance.getEntriesByName(this.measure);
             // cleanup
-            performance.clearMarks(this._marks.start);
-            performance.clearMarks(this._marks.end);
-            performance.clearMeasures(this._marks.measure);
+            performance.clearMarks(this.start);
+            performance.clearMarks(this.end);
+            performance.clearMeasures(this.measure);
         }
         return resourceTimingData;
     }
 }
-var performance$1 = performance;
 
 class VectorTileFeatureOverzoomed {
     constructor(type, geometry, properties, id, extent) {
@@ -40149,7 +44163,7 @@ class VectorTileOverzoomed {
  * @returns - the encoded vector tile along with the original virtual tile binary data.
  */
 function toVirtualVectorTile(virtualVectorTile) {
-    let pbf = o(virtualVectorTile);
+    let pbf = fromVectorTileJs(virtualVectorTile);
     if (pbf.byteOffset !== 0 || pbf.byteLength !== pbf.buffer.byteLength) {
         pbf = new Uint8Array(pbf); // Compatibility with node Buffer (https://github.com/mapbox/pbf/issues/35)
     }
@@ -40195,121 +44209,130 @@ function sliceVectorTileLayer(sourceLayer, maxZoomTileID, targetTileID) {
 }
 
 /**
- * The {@link WorkerSource} implementation that supports {@link VectorTileSource}.
- * This class is designed to be easily reused to support custom source types
- * for data formats that can be parsed/converted into an in-memory VectorTile
- * representation. To do so, override its `loadVectorTile` method.
+ * The {@link WorkerSource} implementation that supports {@link VectorTileSource}. This class is
+ * used by vector tile sources to perform tile processing operations in a separate worker thread.
  */
 class VectorTileWorkerSource {
-    /**
-     * @param loadVectorData - Optional method for custom loading of a VectorTile
-     * object based on parameters passed from the main-thread Source. See
-     * {@link VectorTileWorkerSource.loadTile}. The default implementation simply
-     * loads the pbf at `params.url`.
-     */
     constructor(actor, layerIndex, availableImages) {
         this.actor = actor;
         this.layerIndex = layerIndex;
         this.availableImages = availableImages;
-        this.fetching = {};
-        this.loading = {};
-        this.loaded = {};
+        this.tileState = new WorkerTileState();
         this.overzoomedTileResultCache = new BoundedLRUCache(1000);
     }
     /**
      * Loads a vector tile
      */
-    loadVectorTile(params, abortController) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const response = yield getArrayBuffer(params.request, abortController);
-            try {
-                const vectorTile = params.encoding !== 'mlt'
-                    ? new VectorTile(new Pbf(response.data))
-                    : new MLTVectorTile(response.data);
-                return {
-                    vectorTile,
-                    rawData: response.data,
-                    cacheControl: response.cacheControl,
-                    expires: response.expires
-                };
+    loadVectorTile(params, rawData) {
+        try {
+            const vectorTile = params.encoding !== 'mlt'
+                ? new VectorTile(new Pbf(rawData))
+                : new MLTVectorTile(rawData);
+            return { vectorTile, rawData };
+        }
+        catch (ex) {
+            const bytes = new Uint8Array(rawData);
+            const isGzipped = bytes[0] === 0x1f && bytes[1] === 0x8b;
+            let errorMessage = `Unable to parse the tile at ${params.request.url}, `;
+            if (isGzipped) {
+                errorMessage += 'please make sure the data is not gzipped and that you have configured the relevant header in the server';
             }
-            catch (ex) {
-                const bytes = new Uint8Array(response.data);
-                const isGzipped = bytes[0] === 0x1f && bytes[1] === 0x8b;
-                let errorMessage = `Unable to parse the tile at ${params.request.url}, `;
-                if (isGzipped) {
-                    errorMessage += 'please make sure the data is not gzipped and that you have configured the relevant header in the server';
-                }
-                else {
-                    errorMessage += `got error: ${ex.message}`;
-                }
-                throw new Error(errorMessage);
+            else {
+                errorMessage += `got error: ${ex.message}`;
             }
-        });
+            throw new Error(errorMessage);
+        }
     }
     /**
-     * Implements {@link WorkerSource.loadTile}. Delegates to
-     * {@link VectorTileWorkerSource.loadVectorData} (which by default expects
-     * a `params.url` property) for fetching and producing a VectorTile object.
+     * Implements {@link WorkerSource.loadTile}.
      */
     loadTile(params) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { uid: tileUid, overzoomParameters } = params;
+            const { uid, overzoomParameters } = params;
             if (overzoomParameters) {
                 params.request = overzoomParameters.overzoomRequest;
             }
-            const perf = (params && params.request && params.request.collectResourceTiming) ?
-                new RequestPerformance(params.request) : false;
+            const timing = this._startRequestTiming(params);
             const workerTile = new WorkerTile(params);
-            this.loading[tileUid] = workerTile;
+            this.tileState.startLoading(uid, workerTile);
             const abortController = new AbortController();
             workerTile.abort = abortController;
             try {
-                const response = yield this.loadVectorTile(params, abortController);
-                delete this.loading[tileUid];
-                if (!response) {
+                // Download the tile data from the network.
+                const tileResponse = yield getArrayBuffer(params.request, abortController);
+                // Tile data hasn't changed (etag support) - return an unmodified result
+                if (params.etag && params.etag === tileResponse.etag) {
+                    this.tileState.finishLoading(uid);
+                    return this._getEtagUnmodifiedResult(tileResponse, timing);
+                }
+                const tileResult = this.loadVectorTile(params, tileResponse.data);
+                this.tileState.finishLoading(uid);
+                if (!tileResult)
                     return null;
-                }
+                let { vectorTile, rawData } = tileResult;
                 if (overzoomParameters) {
-                    const overzoomTile = this._getOverzoomTile(params, response.vectorTile);
-                    response.rawData = overzoomTile.rawData;
-                    response.vectorTile = overzoomTile.vectorTile;
+                    ({ vectorTile, rawData } = this._getOverzoomTile(params, vectorTile));
                 }
-                const rawTileData = response.rawData;
-                const cacheControl = {};
-                if (response.expires)
-                    cacheControl.expires = response.expires;
-                if (response.cacheControl)
-                    cacheControl.cacheControl = response.cacheControl;
-                const resourceTiming = {};
-                if (perf) {
-                    const resourceTimingData = perf.finish();
-                    // it's necessary to eval the result of getEntriesByName() here via parse/stringify
-                    // late evaluation in the main thread causes TypeError: illegal invocation
-                    if (resourceTimingData)
-                        resourceTiming.resourceTiming = JSON.parse(JSON.stringify(resourceTimingData));
-                }
-                workerTile.vectorTile = response.vectorTile;
-                const parsePromise = workerTile.parse(response.vectorTile, this.layerIndex, this.availableImages, this.actor, params.subdivisionGranularity);
-                this.loaded[tileUid] = workerTile;
-                // keep the original fetching state so that reload tile can pick it up if the original parse is cancelled by reloads' parse
-                this.fetching[tileUid] = { rawTileData, cacheControl, resourceTiming };
+                const cacheControl = this._getExpiryData(tileResponse);
+                const resourceTiming = this._finishRequestTiming(timing);
+                workerTile.vectorTile = vectorTile;
+                this.tileState.markLoaded(uid, workerTile);
+                const parseState = { rawData, cacheControl, resourceTiming }; // Keep data so reloadTile can access if parse is canceled.
+                this.tileState.setParsing(uid, parseState);
                 try {
-                    const result = yield parsePromise;
-                    // Transferring a copy of rawTileData because the worker needs to retain its copy.
-                    return extend$1({ rawTileData: rawTileData.slice(0), encoding: params.encoding }, result, cacheControl, resourceTiming);
+                    return yield this._parseWorkerTile(workerTile, params, parseState);
                 }
                 finally {
-                    delete this.fetching[tileUid];
+                    this.tileState.clearParsing(uid);
                 }
             }
             catch (err) {
-                delete this.loading[tileUid];
+                this.tileState.finishLoading(uid);
                 workerTile.status = 'done';
-                this.loaded[tileUid] = workerTile;
+                this.tileState.markLoaded(uid, workerTile);
                 throw err;
             }
         });
+    }
+    _getEtagUnmodifiedResult(response, timing) {
+        const cacheControl = this._getExpiryData(response);
+        const resourceTiming = this._finishRequestTiming(timing);
+        return extend({ etagUnmodified: true }, cacheControl, resourceTiming);
+    }
+    _parseWorkerTile(workerTile, params, parseState) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let result = yield workerTile.parse(workerTile.vectorTile, this.layerIndex, this.availableImages, this.actor, params.subdivisionGranularity);
+            if (parseState) {
+                const { rawData, cacheControl, resourceTiming } = parseState;
+                // Transferring a copy of rawTileData because the worker needs to retain its copy.
+                result = extend({ rawTileData: rawData.slice(0), encoding: params.encoding }, result, cacheControl, resourceTiming);
+            }
+            return result;
+        });
+    }
+    _getExpiryData({ expires, cacheControl, etag }) {
+        const data = {};
+        if (expires)
+            data.expires = expires;
+        if (cacheControl)
+            data.cacheControl = cacheControl;
+        if (etag)
+            data.etag = etag;
+        return data;
+    }
+    _startRequestTiming(params) {
+        var _a;
+        if (!((_a = params.request) === null || _a === void 0 ? void 0 : _a.collectResourceTiming))
+            return;
+        return new RequestPerformance(params.request.url);
+    }
+    _finishRequestTiming(timing) {
+        const timingData = timing === null || timing === void 0 ? void 0 : timing.finish();
+        if (!timingData)
+            return {};
+        // it's necessary to eval the result of getEntriesByName() here via parse/stringify
+        // late evaluation in the main thread causes TypeError: illegal invocation
+        return { resourceTiming: JSON.parse(JSON.stringify(timingData)) };
     }
     /**
      * If we are seeking a tile deeper than the source's max available canonical tile, get the overzoomed tile
@@ -40347,29 +44370,19 @@ class VectorTileWorkerSource {
     reloadTile(params) {
         return __awaiter(this, void 0, void 0, function* () {
             const uid = params.uid;
-            if (!this.loaded || !this.loaded[uid]) {
+            const workerTile = this.tileState.getLoaded(uid);
+            if (!workerTile)
                 throw new Error('Should not be trying to reload a tile that was never loaded or has been removed');
-            }
-            const workerTile = this.loaded[uid];
             workerTile.showCollisionBoxes = params.showCollisionBoxes;
             if (workerTile.status === 'parsing') {
-                const result = yield workerTile.parse(workerTile.vectorTile, this.layerIndex, this.availableImages, this.actor, params.subdivisionGranularity);
-                // if we have cancelled the original parse, make sure to pass the rawTileData from the original fetch
-                let parseResult;
-                if (this.fetching[uid]) {
-                    const { rawTileData, cacheControl, resourceTiming } = this.fetching[uid];
-                    delete this.fetching[uid];
-                    parseResult = extend$1({ rawTileData: rawTileData.slice(0), encoding: params.encoding }, result, cacheControl, resourceTiming);
-                }
-                else {
-                    parseResult = result;
-                }
-                return parseResult;
+                // if we are cancelling the original parse, make sure to pass the rawTileData from the original parse
+                const parseState = this.tileState.consumeParsing(uid);
+                return yield this._parseWorkerTile(workerTile, params, parseState);
             }
-            // if there was no vector tile data on the initial load, don't try and re-parse tile
+            // If there was no vector tile data on the initial load, don't try and reparse the tile.
+            // this seems like a missing case where cache control is lost? see #3309
             if (workerTile.status === 'done' && workerTile.vectorTile) {
-                // this seems like a missing case where cache control is lost? see #3309
-                return workerTile.parse(workerTile.vectorTile, this.layerIndex, this.availableImages, this.actor, params.subdivisionGranularity);
+                return yield this._parseWorkerTile(workerTile, params);
             }
         });
     }
@@ -40378,12 +44391,7 @@ class VectorTileWorkerSource {
      */
     abortTile(params) {
         return __awaiter(this, void 0, void 0, function* () {
-            const loading = this.loading;
-            const uid = params.uid;
-            if (loading && loading[uid] && loading[uid].abort) {
-                loading[uid].abort.abort();
-                delete loading[uid];
-            }
+            this.tileState.abort(params.uid);
         });
     }
     /**
@@ -40391,9 +44399,7 @@ class VectorTileWorkerSource {
      */
     removeTile(params) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this.loaded && this.loaded[params.uid]) {
-                delete this.loaded[params.uid];
-            }
+            this.tileState.removeLoaded(params.uid);
         });
     }
 }
@@ -40424,1977 +44430,6 @@ class RasterDEMTileWorkerSource {
     }
 }
 
-var geojsonRewind;
-var hasRequiredGeojsonRewind;
-
-function requireGeojsonRewind () {
-	if (hasRequiredGeojsonRewind) return geojsonRewind;
-	hasRequiredGeojsonRewind = 1;
-	geojsonRewind = rewind;
-
-	function rewind(gj, outer) {
-	    var type = gj && gj.type, i;
-
-	    if (type === 'FeatureCollection') {
-	        for (i = 0; i < gj.features.length; i++) rewind(gj.features[i], outer);
-
-	    } else if (type === 'GeometryCollection') {
-	        for (i = 0; i < gj.geometries.length; i++) rewind(gj.geometries[i], outer);
-
-	    } else if (type === 'Feature') {
-	        rewind(gj.geometry, outer);
-
-	    } else if (type === 'Polygon') {
-	        rewindRings(gj.coordinates, outer);
-
-	    } else if (type === 'MultiPolygon') {
-	        for (i = 0; i < gj.coordinates.length; i++) rewindRings(gj.coordinates[i], outer);
-	    }
-
-	    return gj;
-	}
-
-	function rewindRings(rings, outer) {
-	    if (rings.length === 0) return;
-
-	    rewindRing(rings[0], outer);
-	    for (var i = 1; i < rings.length; i++) {
-	        rewindRing(rings[i], !outer);
-	    }
-	}
-
-	function rewindRing(ring, dir) {
-	    var area = 0, err = 0;
-	    for (var i = 0, len = ring.length, j = len - 1; i < len; j = i++) {
-	        var k = (ring[i][0] - ring[j][0]) * (ring[j][1] + ring[i][1]);
-	        var m = area + k;
-	        err += Math.abs(area) >= Math.abs(k) ? area - m + k : k - m + area;
-	        area = m;
-	    }
-	    if (area + err >= 0 !== !!dir) ring.reverse();
-	}
-	return geojsonRewind;
-}
-
-var geojsonRewindExports = requireGeojsonRewind();
-var rewind$1 = /*@__PURE__*/getDefaultExportFromCjs$1(geojsonRewindExports);
-
-const ARRAY_TYPES = [
-    Int8Array, Uint8Array, Uint8ClampedArray, Int16Array, Uint16Array,
-    Int32Array, Uint32Array, Float32Array, Float64Array
-];
-
-/** @typedef {Int8ArrayConstructor | Uint8ArrayConstructor | Uint8ClampedArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Int32ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor | Float64ArrayConstructor} TypedArrayConstructor */
-
-const VERSION = 1; // serialized format version
-const HEADER_SIZE = 8;
-
-class KDBush {
-
-    /**
-     * Creates an index from raw `ArrayBuffer` data.
-     * @param {ArrayBuffer} data
-     */
-    static from(data) {
-        if (!(data instanceof ArrayBuffer)) {
-            throw new Error('Data must be an instance of ArrayBuffer.');
-        }
-        const [magic, versionAndType] = new Uint8Array(data, 0, 2);
-        if (magic !== 0xdb) {
-            throw new Error('Data does not appear to be in a KDBush format.');
-        }
-        const version = versionAndType >> 4;
-        if (version !== VERSION) {
-            throw new Error(`Got v${version} data when expected v${VERSION}.`);
-        }
-        const ArrayType = ARRAY_TYPES[versionAndType & 0x0f];
-        if (!ArrayType) {
-            throw new Error('Unrecognized array type.');
-        }
-        const [nodeSize] = new Uint16Array(data, 2, 1);
-        const [numItems] = new Uint32Array(data, 4, 1);
-
-        return new KDBush(numItems, nodeSize, ArrayType, data);
-    }
-
-    /**
-     * Creates an index that will hold a given number of items.
-     * @param {number} numItems
-     * @param {number} [nodeSize=64] Size of the KD-tree node (64 by default).
-     * @param {TypedArrayConstructor} [ArrayType=Float64Array] The array type used for coordinates storage (`Float64Array` by default).
-     * @param {ArrayBuffer} [data] (For internal use only)
-     */
-    constructor(numItems, nodeSize = 64, ArrayType = Float64Array, data) {
-        if (isNaN(numItems) || numItems < 0) throw new Error(`Unpexpected numItems value: ${numItems}.`);
-
-        this.numItems = +numItems;
-        this.nodeSize = Math.min(Math.max(+nodeSize, 2), 65535);
-        this.ArrayType = ArrayType;
-        this.IndexArrayType = numItems < 65536 ? Uint16Array : Uint32Array;
-
-        const arrayTypeIndex = ARRAY_TYPES.indexOf(this.ArrayType);
-        const coordsByteSize = numItems * 2 * this.ArrayType.BYTES_PER_ELEMENT;
-        const idsByteSize = numItems * this.IndexArrayType.BYTES_PER_ELEMENT;
-        const padCoords = (8 - idsByteSize % 8) % 8;
-
-        if (arrayTypeIndex < 0) {
-            throw new Error(`Unexpected typed array class: ${ArrayType}.`);
-        }
-
-        if (data && (data instanceof ArrayBuffer)) { // reconstruct an index from a buffer
-            this.data = data;
-            this.ids = new this.IndexArrayType(this.data, HEADER_SIZE, numItems);
-            this.coords = new this.ArrayType(this.data, HEADER_SIZE + idsByteSize + padCoords, numItems * 2);
-            this._pos = numItems * 2;
-            this._finished = true;
-        } else { // initialize a new index
-            this.data = new ArrayBuffer(HEADER_SIZE + coordsByteSize + idsByteSize + padCoords);
-            this.ids = new this.IndexArrayType(this.data, HEADER_SIZE, numItems);
-            this.coords = new this.ArrayType(this.data, HEADER_SIZE + idsByteSize + padCoords, numItems * 2);
-            this._pos = 0;
-            this._finished = false;
-
-            // set header
-            new Uint8Array(this.data, 0, 2).set([0xdb, (VERSION << 4) + arrayTypeIndex]);
-            new Uint16Array(this.data, 2, 1)[0] = nodeSize;
-            new Uint32Array(this.data, 4, 1)[0] = numItems;
-        }
-    }
-
-    /**
-     * Add a point to the index.
-     * @param {number} x
-     * @param {number} y
-     * @returns {number} An incremental index associated with the added item (starting from `0`).
-     */
-    add(x, y) {
-        const index = this._pos >> 1;
-        this.ids[index] = index;
-        this.coords[this._pos++] = x;
-        this.coords[this._pos++] = y;
-        return index;
-    }
-
-    /**
-     * Perform indexing of the added points.
-     */
-    finish() {
-        const numAdded = this._pos >> 1;
-        if (numAdded !== this.numItems) {
-            throw new Error(`Added ${numAdded} items when expected ${this.numItems}.`);
-        }
-        // kd-sort both arrays for efficient search
-        sort(this.ids, this.coords, this.nodeSize, 0, this.numItems - 1, 0);
-
-        this._finished = true;
-        return this;
-    }
-
-    /**
-     * Search the index for items within a given bounding box.
-     * @param {number} minX
-     * @param {number} minY
-     * @param {number} maxX
-     * @param {number} maxY
-     * @returns {number[]} An array of indices correponding to the found items.
-     */
-    range(minX, minY, maxX, maxY) {
-        if (!this._finished) throw new Error('Data not yet indexed - call index.finish().');
-
-        const {ids, coords, nodeSize} = this;
-        const stack = [0, ids.length - 1, 0];
-        const result = [];
-
-        // recursively search for items in range in the kd-sorted arrays
-        while (stack.length) {
-            const axis = stack.pop() || 0;
-            const right = stack.pop() || 0;
-            const left = stack.pop() || 0;
-
-            // if we reached "tree node", search linearly
-            if (right - left <= nodeSize) {
-                for (let i = left; i <= right; i++) {
-                    const x = coords[2 * i];
-                    const y = coords[2 * i + 1];
-                    if (x >= minX && x <= maxX && y >= minY && y <= maxY) result.push(ids[i]);
-                }
-                continue;
-            }
-
-            // otherwise find the middle index
-            const m = (left + right) >> 1;
-
-            // include the middle item if it's in range
-            const x = coords[2 * m];
-            const y = coords[2 * m + 1];
-            if (x >= minX && x <= maxX && y >= minY && y <= maxY) result.push(ids[m]);
-
-            // queue search in halves that intersect the query
-            if (axis === 0 ? minX <= x : minY <= y) {
-                stack.push(left);
-                stack.push(m - 1);
-                stack.push(1 - axis);
-            }
-            if (axis === 0 ? maxX >= x : maxY >= y) {
-                stack.push(m + 1);
-                stack.push(right);
-                stack.push(1 - axis);
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Search the index for items within a given radius.
-     * @param {number} qx
-     * @param {number} qy
-     * @param {number} r Query radius.
-     * @returns {number[]} An array of indices correponding to the found items.
-     */
-    within(qx, qy, r) {
-        if (!this._finished) throw new Error('Data not yet indexed - call index.finish().');
-
-        const {ids, coords, nodeSize} = this;
-        const stack = [0, ids.length - 1, 0];
-        const result = [];
-        const r2 = r * r;
-
-        // recursively search for items within radius in the kd-sorted arrays
-        while (stack.length) {
-            const axis = stack.pop() || 0;
-            const right = stack.pop() || 0;
-            const left = stack.pop() || 0;
-
-            // if we reached "tree node", search linearly
-            if (right - left <= nodeSize) {
-                for (let i = left; i <= right; i++) {
-                    if (sqDist(coords[2 * i], coords[2 * i + 1], qx, qy) <= r2) result.push(ids[i]);
-                }
-                continue;
-            }
-
-            // otherwise find the middle index
-            const m = (left + right) >> 1;
-
-            // include the middle item if it's in range
-            const x = coords[2 * m];
-            const y = coords[2 * m + 1];
-            if (sqDist(x, y, qx, qy) <= r2) result.push(ids[m]);
-
-            // queue search in halves that intersect the query
-            if (axis === 0 ? qx - r <= x : qy - r <= y) {
-                stack.push(left);
-                stack.push(m - 1);
-                stack.push(1 - axis);
-            }
-            if (axis === 0 ? qx + r >= x : qy + r >= y) {
-                stack.push(m + 1);
-                stack.push(right);
-                stack.push(1 - axis);
-            }
-        }
-
-        return result;
-    }
-}
-
-/**
- * @param {Uint16Array | Uint32Array} ids
- * @param {InstanceType<TypedArrayConstructor>} coords
- * @param {number} nodeSize
- * @param {number} left
- * @param {number} right
- * @param {number} axis
- */
-function sort(ids, coords, nodeSize, left, right, axis) {
-    if (right - left <= nodeSize) return;
-
-    const m = (left + right) >> 1; // middle index
-
-    // sort ids and coords around the middle index so that the halves lie
-    // either left/right or top/bottom correspondingly (taking turns)
-    select(ids, coords, m, left, right, axis);
-
-    // recursively kd-sort first half and second half on the opposite axis
-    sort(ids, coords, nodeSize, left, m - 1, 1 - axis);
-    sort(ids, coords, nodeSize, m + 1, right, 1 - axis);
-}
-
-/**
- * Custom Floyd-Rivest selection algorithm: sort ids and coords so that
- * [left..k-1] items are smaller than k-th item (on either x or y axis)
- * @param {Uint16Array | Uint32Array} ids
- * @param {InstanceType<TypedArrayConstructor>} coords
- * @param {number} k
- * @param {number} left
- * @param {number} right
- * @param {number} axis
- */
-function select(ids, coords, k, left, right, axis) {
-
-    while (right > left) {
-        if (right - left > 600) {
-            const n = right - left + 1;
-            const m = k - left + 1;
-            const z = Math.log(n);
-            const s = 0.5 * Math.exp(2 * z / 3);
-            const sd = 0.5 * Math.sqrt(z * s * (n - s) / n) * (m - n / 2 < 0 ? -1 : 1);
-            const newLeft = Math.max(left, Math.floor(k - m * s / n + sd));
-            const newRight = Math.min(right, Math.floor(k + (n - m) * s / n + sd));
-            select(ids, coords, k, newLeft, newRight, axis);
-        }
-
-        const t = coords[2 * k + axis];
-        let i = left;
-        let j = right;
-
-        swapItem(ids, coords, left, k);
-        if (coords[2 * right + axis] > t) swapItem(ids, coords, left, right);
-
-        while (i < j) {
-            swapItem(ids, coords, i, j);
-            i++;
-            j--;
-            while (coords[2 * i + axis] < t) i++;
-            while (coords[2 * j + axis] > t) j--;
-        }
-
-        if (coords[2 * left + axis] === t) swapItem(ids, coords, left, j);
-        else {
-            j++;
-            swapItem(ids, coords, j, right);
-        }
-
-        if (j <= k) left = j + 1;
-        if (k <= j) right = j - 1;
-    }
-}
-
-/**
- * @param {Uint16Array | Uint32Array} ids
- * @param {InstanceType<TypedArrayConstructor>} coords
- * @param {number} i
- * @param {number} j
- */
-function swapItem(ids, coords, i, j) {
-    swap(ids, i, j);
-    swap(coords, 2 * i, 2 * j);
-    swap(coords, 2 * i + 1, 2 * j + 1);
-}
-
-/**
- * @param {InstanceType<TypedArrayConstructor>} arr
- * @param {number} i
- * @param {number} j
- */
-function swap(arr, i, j) {
-    const tmp = arr[i];
-    arr[i] = arr[j];
-    arr[j] = tmp;
-}
-
-/**
- * @param {number} ax
- * @param {number} ay
- * @param {number} bx
- * @param {number} by
- */
-function sqDist(ax, ay, bx, by) {
-    const dx = ax - bx;
-    const dy = ay - by;
-    return dx * dx + dy * dy;
-}
-
-const defaultOptions$1 = {
-    minZoom: 0,   // min zoom to generate clusters on
-    maxZoom: 16,  // max zoom level to cluster the points on
-    minPoints: 2, // minimum points to form a cluster
-    radius: 40,   // cluster radius in pixels
-    extent: 512,  // tile extent (radius is calculated relative to it)
-    nodeSize: 64, // size of the KD-tree leaf node, affects performance
-    log: false,   // whether to log timing info
-
-    // whether to generate numeric ids for input features (in vector tiles)
-    generateId: false,
-
-    // a reduce function for calculating custom cluster properties
-    reduce: null, // (accumulated, props) => { accumulated.sum += props.sum; }
-
-    // properties to use for individual points when running the reducer
-    map: props => props // props => ({sum: props.my_value})
-};
-
-const fround = Math.fround || (tmp => ((x) => { tmp[0] = +x; return tmp[0]; }))(new Float32Array(1));
-
-const OFFSET_ZOOM = 2;
-const OFFSET_ID = 3;
-const OFFSET_PARENT = 4;
-const OFFSET_NUM = 5;
-const OFFSET_PROP = 6;
-
-class Supercluster {
-    constructor(options) {
-        this.options = Object.assign(Object.create(defaultOptions$1), options);
-        this.trees = new Array(this.options.maxZoom + 1);
-        this.stride = this.options.reduce ? 7 : 6;
-        this.clusterProps = [];
-    }
-
-    load(points) {
-        const {log, minZoom, maxZoom} = this.options;
-
-        if (log) console.time('total time');
-
-        const timerId = `prepare ${  points.length  } points`;
-        if (log) console.time(timerId);
-
-        this.points = points;
-
-        // generate a cluster object for each point and index input points into a KD-tree
-        const data = [];
-
-        for (let i = 0; i < points.length; i++) {
-            const p = points[i];
-            if (!p.geometry) continue;
-
-            const [lng, lat] = p.geometry.coordinates;
-            const x = fround(lngX(lng));
-            const y = fround(latY(lat));
-            // store internal point/cluster data in flat numeric arrays for performance
-            data.push(
-                x, y, // projected point coordinates
-                Infinity, // the last zoom the point was processed at
-                i, // index of the source feature in the original input array
-                -1, // parent cluster id
-                1 // number of points in a cluster
-            );
-            if (this.options.reduce) data.push(0); // noop
-        }
-        let tree = this.trees[maxZoom + 1] = this._createTree(data);
-
-        if (log) console.timeEnd(timerId);
-
-        // cluster points on max zoom, then cluster the results on previous zoom, etc.;
-        // results in a cluster hierarchy across zoom levels
-        for (let z = maxZoom; z >= minZoom; z--) {
-            const now = +Date.now();
-
-            // create a new set of clusters for the zoom and index them with a KD-tree
-            tree = this.trees[z] = this._createTree(this._cluster(tree, z));
-
-            if (log) console.log('z%d: %d clusters in %dms', z, tree.numItems, +Date.now() - now);
-        }
-
-        if (log) console.timeEnd('total time');
-
-        return this;
-    }
-
-    getClusters(bbox, zoom) {
-        let minLng = ((bbox[0] + 180) % 360 + 360) % 360 - 180;
-        const minLat = Math.max(-90, Math.min(90, bbox[1]));
-        let maxLng = bbox[2] === 180 ? 180 : ((bbox[2] + 180) % 360 + 360) % 360 - 180;
-        const maxLat = Math.max(-90, Math.min(90, bbox[3]));
-
-        if (bbox[2] - bbox[0] >= 360) {
-            minLng = -180;
-            maxLng = 180;
-        } else if (minLng > maxLng) {
-            const easternHem = this.getClusters([minLng, minLat, 180, maxLat], zoom);
-            const westernHem = this.getClusters([-180, minLat, maxLng, maxLat], zoom);
-            return easternHem.concat(westernHem);
-        }
-
-        const tree = this.trees[this._limitZoom(zoom)];
-        const ids = tree.range(lngX(minLng), latY(maxLat), lngX(maxLng), latY(minLat));
-        const data = tree.data;
-        const clusters = [];
-        for (const id of ids) {
-            const k = this.stride * id;
-            clusters.push(data[k + OFFSET_NUM] > 1 ? getClusterJSON(data, k, this.clusterProps) : this.points[data[k + OFFSET_ID]]);
-        }
-        return clusters;
-    }
-
-    getChildren(clusterId) {
-        const originId = this._getOriginId(clusterId);
-        const originZoom = this._getOriginZoom(clusterId);
-        const errorMsg = 'No cluster with the specified id.';
-
-        const tree = this.trees[originZoom];
-        if (!tree) throw new Error(errorMsg);
-
-        const data = tree.data;
-        if (originId * this.stride >= data.length) throw new Error(errorMsg);
-
-        const r = this.options.radius / (this.options.extent * Math.pow(2, originZoom - 1));
-        const x = data[originId * this.stride];
-        const y = data[originId * this.stride + 1];
-        const ids = tree.within(x, y, r);
-        const children = [];
-        for (const id of ids) {
-            const k = id * this.stride;
-            if (data[k + OFFSET_PARENT] === clusterId) {
-                children.push(data[k + OFFSET_NUM] > 1 ? getClusterJSON(data, k, this.clusterProps) : this.points[data[k + OFFSET_ID]]);
-            }
-        }
-
-        if (children.length === 0) throw new Error(errorMsg);
-
-        return children;
-    }
-
-    getLeaves(clusterId, limit, offset) {
-        limit = limit || 10;
-        offset = offset || 0;
-
-        const leaves = [];
-        this._appendLeaves(leaves, clusterId, limit, offset, 0);
-
-        return leaves;
-    }
-
-    getTile(z, x, y) {
-        const tree = this.trees[this._limitZoom(z)];
-        const z2 = Math.pow(2, z);
-        const {extent, radius} = this.options;
-        const p = radius / extent;
-        const top = (y - p) / z2;
-        const bottom = (y + 1 + p) / z2;
-
-        const tile = {
-            features: []
-        };
-
-        this._addTileFeatures(
-            tree.range((x - p) / z2, top, (x + 1 + p) / z2, bottom),
-            tree.data, x, y, z2, tile);
-
-        if (x === 0) {
-            this._addTileFeatures(
-                tree.range(1 - p / z2, top, 1, bottom),
-                tree.data, z2, y, z2, tile);
-        }
-        if (x === z2 - 1) {
-            this._addTileFeatures(
-                tree.range(0, top, p / z2, bottom),
-                tree.data, -1, y, z2, tile);
-        }
-
-        return tile.features.length ? tile : null;
-    }
-
-    getClusterExpansionZoom(clusterId) {
-        let expansionZoom = this._getOriginZoom(clusterId) - 1;
-        while (expansionZoom <= this.options.maxZoom) {
-            const children = this.getChildren(clusterId);
-            expansionZoom++;
-            if (children.length !== 1) break;
-            clusterId = children[0].properties.cluster_id;
-        }
-        return expansionZoom;
-    }
-
-    _appendLeaves(result, clusterId, limit, offset, skipped) {
-        const children = this.getChildren(clusterId);
-
-        for (const child of children) {
-            const props = child.properties;
-
-            if (props && props.cluster) {
-                if (skipped + props.point_count <= offset) {
-                    // skip the whole cluster
-                    skipped += props.point_count;
-                } else {
-                    // enter the cluster
-                    skipped = this._appendLeaves(result, props.cluster_id, limit, offset, skipped);
-                    // exit the cluster
-                }
-            } else if (skipped < offset) {
-                // skip a single point
-                skipped++;
-            } else {
-                // add a single point
-                result.push(child);
-            }
-            if (result.length === limit) break;
-        }
-
-        return skipped;
-    }
-
-    _createTree(data) {
-        const tree = new KDBush(data.length / this.stride | 0, this.options.nodeSize, Float32Array);
-        for (let i = 0; i < data.length; i += this.stride) tree.add(data[i], data[i + 1]);
-        tree.finish();
-        tree.data = data;
-        return tree;
-    }
-
-    _addTileFeatures(ids, data, x, y, z2, tile) {
-        for (const i of ids) {
-            const k = i * this.stride;
-            const isCluster = data[k + OFFSET_NUM] > 1;
-
-            let tags, px, py;
-            if (isCluster) {
-                tags = getClusterProperties(data, k, this.clusterProps);
-                px = data[k];
-                py = data[k + 1];
-            } else {
-                const p = this.points[data[k + OFFSET_ID]];
-                tags = p.properties;
-                const [lng, lat] = p.geometry.coordinates;
-                px = lngX(lng);
-                py = latY(lat);
-            }
-
-            const f = {
-                type: 1,
-                geometry: [[
-                    Math.round(this.options.extent * (px * z2 - x)),
-                    Math.round(this.options.extent * (py * z2 - y))
-                ]],
-                tags
-            };
-
-            // assign id
-            let id;
-            if (isCluster || this.options.generateId) {
-                // optionally generate id for points
-                id = data[k + OFFSET_ID];
-            } else {
-                // keep id if already assigned
-                id = this.points[data[k + OFFSET_ID]].id;
-            }
-
-            if (id !== undefined) f.id = id;
-
-            tile.features.push(f);
-        }
-    }
-
-    _limitZoom(z) {
-        return Math.max(this.options.minZoom, Math.min(Math.floor(+z), this.options.maxZoom + 1));
-    }
-
-    _cluster(tree, zoom) {
-        const {radius, extent, reduce, minPoints} = this.options;
-        const r = radius / (extent * Math.pow(2, zoom));
-        const data = tree.data;
-        const nextData = [];
-        const stride = this.stride;
-
-        // loop through each point
-        for (let i = 0; i < data.length; i += stride) {
-            // if we've already visited the point at this zoom level, skip it
-            if (data[i + OFFSET_ZOOM] <= zoom) continue;
-            data[i + OFFSET_ZOOM] = zoom;
-
-            // find all nearby points
-            const x = data[i];
-            const y = data[i + 1];
-            const neighborIds = tree.within(data[i], data[i + 1], r);
-
-            const numPointsOrigin = data[i + OFFSET_NUM];
-            let numPoints = numPointsOrigin;
-
-            // count the number of points in a potential cluster
-            for (const neighborId of neighborIds) {
-                const k = neighborId * stride;
-                // filter out neighbors that are already processed
-                if (data[k + OFFSET_ZOOM] > zoom) numPoints += data[k + OFFSET_NUM];
-            }
-
-            // if there were neighbors to merge, and there are enough points to form a cluster
-            if (numPoints > numPointsOrigin && numPoints >= minPoints) {
-                let wx = x * numPointsOrigin;
-                let wy = y * numPointsOrigin;
-
-                let clusterProperties;
-                let clusterPropIndex = -1;
-
-                // encode both zoom and point index on which the cluster originated -- offset by total length of features
-                const id = ((i / stride | 0) << 5) + (zoom + 1) + this.points.length;
-
-                for (const neighborId of neighborIds) {
-                    const k = neighborId * stride;
-
-                    if (data[k + OFFSET_ZOOM] <= zoom) continue;
-                    data[k + OFFSET_ZOOM] = zoom; // save the zoom (so it doesn't get processed twice)
-
-                    const numPoints2 = data[k + OFFSET_NUM];
-                    wx += data[k] * numPoints2; // accumulate coordinates for calculating weighted center
-                    wy += data[k + 1] * numPoints2;
-
-                    data[k + OFFSET_PARENT] = id;
-
-                    if (reduce) {
-                        if (!clusterProperties) {
-                            clusterProperties = this._map(data, i, true);
-                            clusterPropIndex = this.clusterProps.length;
-                            this.clusterProps.push(clusterProperties);
-                        }
-                        reduce(clusterProperties, this._map(data, k));
-                    }
-                }
-
-                data[i + OFFSET_PARENT] = id;
-                nextData.push(wx / numPoints, wy / numPoints, Infinity, id, -1, numPoints);
-                if (reduce) nextData.push(clusterPropIndex);
-
-            } else { // left points as unclustered
-                for (let j = 0; j < stride; j++) nextData.push(data[i + j]);
-
-                if (numPoints > 1) {
-                    for (const neighborId of neighborIds) {
-                        const k = neighborId * stride;
-                        if (data[k + OFFSET_ZOOM] <= zoom) continue;
-                        data[k + OFFSET_ZOOM] = zoom;
-                        for (let j = 0; j < stride; j++) nextData.push(data[k + j]);
-                    }
-                }
-            }
-        }
-
-        return nextData;
-    }
-
-    // get index of the point from which the cluster originated
-    _getOriginId(clusterId) {
-        return (clusterId - this.points.length) >> 5;
-    }
-
-    // get zoom of the point from which the cluster originated
-    _getOriginZoom(clusterId) {
-        return (clusterId - this.points.length) % 32;
-    }
-
-    _map(data, i, clone) {
-        if (data[i + OFFSET_NUM] > 1) {
-            const props = this.clusterProps[data[i + OFFSET_PROP]];
-            return clone ? Object.assign({}, props) : props;
-        }
-        const original = this.points[data[i + OFFSET_ID]].properties;
-        const result = this.options.map(original);
-        return clone && result === original ? Object.assign({}, result) : result;
-    }
-}
-
-function getClusterJSON(data, i, clusterProps) {
-    return {
-        type: 'Feature',
-        id: data[i + OFFSET_ID],
-        properties: getClusterProperties(data, i, clusterProps),
-        geometry: {
-            type: 'Point',
-            coordinates: [xLng(data[i]), yLat(data[i + 1])]
-        }
-    };
-}
-
-function getClusterProperties(data, i, clusterProps) {
-    const count = data[i + OFFSET_NUM];
-    const abbrev =
-        count >= 10000 ? `${Math.round(count / 1000)  }k` :
-        count >= 1000 ? `${Math.round(count / 100) / 10  }k` : count;
-    const propIndex = data[i + OFFSET_PROP];
-    const properties = propIndex === -1 ? {} : Object.assign({}, clusterProps[propIndex]);
-    return Object.assign(properties, {
-        cluster: true,
-        cluster_id: data[i + OFFSET_ID],
-        point_count: count,
-        point_count_abbreviated: abbrev
-    });
-}
-
-// longitude/latitude to spherical mercator in [0..1] range
-function lngX(lng) {
-    return lng / 360 + 0.5;
-}
-function latY(lat) {
-    const sin = Math.sin(lat * Math.PI / 180);
-    const y = (0.5 - 0.25 * Math.log((1 + sin) / (1 - sin)) / Math.PI);
-    return y < 0 ? 0 : y > 1 ? 1 : y;
-}
-
-// spherical mercator to longitude/latitude
-function xLng(x) {
-    return (x - 0.5) * 360;
-}
-function yLat(y) {
-    const y2 = (180 - y * 360) * Math.PI / 180;
-    return 360 * Math.atan(Math.exp(y2)) / Math.PI - 90;
-}
-
-// calculate simplification data using optimized Douglas-Peucker algorithm
-
-function simplify(coords, first, last, sqTolerance) {
-    let maxSqDist = sqTolerance;
-    const mid = first + ((last - first) >> 1);
-    let minPosToMid = last - first;
-    let index;
-
-    const ax = coords[first];
-    const ay = coords[first + 1];
-    const bx = coords[last];
-    const by = coords[last + 1];
-
-    for (let i = first + 3; i < last; i += 3) {
-        const d = getSqSegDist(coords[i], coords[i + 1], ax, ay, bx, by);
-
-        if (d > maxSqDist) {
-            index = i;
-            maxSqDist = d;
-
-        } else if (d === maxSqDist) {
-            // a workaround to ensure we choose a pivot close to the middle of the list,
-            // reducing recursion depth, for certain degenerate inputs
-            // https://github.com/mapbox/geojson-vt/issues/104
-            const posToMid = Math.abs(i - mid);
-            if (posToMid < minPosToMid) {
-                index = i;
-                minPosToMid = posToMid;
-            }
-        }
-    }
-
-    if (maxSqDist > sqTolerance) {
-        if (index - first > 3) simplify(coords, first, index, sqTolerance);
-        coords[index + 2] = maxSqDist;
-        if (last - index > 3) simplify(coords, index, last, sqTolerance);
-    }
-}
-
-// square distance from a point to a segment
-function getSqSegDist(px, py, x, y, bx, by) {
-
-    let dx = bx - x;
-    let dy = by - y;
-
-    if (dx !== 0 || dy !== 0) {
-
-        const t = ((px - x) * dx + (py - y) * dy) / (dx * dx + dy * dy);
-
-        if (t > 1) {
-            x = bx;
-            y = by;
-
-        } else if (t > 0) {
-            x += dx * t;
-            y += dy * t;
-        }
-    }
-
-    dx = px - x;
-    dy = py - y;
-
-    return dx * dx + dy * dy;
-}
-
-function createFeature(id, type, geom, tags) {
-    const feature = {
-        id: id == null ? null : id,
-        type,
-        geometry: geom,
-        tags,
-        minX: Infinity,
-        minY: Infinity,
-        maxX: -Infinity,
-        maxY: -Infinity
-    };
-
-    if (type === 'Point' || type === 'MultiPoint' || type === 'LineString') {
-        calcLineBBox(feature, geom);
-
-    } else if (type === 'Polygon') {
-        // the outer ring (ie [0]) contains all inner rings
-        calcLineBBox(feature, geom[0]);
-
-    } else if (type === 'MultiLineString') {
-        for (const line of geom) {
-            calcLineBBox(feature, line);
-        }
-
-    } else if (type === 'MultiPolygon') {
-        for (const polygon of geom) {
-            // the outer ring (ie [0]) contains all inner rings
-            calcLineBBox(feature, polygon[0]);
-        }
-    }
-
-    return feature;
-}
-
-function calcLineBBox(feature, geom) {
-    for (let i = 0; i < geom.length; i += 3) {
-        feature.minX = Math.min(feature.minX, geom[i]);
-        feature.minY = Math.min(feature.minY, geom[i + 1]);
-        feature.maxX = Math.max(feature.maxX, geom[i]);
-        feature.maxY = Math.max(feature.maxY, geom[i + 1]);
-    }
-}
-
-// converts GeoJSON feature into an intermediate projected JSON vector format with simplification data
-
-function convert(data, options) {
-    const features = [];
-    if (data.type === 'FeatureCollection') {
-        for (let i = 0; i < data.features.length; i++) {
-            convertFeature(features, data.features[i], options, i);
-        }
-
-    } else if (data.type === 'Feature') {
-        convertFeature(features, data, options);
-
-    } else {
-        // single geometry or a geometry collection
-        convertFeature(features, {geometry: data}, options);
-    }
-
-    return features;
-}
-
-function convertFeature(features, geojson, options, index) {
-    if (!geojson.geometry) return;
-
-    const coords = geojson.geometry.coordinates;
-    if (coords && coords.length === 0) return;
-
-    const type = geojson.geometry.type;
-    const tolerance = Math.pow(options.tolerance / ((1 << options.maxZoom) * options.extent), 2);
-    let geometry = [];
-    let id = geojson.id;
-    if (options.promoteId) {
-        id = geojson.properties[options.promoteId];
-    } else if (options.generateId) {
-        id = index || 0;
-    }
-    if (type === 'Point') {
-        convertPoint(coords, geometry);
-
-    } else if (type === 'MultiPoint') {
-        for (const p of coords) {
-            convertPoint(p, geometry);
-        }
-
-    } else if (type === 'LineString') {
-        convertLine(coords, geometry, tolerance, false);
-
-    } else if (type === 'MultiLineString') {
-        if (options.lineMetrics) {
-            // explode into linestrings to be able to track metrics
-            for (const line of coords) {
-                geometry = [];
-                convertLine(line, geometry, tolerance, false);
-                features.push(createFeature(id, 'LineString', geometry, geojson.properties));
-            }
-            return;
-        } else {
-            convertLines(coords, geometry, tolerance, false);
-        }
-
-    } else if (type === 'Polygon') {
-        convertLines(coords, geometry, tolerance, true);
-
-    } else if (type === 'MultiPolygon') {
-        for (const polygon of coords) {
-            const newPolygon = [];
-            convertLines(polygon, newPolygon, tolerance, true);
-            geometry.push(newPolygon);
-        }
-    } else if (type === 'GeometryCollection') {
-        for (const singleGeometry of geojson.geometry.geometries) {
-            convertFeature(features, {
-                id,
-                geometry: singleGeometry,
-                properties: geojson.properties
-            }, options, index);
-        }
-        return;
-    } else {
-        throw new Error('Input data is not a valid GeoJSON object.');
-    }
-
-    features.push(createFeature(id, type, geometry, geojson.properties));
-}
-
-function convertPoint(coords, out) {
-    out.push(projectX(coords[0]), projectY(coords[1]), 0);
-}
-
-function convertLine(ring, out, tolerance, isPolygon) {
-    let x0, y0;
-    let size = 0;
-
-    for (let j = 0; j < ring.length; j++) {
-        const x = projectX(ring[j][0]);
-        const y = projectY(ring[j][1]);
-
-        out.push(x, y, 0);
-
-        if (j > 0) {
-            if (isPolygon) {
-                size += (x0 * y - x * y0) / 2; // area
-            } else {
-                size += Math.sqrt(Math.pow(x - x0, 2) + Math.pow(y - y0, 2)); // length
-            }
-        }
-        x0 = x;
-        y0 = y;
-    }
-
-    const last = out.length - 3;
-    out[2] = 1;
-    simplify(out, 0, last, tolerance);
-    out[last + 2] = 1;
-
-    out.size = Math.abs(size);
-    out.start = 0;
-    out.end = out.size;
-}
-
-function convertLines(rings, out, tolerance, isPolygon) {
-    for (let i = 0; i < rings.length; i++) {
-        const geom = [];
-        convertLine(rings[i], geom, tolerance, isPolygon);
-        out.push(geom);
-    }
-}
-
-function projectX(x) {
-    return x / 360 + 0.5;
-}
-
-function projectY(y) {
-    const sin = Math.sin(y * Math.PI / 180);
-    const y2 = 0.5 - 0.25 * Math.log((1 + sin) / (1 - sin)) / Math.PI;
-    return y2 < 0 ? 0 : y2 > 1 ? 1 : y2;
-}
-
-/* clip features between two vertical or horizontal axis-parallel lines:
- *     |        |
- *  ___|___     |     /
- * /   |   \____|____/
- *     |        |
- *
- * k1 and k2 are the line coordinates
- * axis: 0 for x, 1 for y
- * minAll and maxAll: minimum and maximum coordinate value for all features
- */
-function clip(features, scale, k1, k2, axis, minAll, maxAll, options) {
-    k1 /= scale;
-    k2 /= scale;
-
-    if (minAll >= k1 && maxAll < k2) return features; // trivial accept
-    else if (maxAll < k1 || minAll >= k2) return null; // trivial reject
-
-    const clipped = [];
-
-    for (const feature of features) {
-        const geometry = feature.geometry;
-        let type = feature.type;
-
-        const min = axis === 0 ? feature.minX : feature.minY;
-        const max = axis === 0 ? feature.maxX : feature.maxY;
-
-        if (min >= k1 && max < k2) { // trivial accept
-            clipped.push(feature);
-            continue;
-        } else if (max < k1 || min >= k2) { // trivial reject
-            continue;
-        }
-
-        let newGeometry = [];
-
-        if (type === 'Point' || type === 'MultiPoint') {
-            clipPoints(geometry, newGeometry, k1, k2, axis);
-
-        } else if (type === 'LineString') {
-            clipLine(geometry, newGeometry, k1, k2, axis, false, options.lineMetrics);
-
-        } else if (type === 'MultiLineString') {
-            clipLines(geometry, newGeometry, k1, k2, axis, false);
-
-        } else if (type === 'Polygon') {
-            clipLines(geometry, newGeometry, k1, k2, axis, true);
-
-        } else if (type === 'MultiPolygon') {
-            for (const polygon of geometry) {
-                const newPolygon = [];
-                clipLines(polygon, newPolygon, k1, k2, axis, true);
-                if (newPolygon.length) {
-                    newGeometry.push(newPolygon);
-                }
-            }
-        }
-
-        if (newGeometry.length) {
-            if (options.lineMetrics && type === 'LineString') {
-                for (const line of newGeometry) {
-                    clipped.push(createFeature(feature.id, type, line, feature.tags));
-                }
-                continue;
-            }
-
-            if (type === 'LineString' || type === 'MultiLineString') {
-                if (newGeometry.length === 1) {
-                    type = 'LineString';
-                    newGeometry = newGeometry[0];
-                } else {
-                    type = 'MultiLineString';
-                }
-            }
-            if (type === 'Point' || type === 'MultiPoint') {
-                type = newGeometry.length === 3 ? 'Point' : 'MultiPoint';
-            }
-
-            clipped.push(createFeature(feature.id, type, newGeometry, feature.tags));
-        }
-    }
-
-    return clipped.length ? clipped : null;
-}
-
-function clipPoints(geom, newGeom, k1, k2, axis) {
-    for (let i = 0; i < geom.length; i += 3) {
-        const a = geom[i + axis];
-
-        if (a >= k1 && a <= k2) {
-            addPoint(newGeom, geom[i], geom[i + 1], geom[i + 2]);
-        }
-    }
-}
-
-function clipLine(geom, newGeom, k1, k2, axis, isPolygon, trackMetrics) {
-
-    let slice = newSlice(geom);
-    const intersect = axis === 0 ? intersectX : intersectY;
-    let len = geom.start;
-    let segLen, t;
-
-    for (let i = 0; i < geom.length - 3; i += 3) {
-        const ax = geom[i];
-        const ay = geom[i + 1];
-        const az = geom[i + 2];
-        const bx = geom[i + 3];
-        const by = geom[i + 4];
-        const a = axis === 0 ? ax : ay;
-        const b = axis === 0 ? bx : by;
-        let exited = false;
-
-        if (trackMetrics) segLen = Math.sqrt(Math.pow(ax - bx, 2) + Math.pow(ay - by, 2));
-
-        if (a < k1) {
-            // ---|-->  | (line enters the clip region from the left)
-            if (b > k1) {
-                t = intersect(slice, ax, ay, bx, by, k1);
-                if (trackMetrics) slice.start = len + segLen * t;
-            }
-        } else if (a > k2) {
-            // |  <--|--- (line enters the clip region from the right)
-            if (b < k2) {
-                t = intersect(slice, ax, ay, bx, by, k2);
-                if (trackMetrics) slice.start = len + segLen * t;
-            }
-        } else {
-            addPoint(slice, ax, ay, az);
-        }
-        if (b < k1 && a >= k1) {
-            // <--|---  | or <--|-----|--- (line exits the clip region on the left)
-            t = intersect(slice, ax, ay, bx, by, k1);
-            exited = true;
-        }
-        if (b > k2 && a <= k2) {
-            // |  ---|--> or ---|-----|--> (line exits the clip region on the right)
-            t = intersect(slice, ax, ay, bx, by, k2);
-            exited = true;
-        }
-
-        if (!isPolygon && exited) {
-            if (trackMetrics) slice.end = len + segLen * t;
-            newGeom.push(slice);
-            slice = newSlice(geom);
-        }
-
-        if (trackMetrics) len += segLen;
-    }
-
-    // add the last point
-    let last = geom.length - 3;
-    const ax = geom[last];
-    const ay = geom[last + 1];
-    const az = geom[last + 2];
-    const a = axis === 0 ? ax : ay;
-    if (a >= k1 && a <= k2) addPoint(slice, ax, ay, az);
-
-    // close the polygon if its endpoints are not the same after clipping
-    last = slice.length - 3;
-    if (isPolygon && last >= 3 && (slice[last] !== slice[0] || slice[last + 1] !== slice[1])) {
-        addPoint(slice, slice[0], slice[1], slice[2]);
-    }
-
-    // add the final slice
-    if (slice.length) {
-        newGeom.push(slice);
-    }
-}
-
-function newSlice(line) {
-    const slice = [];
-    slice.size = line.size;
-    slice.start = line.start;
-    slice.end = line.end;
-    return slice;
-}
-
-function clipLines(geom, newGeom, k1, k2, axis, isPolygon) {
-    for (const line of geom) {
-        clipLine(line, newGeom, k1, k2, axis, isPolygon, false);
-    }
-}
-
-function addPoint(out, x, y, z) {
-    out.push(x, y, z);
-}
-
-function intersectX(out, ax, ay, bx, by, x) {
-    const t = (x - ax) / (bx - ax);
-    addPoint(out, x, ay + (by - ay) * t, 1);
-    return t;
-}
-
-function intersectY(out, ax, ay, bx, by, y) {
-    const t = (y - ay) / (by - ay);
-    addPoint(out, ax + (bx - ax) * t, y, 1);
-    return t;
-}
-
-function wrap(features, options) {
-    const buffer = options.buffer / options.extent;
-    let merged = features;
-    const left  = clip(features, 1, -1 - buffer, buffer,     0, -1, 2, options); // left world copy
-    const right = clip(features, 1,  1 - buffer, 2 + buffer, 0, -1, 2, options); // right world copy
-
-    if (left || right) {
-        merged = clip(features, 1, -buffer, 1 + buffer, 0, -1, 2, options) || []; // center world copy
-
-        if (left) merged = shiftFeatureCoords(left, 1).concat(merged); // merge left into center
-        if (right) merged = merged.concat(shiftFeatureCoords(right, -1)); // merge right into center
-    }
-
-    return merged;
-}
-
-function shiftFeatureCoords(features, offset) {
-    const newFeatures = [];
-
-    for (let i = 0; i < features.length; i++) {
-        const feature = features[i];
-        const type = feature.type;
-
-        let newGeometry;
-
-        if (type === 'Point' || type === 'MultiPoint' || type === 'LineString') {
-            newGeometry = shiftCoords(feature.geometry, offset);
-
-        } else if (type === 'MultiLineString' || type === 'Polygon') {
-            newGeometry = [];
-            for (const line of feature.geometry) {
-                newGeometry.push(shiftCoords(line, offset));
-            }
-        } else if (type === 'MultiPolygon') {
-            newGeometry = [];
-            for (const polygon of feature.geometry) {
-                const newPolygon = [];
-                for (const line of polygon) {
-                    newPolygon.push(shiftCoords(line, offset));
-                }
-                newGeometry.push(newPolygon);
-            }
-        }
-
-        newFeatures.push(createFeature(feature.id, type, newGeometry, feature.tags));
-    }
-
-    return newFeatures;
-}
-
-function shiftCoords(points, offset) {
-    const newPoints = [];
-    newPoints.size = points.size;
-
-    if (points.start !== undefined) {
-        newPoints.start = points.start;
-        newPoints.end = points.end;
-    }
-
-    for (let i = 0; i < points.length; i += 3) {
-        newPoints.push(points[i] + offset, points[i + 1], points[i + 2]);
-    }
-    return newPoints;
-}
-
-// Transforms the coordinates of each feature in the given tile from
-// mercator-projected space into (extent x extent) tile space.
-function transformTile(tile, extent) {
-    if (tile.transformed) return tile;
-
-    const z2 = 1 << tile.z;
-    const tx = tile.x;
-    const ty = tile.y;
-
-    for (const feature of tile.features) {
-        const geom = feature.geometry;
-        const type = feature.type;
-
-        feature.geometry = [];
-
-        if (type === 1) {
-            for (let j = 0; j < geom.length; j += 2) {
-                feature.geometry.push(transformPoint(geom[j], geom[j + 1], extent, z2, tx, ty));
-            }
-        } else {
-            for (let j = 0; j < geom.length; j++) {
-                const ring = [];
-                for (let k = 0; k < geom[j].length; k += 2) {
-                    ring.push(transformPoint(geom[j][k], geom[j][k + 1], extent, z2, tx, ty));
-                }
-                feature.geometry.push(ring);
-            }
-        }
-    }
-
-    tile.transformed = true;
-
-    return tile;
-}
-
-function transformPoint(x, y, extent, z2, tx, ty) {
-    return [
-        Math.round(extent * (x * z2 - tx)),
-        Math.round(extent * (y * z2 - ty))];
-}
-
-function createTile(features, z, tx, ty, options) {
-    const tolerance = z === options.maxZoom ? 0 : options.tolerance / ((1 << z) * options.extent);
-    const tile = {
-        features: [],
-        numPoints: 0,
-        numSimplified: 0,
-        numFeatures: features.length,
-        source: null,
-        x: tx,
-        y: ty,
-        z,
-        transformed: false,
-        minX: 2,
-        minY: 1,
-        maxX: -1,
-        maxY: 0
-    };
-    for (const feature of features) {
-        addFeature(tile, feature, tolerance, options);
-    }
-    return tile;
-}
-
-function addFeature(tile, feature, tolerance, options) {
-    const geom = feature.geometry;
-    const type = feature.type;
-    const simplified = [];
-
-    tile.minX = Math.min(tile.minX, feature.minX);
-    tile.minY = Math.min(tile.minY, feature.minY);
-    tile.maxX = Math.max(tile.maxX, feature.maxX);
-    tile.maxY = Math.max(tile.maxY, feature.maxY);
-
-    if (type === 'Point' || type === 'MultiPoint') {
-        for (let i = 0; i < geom.length; i += 3) {
-            simplified.push(geom[i], geom[i + 1]);
-            tile.numPoints++;
-            tile.numSimplified++;
-        }
-
-    } else if (type === 'LineString') {
-        addLine(simplified, geom, tile, tolerance, false, false);
-
-    } else if (type === 'MultiLineString' || type === 'Polygon') {
-        for (let i = 0; i < geom.length; i++) {
-            addLine(simplified, geom[i], tile, tolerance, type === 'Polygon', i === 0);
-        }
-
-    } else if (type === 'MultiPolygon') {
-
-        for (let k = 0; k < geom.length; k++) {
-            const polygon = geom[k];
-            for (let i = 0; i < polygon.length; i++) {
-                addLine(simplified, polygon[i], tile, tolerance, true, i === 0);
-            }
-        }
-    }
-
-    if (simplified.length) {
-        let tags = feature.tags || null;
-
-        if (type === 'LineString' && options.lineMetrics) {
-            tags = {};
-            for (const key in feature.tags) tags[key] = feature.tags[key];
-            tags['mapbox_clip_start'] = geom.start / geom.size;
-            tags['mapbox_clip_end'] = geom.end / geom.size;
-        }
-
-        const tileFeature = {
-            geometry: simplified,
-            type: type === 'Polygon' || type === 'MultiPolygon' ? 3 :
-            (type === 'LineString' || type === 'MultiLineString' ? 2 : 1),
-            tags
-        };
-        if (feature.id !== null) {
-            tileFeature.id = feature.id;
-        }
-        tile.features.push(tileFeature);
-    }
-}
-
-function addLine(result, geom, tile, tolerance, isPolygon, isOuter) {
-    const sqTolerance = tolerance * tolerance;
-
-    if (tolerance > 0 && (geom.size < (isPolygon ? sqTolerance : tolerance))) {
-        tile.numPoints += geom.length / 3;
-        return;
-    }
-
-    const ring = [];
-
-    for (let i = 0; i < geom.length; i += 3) {
-        if (tolerance === 0 || geom[i + 2] > sqTolerance) {
-            tile.numSimplified++;
-            ring.push(geom[i], geom[i + 1]);
-        }
-        tile.numPoints++;
-    }
-
-    if (isPolygon) rewind(ring, isOuter);
-
-    result.push(ring);
-}
-
-function rewind(ring, clockwise) {
-    let area = 0;
-    for (let i = 0, len = ring.length, j = len - 2; i < len; j = i, i += 2) {
-        area += (ring[i] - ring[j]) * (ring[i + 1] + ring[j + 1]);
-    }
-    if (area > 0 === clockwise) {
-        for (let i = 0, len = ring.length; i < len / 2; i += 2) {
-            const x = ring[i];
-            const y = ring[i + 1];
-            ring[i] = ring[len - 2 - i];
-            ring[i + 1] = ring[len - 1 - i];
-            ring[len - 2 - i] = x;
-            ring[len - 1 - i] = y;
-        }
-    }
-}
-
-const defaultOptions = {
-    maxZoom: 14,            // max zoom to preserve detail on
-    indexMaxZoom: 5,        // max zoom in the tile index
-    indexMaxPoints: 100000, // max number of points per tile in the tile index
-    tolerance: 3,           // simplification tolerance (higher means simpler)
-    extent: 4096,           // tile extent
-    buffer: 64,             // tile buffer on each side
-    lineMetrics: false,     // whether to calculate line metrics
-    promoteId: null,        // name of a feature property to be promoted to feature.id
-    generateId: false,      // whether to generate feature ids. Cannot be used with promoteId
-    debug: 0                // logging level (0, 1 or 2)
-};
-
-class GeoJSONVT {
-    constructor(data, options) {
-        options = this.options = extend(Object.create(defaultOptions), options);
-
-        const debug = options.debug;
-
-        if (debug) console.time('preprocess data');
-
-        if (options.maxZoom < 0 || options.maxZoom > 24) throw new Error('maxZoom should be in the 0-24 range');
-        if (options.promoteId && options.generateId) throw new Error('promoteId and generateId cannot be used together.');
-
-        // projects and adds simplification info
-        let features = convert(data, options);
-
-        // tiles and tileCoords are part of the public API
-        this.tiles = {};
-        this.tileCoords = [];
-
-        if (debug) {
-            console.timeEnd('preprocess data');
-            console.log('index: maxZoom: %d, maxPoints: %d', options.indexMaxZoom, options.indexMaxPoints);
-            console.time('generate tiles');
-            this.stats = {};
-            this.total = 0;
-        }
-
-        // wraps features (ie extreme west and extreme east)
-        features = wrap(features, options);
-
-        // start slicing from the top tile down
-        if (features.length) this.splitTile(features, 0, 0, 0);
-
-        if (debug) {
-            if (features.length) console.log('features: %d, points: %d', this.tiles[0].numFeatures, this.tiles[0].numPoints);
-            console.timeEnd('generate tiles');
-            console.log('tiles generated:', this.total, JSON.stringify(this.stats));
-        }
-    }
-
-    // splits features from a parent tile to sub-tiles.
-    // z, x, and y are the coordinates of the parent tile
-    // cz, cx, and cy are the coordinates of the target tile
-    //
-    // If no target tile is specified, splitting stops when we reach the maximum
-    // zoom or the number of points is low as specified in the options.
-    splitTile(features, z, x, y, cz, cx, cy) {
-
-        const stack = [features, z, x, y];
-        const options = this.options;
-        const debug = options.debug;
-
-        // avoid recursion by using a processing queue
-        while (stack.length) {
-            y = stack.pop();
-            x = stack.pop();
-            z = stack.pop();
-            features = stack.pop();
-
-            const z2 = 1 << z;
-            const id = toID(z, x, y);
-            let tile = this.tiles[id];
-
-            if (!tile) {
-                if (debug > 1) console.time('creation');
-
-                tile = this.tiles[id] = createTile(features, z, x, y, options);
-                this.tileCoords.push({z, x, y});
-
-                if (debug) {
-                    if (debug > 1) {
-                        console.log('tile z%d-%d-%d (features: %d, points: %d, simplified: %d)',
-                            z, x, y, tile.numFeatures, tile.numPoints, tile.numSimplified);
-                        console.timeEnd('creation');
-                    }
-                    const key = `z${  z}`;
-                    this.stats[key] = (this.stats[key] || 0) + 1;
-                    this.total++;
-                }
-            }
-
-            // save reference to original geometry in tile so that we can drill down later if we stop now
-            tile.source = features;
-
-            // if it's the first-pass tiling
-            if (cz == null) {
-                // stop tiling if we reached max zoom, or if the tile is too simple
-                if (z === options.indexMaxZoom || tile.numPoints <= options.indexMaxPoints) continue;
-            // if a drilldown to a specific tile
-            } else if (z === options.maxZoom || z === cz) {
-                // stop tiling if we reached base zoom or our target tile zoom
-                continue;
-            } else if (cz != null) {
-                // stop tiling if it's not an ancestor of the target tile
-                const zoomSteps = cz - z;
-                if (x !== cx >> zoomSteps || y !== cy >> zoomSteps) continue;
-            }
-
-            // if we slice further down, no need to keep source geometry
-            tile.source = null;
-
-            if (features.length === 0) continue;
-
-            if (debug > 1) console.time('clipping');
-
-            // values we'll use for clipping
-            const k1 = 0.5 * options.buffer / options.extent;
-            const k2 = 0.5 - k1;
-            const k3 = 0.5 + k1;
-            const k4 = 1 + k1;
-
-            let tl = null;
-            let bl = null;
-            let tr = null;
-            let br = null;
-
-            let left  = clip(features, z2, x - k1, x + k3, 0, tile.minX, tile.maxX, options);
-            let right = clip(features, z2, x + k2, x + k4, 0, tile.minX, tile.maxX, options);
-            features = null;
-
-            if (left) {
-                tl = clip(left, z2, y - k1, y + k3, 1, tile.minY, tile.maxY, options);
-                bl = clip(left, z2, y + k2, y + k4, 1, tile.minY, tile.maxY, options);
-                left = null;
-            }
-
-            if (right) {
-                tr = clip(right, z2, y - k1, y + k3, 1, tile.minY, tile.maxY, options);
-                br = clip(right, z2, y + k2, y + k4, 1, tile.minY, tile.maxY, options);
-                right = null;
-            }
-
-            if (debug > 1) console.timeEnd('clipping');
-
-            stack.push(tl || [], z + 1, x * 2,     y * 2);
-            stack.push(bl || [], z + 1, x * 2,     y * 2 + 1);
-            stack.push(tr || [], z + 1, x * 2 + 1, y * 2);
-            stack.push(br || [], z + 1, x * 2 + 1, y * 2 + 1);
-        }
-    }
-
-    getTile(z, x, y) {
-        z = +z;
-        x = +x;
-        y = +y;
-
-        const options = this.options;
-        const {extent, debug} = options;
-
-        if (z < 0 || z > 24) return null;
-
-        const z2 = 1 << z;
-        x = (x + z2) & (z2 - 1); // wrap tile x coordinate
-
-        const id = toID(z, x, y);
-        if (this.tiles[id]) return transformTile(this.tiles[id], extent);
-
-        if (debug > 1) console.log('drilling down to z%d-%d-%d', z, x, y);
-
-        let z0 = z;
-        let x0 = x;
-        let y0 = y;
-        let parent;
-
-        while (!parent && z0 > 0) {
-            z0--;
-            x0 = x0 >> 1;
-            y0 = y0 >> 1;
-            parent = this.tiles[toID(z0, x0, y0)];
-        }
-
-        if (!parent || !parent.source) return null;
-
-        // if we found a parent tile containing the original geometry, we can drill down from it
-        if (debug > 1) {
-            console.log('found parent tile z%d-%d-%d', z0, x0, y0);
-            console.time('drilling down');
-        }
-        this.splitTile(parent.source, z0, x0, y0, z, x, y);
-        if (debug > 1) console.timeEnd('drilling down');
-
-        return this.tiles[id] ? transformTile(this.tiles[id], extent) : null;
-    }
-}
-
-function toID(z, x, y) {
-    return (((1 << z) * y + x) * 32) + z;
-}
-
-function extend(dest, src) {
-    for (const i in src) dest[i] = src[i];
-    return dest;
-}
-
-function geojsonvt(data, options) {
-    return new GeoJSONVT(data, options);
-}
-
-function getFeatureId(feature, promoteId) {
-    return promoteId ? feature.properties[promoteId] : feature.id;
-}
-/**
- * Converts a GeoJSON object into a map of feature IDs to GeoJSON features.
- * @param data - The GeoJSON object to convert.
- * @param promoteId - If set, the feature id will be set to the promoteId property value.
- * @returns A map of feature IDs to GeoJSON features, or `undefined` if the GeoJSON object is not a valid updateable object.
- *
- * Features must have unique identifiers to be updateable. IDs can come from:
- * - The feature's `id` property (standard GeoJSON)
- * - A promoted property specified by `promoteId` (e.g., a "name" property)
- */
-function toUpdateable(data, promoteId) {
-    const updateable = new Map();
-    // null can be updated - empty updateable
-    if (data == null) {
-        return updateable;
-    }
-    // {} can be updated - empty updateable
-    if (data.type == null) {
-        return updateable;
-    }
-    // a single feature with an id can be updated, need to explicitly check against null because 0 is a valid feature id that is falsy
-    if (data.type === 'Feature') {
-        const id = getFeatureId(data, promoteId);
-        if (id == null)
-            return undefined;
-        updateable.set(id, data);
-        return updateable;
-    }
-    // a feature collection can be updated if every feature has a unique id, which prevents the silent dropping of features
-    if (data.type === 'FeatureCollection') {
-        const seenIds = new Set();
-        for (const feature of data.features) {
-            const id = getFeatureId(feature, promoteId);
-            if (id == null)
-                return undefined;
-            if (seenIds.has(id))
-                return undefined;
-            seenIds.add(id);
-            updateable.set(id, feature);
-        }
-        return updateable;
-    }
-    return undefined;
-}
-/**
- * Mutates updateable and applies a {@link GeoJSONSourceDiff}. Operations are processed in a specific order to ensure predictable behavior:
- * 1. Remove operations (removeAll, remove)
- * 2. Add operations (add)
- * 3. Update operations (update)
- * @returns an array of geometries that were affected by the diff - with the exception of removeAll which does not track any affected geometries.
- */
-function applySourceDiff(updateable, diff, promoteId) {
-    var _a, _b;
-    const affectedGeometries = [];
-    if (diff.removeAll) {
-        updateable.clear();
-    }
-    else if (diff.remove) {
-        for (const id of diff.remove) {
-            const existing = updateable.get(id);
-            if (!existing)
-                continue;
-            affectedGeometries.push(existing.geometry);
-            updateable.delete(id);
-        }
-    }
-    if (diff.add) {
-        for (const feature of diff.add) {
-            const id = getFeatureId(feature, promoteId);
-            if (id == null)
-                continue;
-            const existing = updateable.get(id);
-            if (existing)
-                affectedGeometries.push(existing.geometry);
-            affectedGeometries.push(feature.geometry);
-            updateable.set(id, feature);
-        }
-    }
-    if (diff.update) {
-        for (const update of diff.update) {
-            const existing = updateable.get(update.id);
-            if (!existing)
-                continue;
-            const changeGeometry = !!update.newGeometry;
-            const changeProps = update.removeAllProperties ||
-                ((_a = update.removeProperties) === null || _a === void 0 ? void 0 : _a.length) > 0 ||
-                ((_b = update.addOrUpdateProperties) === null || _b === void 0 ? void 0 : _b.length) > 0;
-            // nothing to do
-            if (!changeGeometry && !changeProps)
-                continue;
-            // clone once since we'll mutate
-            affectedGeometries.push(existing.geometry);
-            const feature = Object.assign({}, existing);
-            updateable.set(update.id, feature);
-            if (changeGeometry) {
-                affectedGeometries.push(update.newGeometry);
-                feature.geometry = update.newGeometry;
-            }
-            if (changeProps) {
-                if (update.removeAllProperties) {
-                    feature.properties = {};
-                }
-                else {
-                    feature.properties = Object.assign({}, feature.properties || {});
-                }
-                if (update.removeProperties) {
-                    for (const key of update.removeProperties) {
-                        delete feature.properties[key];
-                    }
-                }
-                if (update.addOrUpdateProperties) {
-                    for (const { key, value } of update.addOrUpdateProperties) {
-                        feature.properties[key] = value;
-                    }
-                }
-            }
-        }
-    }
-    return affectedGeometries;
-}
-/**
- * Merge two GeoJSONSourceDiffs, considering the order of operations as specified above (remove, add, update).
- *
- * For `add` features that use promoteId, the feature id will be set to the promoteId value temporarily so that
- * the merge can be completed, then reverted to the original promoteId state after the merge.
- */
-function mergeSourceDiffs(prevDiff, nextDiff, promoteId) {
-    if (!prevDiff)
-        return nextDiff || {};
-    if (!nextDiff)
-        return prevDiff || {};
-    if (promoteId) {
-        // Temporarily normalize diff.add for features using promoteId
-        promoteFeatureIds(prevDiff.add, promoteId);
-        promoteFeatureIds(nextDiff.add, promoteId);
-    }
-    // Hash for o(1) lookups while creating a mutatable copy of the collections
-    const prev = diffToHashed(prevDiff);
-    const next = diffToHashed(nextDiff);
-    // Resolve merge conflicts
-    resolveMergeConflicts(prev, next);
-    // Simply merge the two diffs now that conflicts have been resolved
-    const merged = {};
-    if (prev.removeAll || next.removeAll)
-        merged.removeAll = true;
-    merged.remove = new Set([...prev.remove, ...next.remove]);
-    merged.add = new Map([...prev.add, ...next.add]);
-    merged.update = new Map([...prev.update, ...next.update]);
-    // Squash the merge - removing then adding the same feature
-    if (merged.remove.size && merged.add.size) {
-        for (const id of merged.add.keys()) {
-            merged.remove.delete(id);
-        }
-    }
-    // Convert back to array-based representation
-    const mergedDiff = hashedToDiff(merged);
-    if (promoteId) {
-        // Revert diff.add for features using promoteId
-        demoteFeatureIds(mergedDiff.add, promoteId);
-    }
-    return mergedDiff;
-}
-/**
- * Resolve merge conflicts between two GeoJSONSourceDiffs considering the ordering above (remove/add/update).
- *
- * - If you `removeAll` and then `add` features in the same diff, the added features will be kept.
- * - Updates only apply to features that exist after removes and adds have been processed.
- */
-function resolveMergeConflicts(prev, next) {
-    // Removing all features with added or updated features in previous - and clear no-op removes
-    if (next.removeAll) {
-        prev.add.clear();
-        prev.update.clear();
-        prev.remove.clear();
-        next.remove.clear();
-    }
-    // Removing features that were added or updated in previous
-    for (const id of next.remove) {
-        prev.add.delete(id);
-        prev.update.delete(id);
-    }
-    // Updating features that were updated in previous
-    for (const [id, nextUpdate] of next.update) {
-        const prevUpdate = prev.update.get(id);
-        if (!prevUpdate)
-            continue;
-        next.update.set(id, mergeFeatureDiffs(prevUpdate, nextUpdate));
-        prev.update.delete(id);
-    }
-}
-/**
- * Merge two feature diffs for the same feature id, considering the order of operations as specified above (remove, add/update).
- */
-function mergeFeatureDiffs(prev, next) {
-    const merged = { id: prev.id };
-    // Removing all properties with added or updated properties in previous - and clear no-op removes
-    if (next.removeAllProperties) {
-        delete prev.removeProperties;
-        delete prev.addOrUpdateProperties;
-        delete next.removeProperties;
-    }
-    // Removing properties that were added or updated in previous
-    if (next.removeProperties) {
-        for (const key of next.removeProperties) {
-            const index = prev.addOrUpdateProperties.findIndex(prop => prop.key === key);
-            if (index > -1)
-                prev.addOrUpdateProperties.splice(index, 1);
-        }
-    }
-    // Merge the two diffs
-    if (prev.removeAllProperties || next.removeAllProperties) {
-        merged.removeAllProperties = true;
-    }
-    if (prev.removeProperties || next.removeProperties) {
-        merged.removeProperties = [...prev.removeProperties || [], ...next.removeProperties || []];
-    }
-    if (prev.addOrUpdateProperties || next.addOrUpdateProperties) {
-        merged.addOrUpdateProperties = [...prev.addOrUpdateProperties || [], ...next.addOrUpdateProperties || []];
-    }
-    if (prev.newGeometry || next.newGeometry) {
-        merged.newGeometry = next.newGeometry || prev.newGeometry;
-    }
-    return merged;
-}
-/**
- * Mutates diff.add and applies a feature id using the promoteId property
- */
-function promoteFeatureIds(add, promoteId) {
-    if (!add)
-        return;
-    for (const feature of add) {
-        const id = getFeatureId(feature, promoteId);
-        if (id != null)
-            feature.id = id;
-    }
-}
-/**
- * Mutates diff.add and removes the feature id if using the promoteId property
- */
-function demoteFeatureIds(add, promoteId) {
-    if (!add)
-        return;
-    for (const feature of add) {
-        const id = getFeatureId(feature, promoteId);
-        if (id != null)
-            delete feature.id;
-    }
-}
-/**
- * @internal
- * Convert a GeoJSONSourceDiff to an idempotent hashed representation using Sets and Maps
- */
-function diffToHashed(diff) {
-    var _a, _b;
-    if (!diff)
-        return {};
-    const hashed = {};
-    hashed.removeAll = diff.removeAll;
-    hashed.remove = new Set(diff.remove || []);
-    hashed.add = new Map((_a = diff.add) === null || _a === void 0 ? void 0 : _a.map(feature => [feature.id, feature]));
-    hashed.update = new Map((_b = diff.update) === null || _b === void 0 ? void 0 : _b.map(update => [update.id, update]));
-    return hashed;
-}
-/**
- * @internal
- * Convert a hashed GeoJSONSourceDiff back to the array-based representation
- */
-function hashedToDiff(hashed) {
-    const diff = {};
-    if (hashed.removeAll) {
-        diff.removeAll = hashed.removeAll;
-    }
-    if (hashed.remove) {
-        diff.remove = Array.from(hashed.remove);
-    }
-    if (hashed.add) {
-        diff.add = Array.from(hashed.add.values());
-    }
-    if (hashed.update) {
-        diff.update = Array.from(hashed.update.values());
-    }
-    return diff;
-}
-
 /**
  * The {@link WorkerSource} implementation that supports {@link GeoJSONSource}.
  * This class is designed to be easily reused to support custom source types
@@ -42403,27 +44438,101 @@ function hashedToDiff(hashed) {
  * `new GeoJSONWorkerSource(actor, layerIndex, customLoadGeoJSONFunction)`.
  * For a full example, see [mapbox-gl-topojson](https://github.com/developmentseed/mapbox-gl-topojson).
  */
-class GeoJSONWorkerSource extends VectorTileWorkerSource {
+class GeoJSONWorkerSource {
     constructor(actor, layerIndex, availableImages, createGeoJSONIndexFunc = createGeoJSONIndex) {
-        super(actor, layerIndex, availableImages);
-        this._dataUpdateable = new Map();
+        this.actor = actor;
+        this.layerIndex = layerIndex;
+        this.availableImages = availableImages;
+        this.tileState = new WorkerTileState();
         this._createGeoJSONIndex = createGeoJSONIndexFunc;
     }
     /**
      * Retrieves and sends loaded vector tiles to the main thread.
      */
-    loadVectorTile(params, _abortController) {
+    loadVectorTile(params) {
+        if (!this._geoJSONIndex)
+            throw new Error('Unable to parse the data into a cluster or geojson');
+        const { z, x, y } = params.tileID.canonical;
+        const geoJSONTile = this._geoJSONIndex.getTile(z, x, y);
+        if (!geoJSONTile)
+            return null;
+        const geojsonWrapper = new GeoJSONWrapper(geoJSONTile.features, { version: 2, extent: EXTENT$1 });
+        return toVirtualVectorTile(geojsonWrapper);
+    }
+    /**
+     * Implements {@link WorkerSource.loadTile}.
+     */
+    loadTile(params) {
         return __awaiter(this, void 0, void 0, function* () {
-            const canonical = params.tileID.canonical;
-            if (!this._geoJSONIndex) {
-                throw new Error('Unable to parse the data into a cluster or geojson');
+            const { uid } = params;
+            const workerTile = new WorkerTile(params);
+            workerTile.abort = new AbortController();
+            try {
+                const loadResult = this.loadVectorTile(params);
+                if (!loadResult)
+                    return null;
+                const { vectorTile, rawData } = loadResult;
+                workerTile.vectorTile = vectorTile;
+                this.tileState.markLoaded(uid, workerTile);
+                const parseState = { rawData };
+                this.tileState.setParsing(uid, parseState); // Keep data so reloadTile can access if parse is canceled.
+                try {
+                    return yield this._parseWorkerTile(workerTile, params, parseState);
+                }
+                finally {
+                    this.tileState.clearParsing(uid);
+                }
             }
-            const geoJSONTile = this._geoJSONIndex.getTile(canonical.z, canonical.x, canonical.y);
-            if (!geoJSONTile) {
-                return null;
+            catch (err) {
+                workerTile.status = 'done';
+                this.tileState.markLoaded(uid, workerTile);
+                throw err;
             }
-            const geojsonWrapper = new r(geoJSONTile.features, { version: 2, extent: EXTENT$1 });
-            return toVirtualVectorTile(geojsonWrapper);
+        });
+    }
+    _reloadLoadedTile(params) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const uid = params.uid;
+            const workerTile = this.tileState.getLoaded(uid);
+            if (!workerTile)
+                throw new Error('Should not be trying to reload a tile that was never loaded or has been removed');
+            workerTile.showCollisionBoxes = params.showCollisionBoxes;
+            if (workerTile.status === 'parsing') {
+                // If we are cancelling the original parse, make sure to pass the rawData from the original parse.
+                const parseState = this.tileState.consumeParsing(uid);
+                return yield this._parseWorkerTile(workerTile, params, parseState);
+            }
+            // If there was no vector tile data on the initial load, don't try and reparse the tile.
+            if (workerTile.status === 'done' && workerTile.vectorTile) {
+                return yield this._parseWorkerTile(workerTile, params);
+            }
+        });
+    }
+    _parseWorkerTile(workerTile, params, parseState) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let result = yield workerTile.parse(workerTile.vectorTile, this.layerIndex, this.availableImages, this.actor, params.subdivisionGranularity);
+            if (parseState) {
+                const { rawData } = parseState;
+                // Transferring a copy of rawTileData because the worker needs to retain its copy.
+                result = extend({ rawTileData: rawData.slice(0), encoding: 'mvt' }, result);
+            }
+            return result;
+        });
+    }
+    /**
+     * Implements {@link WorkerSource.abortTile}.
+     */
+    abortTile(params) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.tileState.abort(params.uid);
+        });
+    }
+    /**
+     * Implements {@link WorkerSource.removeTile}.
+     */
+    removeTile(params) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.tileState.removeLoaded(params.uid);
         });
     }
     /**
@@ -42446,78 +44555,57 @@ class GeoJSONWorkerSource extends VectorTileWorkerSource {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
             (_a = this._pendingRequest) === null || _a === void 0 ? void 0 : _a.abort();
-            const perf = this._startPerformance(params);
+            const timing = this._startRequestTiming(params);
             this._pendingRequest = new AbortController();
             try {
-                // Load and process the GeoJSON data if it hasn't been loaded yet or if the data is changed.
-                if (!this._pendingData || params.request || params.data || params.dataDiff) {
-                    this._pendingData = this.loadAndProcessGeoJSON(params, this._pendingRequest);
-                }
-                const data = yield this._pendingData;
-                this._geoJSONIndex = this._createGeoJSONIndex(data, params);
-                this.loaded = {};
+                yield this.loadAndProcessGeoJSON(params, this._pendingRequest);
+                delete this._pendingRequest;
+                this.tileState.clearLoaded();
+                // Sending a large GeoJSON payload from the worker to the main thread is slow so only do if necessary.
+                // Send data only if it was loaded from a URL, otherwise the main thread already has a copy of this data.
                 const result = {};
-                // Sending a large GeoJSON payload from the worker thread to the main thread
-                // is SLOW so we only do it if absolutely nescessary.
-                // The main thread already has a copy of this data UNLESS it was loaded
-                // from a URL.
                 if (params.request)
-                    result.data = data;
-                this._finishPerformance(perf, params, result);
+                    result.data = params.data;
+                this._finishRequestTiming(timing, params, result);
                 return result;
             }
             catch (err) {
                 delete this._pendingRequest;
-                if (isAbortError(err))
-                    return { abandoned: true };
-                throw err;
+                if (!isAbortError(err))
+                    throw err;
+                return { abandoned: true };
             }
         });
     }
-    _startPerformance(params) {
+    _startRequestTiming(params) {
         var _a;
-        if (!((_a = params === null || params === void 0 ? void 0 : params.request) === null || _a === void 0 ? void 0 : _a.collectResourceTiming))
+        if (!((_a = params.request) === null || _a === void 0 ? void 0 : _a.collectResourceTiming))
             return;
-        return new RequestPerformance(params.request);
+        return new RequestPerformance(params.request.url);
     }
-    _finishPerformance(perf, params, result) {
-        if (!perf)
+    _finishRequestTiming(timing, params, result) {
+        const timingData = timing === null || timing === void 0 ? void 0 : timing.finish();
+        if (!timingData)
             return;
-        const resourceTimingData = perf.finish();
         // it's necessary to eval the result of getEntriesByName() here via parse/stringify
         // late evaluation in the main thread causes TypeError: illegal invocation
-        if (resourceTimingData) {
-            result.resourceTiming = {};
-            result.resourceTiming[params.source] = JSON.parse(JSON.stringify(resourceTimingData));
-        }
+        result.resourceTiming = { [params.source]: JSON.parse(JSON.stringify(timingData)) };
     }
     /**
-     * Get the source's full GeoJSON data source.
-     * @returns a promise which is resolved with the source's actual GeoJSON
+     * Implements {@link WorkerSource.reloadTile}.
+     *
+     * If the tile is loaded, reload by re-parsing the already available tile data.
+     * Otherwise, such as after a setData() call, we load the tile fresh.
+     *
+     * @param params - the parameters
+     * @returns A promise that resolves when the tile is reloaded
      */
-    getData() {
-        return __awaiter(this, void 0, void 0, function* () {
-            return this._pendingData;
-        });
-    }
-    /**
-    * Implements {@link WorkerSource.reloadTile}.
-    *
-    * If the tile is loaded, uses the implementation in VectorTileWorkerSource.
-    * Otherwise, such as after a setData() call, we load the tile fresh.
-    *
-    * @param params - the parameters
-    * @returns A promise that resolves when the tile is reloaded
-    */
     reloadTile(params) {
-        const loaded = this.loaded;
-        const uid = params.uid;
-        if (loaded && loaded[uid]) {
-            return super.reloadTile(params);
+        const tile = this.tileState.getLoaded(params.uid);
+        if (tile) {
+            return this._reloadLoadedTile(params);
         }
-        else {
-            return this.loadTile(params);
-        }
+        return this.loadTile(params);
     }
     /**
      * Fetch, parse and process GeoJSON according to the given parameters.
@@ -42529,103 +44617,78 @@ class GeoJSONWorkerSource extends VectorTileWorkerSource {
      */
     loadAndProcessGeoJSON(params, abortController) {
         return __awaiter(this, void 0, void 0, function* () {
-            let data;
+            var _a;
             if (params.request) {
-                // Data is loaded from a fetchable URL
-                data = yield this.loadGeoJSONFromUrl(params.request, params.promoteId, abortController);
+                params.data = (yield getJSON(params.request, abortController)).data;
             }
-            else if (params.data) {
-                // Data is loaded from a GeoJSON Object
-                data = this._loadGeoJSONFromObject(params.data, params.promoteId);
+            if (params.data) {
+                params.data = this._filterGeoJSON(params.data, params.filter);
+                this._geoJSONIndex = this._createGeoJSONIndex(params.data, params);
+                return;
             }
-            else if (params.dataDiff) {
-                // Data is loaded from a GeoJSONSourceDiff
-                data = this._loadGeoJSONFromDiff(params.dataDiff, params.promoteId, params.source);
+            if (params.dataDiff) {
+                (_a = this._geoJSONIndex) !== null && _a !== void 0 ? _a : (this._geoJSONIndex = this._createGeoJSONIndex({ type: 'FeatureCollection', features: [] }, params));
+                this._geoJSONIndex.updateData(params.dataDiff, this._getFilterPredicate(params.filter));
+                return;
             }
-            delete this._pendingRequest;
-            if (typeof data !== 'object') {
+            if (params.updateCluster) {
+                this._geoJSONIndex.updateClusterOptions(params.geojsonVtOptions.cluster, getSuperclusterOptions(params));
+            }
+            if (this._geoJSONIndex == null) {
                 throw new Error(`Input data given to '${params.source}' is not a valid GeoJSON object.`);
             }
-            // Generate winding-order compliant GeoJSON Polygon and MultiPolygon geometries
-            rewind$1(data, true);
-            if (params.filter) {
-                data = this._filterGeoJSON(data, params.filter);
-            }
-            return data;
         });
-    }
-    /**
-     * Loads GeoJSON from a URL and sets the sources updateable GeoJSON object.
-     */
-    loadGeoJSONFromUrl(request, promoteId, abortController) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const response = yield getJSON(request, abortController);
-            this._dataUpdateable = toUpdateable(response.data, promoteId);
-            return response.data;
-        });
-    }
-    /**
-     * Loads GeoJSON from a string and sets the sources updateable GeoJSON object.
-     */
-    _loadGeoJSONFromObject(data, promoteId) {
-        this._dataUpdateable = toUpdateable(data, promoteId);
-        return data;
-    }
-    /**
-     * Loads GeoJSON from a GeoJSONSourceDiff and applies it to the existing source updateable GeoJSON object.
-     */
-    _loadGeoJSONFromDiff(dataDiff, promoteId, source) {
-        if (!this._dataUpdateable) {
-            throw new Error(`Cannot update existing geojson data in ${source}`);
-        }
-        // Incrementally apply the diff to existing source data
-        applySourceDiff(this._dataUpdateable, dataDiff, promoteId);
-        const features = Array.from(this._dataUpdateable.values());
-        return this._toFeatureCollection(features);
     }
     /**
      * Applies a filter to a GeoJSON object.
      */
     _filterGeoJSON(data, filter) {
+        if (data.type !== 'FeatureCollection')
+            return data;
+        const predicate = this._getFilterPredicate(filter);
+        if (!predicate)
+            return data;
+        return { type: 'FeatureCollection', features: data.features.filter(feature => predicate(feature)) };
+    }
+    /**
+     * Gets a predicate function that can be used to filter GeoJSON features.
+     */
+    _getFilterPredicate(filter) {
+        if (typeof filter !== 'boolean' && !(filter === null || filter === void 0 ? void 0 : filter.length))
+            return undefined;
         const compiled = createExpression(filter, { type: 'boolean', 'property-type': 'data-driven', overridable: false, transition: false });
         if (compiled.result === 'error') {
             throw new Error(compiled.value.map(err => `${err.key}: ${err.message}`).join(', '));
         }
-        const features = data.features.filter(feature => compiled.value.evaluate({ zoom: 0 }, feature));
-        return this._toFeatureCollection(features);
-    }
-    /**
-     * Converts an array of GeoJSON features into a GeoJSON FeatureCollection.
-     */
-    _toFeatureCollection(features) {
-        return { type: 'FeatureCollection', features };
+        const predicate = (feature) => compiled.value.evaluate({ zoom: 0 }, feature);
+        return predicate;
     }
     removeSource(_params) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this._pendingRequest) {
-                this._pendingRequest.abort();
-            }
+            var _a;
+            (_a = this._pendingRequest) === null || _a === void 0 ? void 0 : _a.abort();
         });
     }
     getClusterExpansionZoom(params) {
         return this._geoJSONIndex.getClusterExpansionZoom(params.clusterId);
     }
     getClusterChildren(params) {
-        return this._geoJSONIndex.getChildren(params.clusterId);
+        return this._geoJSONIndex.getClusterChildren(params.clusterId);
     }
     getClusterLeaves(params) {
-        return this._geoJSONIndex.getLeaves(params.clusterId, params.limit, params.offset);
+        return this._geoJSONIndex.getClusterLeaves(params.clusterId, params.limit, params.offset);
     }
 }
 function createGeoJSONIndex(data, params) {
-    if (params.cluster) {
-        return new Supercluster(getSuperclusterOptions(params)).load(data.features);
-    }
-    return geojsonvt(data, params.geojsonVtOptions);
+    const options = extend(params.geojsonVtOptions || {}, {
+        updateable: true,
+        clusterOptions: getSuperclusterOptions(params),
+    });
+    return new GeoJSONVT(data, options);
 }
-function getSuperclusterOptions({ superclusterOptions, clusterProperties }) {
-    if (!clusterProperties || !superclusterOptions)
-        return superclusterOptions;
+function getSuperclusterOptions({ geojsonVtOptions, clusterProperties }) {
+    if (!clusterProperties || !geojsonVtOptions.clusterOptions)
+        return geojsonVtOptions.clusterOptions;
     const mapExpressions = {};
     const reduceExpressions = {};
     const globals = { accumulated: null, zoom: 0 };
@@ -42638,7 +44701,7 @@ function getSuperclusterOptions({ superclusterOptions, clusterProperties }) {
         mapExpressions[key] = mapExpressionParsed.value;
         reduceExpressions[key] = reduceExpressionParsed.value;
     }
-    superclusterOptions.map = (pointProperties) => {
+    geojsonVtOptions.clusterOptions.map = (pointProperties) => {
         feature.properties = pointProperties;
         const properties = {};
         for (const key of propertyNames) {
@@ -42646,14 +44709,14 @@ function getSuperclusterOptions({ superclusterOptions, clusterProperties }) {
         }
         return properties;
     };
-    superclusterOptions.reduce = (accumulated, clusterProperties) => {
+    geojsonVtOptions.clusterOptions.reduce = (accumulated, clusterProperties) => {
         feature.properties = clusterProperties;
         for (const key of propertyNames) {
             globals.accumulated = accumulated[key];
             accumulated[key] = reduceExpressions[key].evaluate(globals, feature);
         }
     };
-    return superclusterOptions;
+    return geojsonVtOptions.clusterOptions;
 }
 
 /**
@@ -42698,9 +44761,6 @@ class Worker {
         }));
         this.actor.registerMessageHandler("LD" /* MessageType.loadData */, (mapId, params) => {
             return this._getWorkerSource(mapId, params.type, params.source).loadData(params);
-        });
-        this.actor.registerMessageHandler("GD" /* MessageType.getData */, (mapId, params) => {
-            return this._getWorkerSource(mapId, params.type, params.source).getData();
         });
         this.actor.registerMessageHandler("LT" /* MessageType.loadTile */, (mapId, params) => {
             return this._getWorkerSource(mapId, params.type, params.source).loadTile(params);

@@ -2,13 +2,12 @@
 
 import Point from '@mapbox/point-geometry';
 import TinySDF from '@mapbox/tiny-sdf';
+import { GeoJSONVTOptions } from '@maplibre/geojson-vt';
 import { Color, ColorArray, CompositeExpression, DiffCommand, DiffOperations, Feature, Feature as StyleFeature, FeatureFilter, FeatureState, FilterSpecification, Formatted, FormattedSection, GeoJSONSourceSpecification, GlobalProperties, ICanonicalTileID, IMercatorCoordinate, ImageSourceSpecification, InterpolationType, LayerSpecification, LightSpecification, NumberArray, Padding, ProjectionSpecification, PromoteIdSpecification, PropertyValueSpecification, RasterDEMSourceSpecification, RasterSourceSpecification, ResolvedImage, SkySpecification, SourceExpression, SourceSpecification, SpriteSpecification, StateSpecification, StylePropertyExpression, StylePropertySpecification, StyleSpecification, TerrainSpecification, TransitionSpecification, VariableAnchorOffsetCollection, VectorSourceSpecification, VideoSourceSpecification, VisibilityExpression, VisibilitySpecification } from '@maplibre/maplibre-gl-style-spec';
 import { VectorTileFeatureLike, VectorTileLayerLike } from '@maplibre/vt-pbf';
-import { Options as GeoJSONVTOptions } from 'geojson-vt';
 import { mat2, mat4, vec3, vec4 } from 'gl-matrix';
 import KDBush from 'kdbush';
 import { PotpackBox } from 'potpack';
-import { ClusterProperties, Options as SuperclusterOptions } from 'supercluster';
 
 /**
  * A type used to store the tile's expiration date and cache control definition
@@ -16,6 +15,7 @@ import { ClusterProperties, Options as SuperclusterOptions } from 'supercluster'
 export type ExpiryData = {
 	cacheControl?: string | null;
 	expires?: Date | string | null;
+	etag?: string;
 };
 /**
  * A `RequestParameters` object to be returned from Map.options.transformRequest callbacks.
@@ -66,6 +66,10 @@ export type RequestParameters = {
 	 * Parameters supported only by browser fetch API. Property of the Request interface contains the cache mode of the request. It controls how the request will interact with the browser's HTTP cache. (https://developer.mozilla.org/en-US/docs/Web/API/Request/cache)
 	 */
 	cache?: RequestCache;
+	/**
+	 * The referrer policy to use for the request. Controls how much referrer information is sent. (https://developer.mozilla.org/en-US/docs/Web/API/Request/referrerPolicy)
+	 */
+	referrerPolicy?: ReferrerPolicy;
 };
 /**
  * The response object returned from a successful AJAx request
@@ -122,7 +126,7 @@ type SerializedObject<S extends Serialized = any> = {
 };
 type Serialized = null | void | boolean | number | string | Boolean | Number | String | Date | RegExp | ArrayBuffer | ArrayBufferView | ImageData | ImageBitmap | Blob | Array<Serialized> | SerializedObject;
 declare class ThrottledInvoker {
-	_channel: MessageChannel;
+	_channel: MessageChannel | undefined;
 	_triggered: boolean;
 	_methodToThrottle: Function;
 	constructor(methodToThrottle: Function);
@@ -205,6 +209,10 @@ declare abstract class StructArray {
 	 * Create TypedArray views for the current ArrayBuffer.
 	 */
 	_refreshViews(): void;
+	/**
+	 * Replace the buffer with an empty one so typed views release the original ArrayBuffer for GC.
+	 */
+	freeBufferAfterUpload(): void;
 }
 declare class StructArrayLayout2i4 extends StructArray {
 	uint8: Uint8Array;
@@ -761,6 +769,28 @@ export declare class OverscaledTileID {
 	toUnwrapped(): UnwrappedTileID;
 	toString(): string;
 	getTilePoint(coord: MercatorCoordinate): Point;
+	/**
+	 * Maps tile-local coordinates that may fall outside the `[0, extent)` range
+	 * to the correct neighbor tile and the corresponding in-tile position.
+	 *
+	 * Coordinates can exceed tile bounds when geometry (e.g. symbol labels along
+	 * lines) extends across tile edges. This method resolves such coordinates to
+	 * the appropriate adjacent tile, wrapping horizontally across world boundaries
+	 * and returning `null` when the target falls beyond the polar tile-grid limits.
+	 *
+	 * When the coordinates are already in bounds, the original tile ID is returned.
+	 *
+	 * @param x - x coordinate relative to this tile, may be outside `[0, extent)`
+	 * @param y - y coordinate relative to this tile, may be outside `[0, extent)`
+	 * @param extent - tile coordinate extent, default {@link EXTENT}
+	 * @returns the resolved tile ID and in-tile coordinates, or `null` if the
+	 *          target is beyond the tile grid (e.g. past the poles)
+	 */
+	normalizeCoordinates(x: number, y: number, extent?: number): {
+		tileID: OverscaledTileID;
+		x: number;
+		y: number;
+	} | null;
 }
 /**
  * A listener method used as a callback to events
@@ -1828,9 +1858,15 @@ export declare class LngLatBounds {
 	 * ```
 	 */
 	toArray(): [
-		number,
-		number
-	][];
+		[
+			number,
+			number
+		],
+		[
+			number,
+			number
+		]
+	];
 	/**
 	 * Return the bounding box represented as a string.
 	 *
@@ -2317,7 +2353,7 @@ export declare class GeoJSONSource extends Evented implements Source {
 	_pendingWorkerUpdate: {
 		data?: GeoJSON.GeoJSON | string;
 		diff?: GeoJSONSourceDiff;
-		optionsChanged?: boolean;
+		updateCluster?: boolean;
 	};
 	_collectResourceTiming: boolean;
 	_removed: boolean;
@@ -2422,6 +2458,18 @@ export declare class GeoJSONSource extends Evented implements Source {
 	 */
 	_updateWorkerData(): Promise<void>;
 	/**
+	 * Create the parameters object that will be sent to the worker and used to load GeoJSON.
+	 */
+	private _getLoadGeoJSONParameters;
+	/**
+	 * Send the worker update data from the main thread to the worker
+	 */
+	private _dispatchWorkerUpdate;
+	/**
+	 * Apply resource timing data to the event object.
+	 */
+	private _applyResourceTiming;
+	/**
 	 * Apply a diff to this source's data and return the affected feature geometries.
 	 * @param diff - The {@link GeoJSONSourceDiff} to apply.
 	 * @returns The affected geometries, or undefined if the diff is not applicable or all geometries are affected.
@@ -2444,6 +2492,126 @@ export declare class GeoJSONSource extends Evented implements Source {
 	unloadTile(tile: Tile): Promise<void>;
 	onRemove(): void;
 	serialize(): GeoJSONSourceSpecification;
+	hasTransition(): boolean;
+}
+declare class TileBounds {
+	bounds: LngLatBounds;
+	minzoom: number;
+	maxzoom: number;
+	constructor(bounds: [
+		number,
+		number,
+		number,
+		number
+	], minzoom?: number | null, maxzoom?: number | null);
+	validateBounds(bounds: [
+		number,
+		number,
+		number,
+		number
+	]): LngLatBoundsLike;
+	contains(tileID: CanonicalTileID): boolean;
+}
+type VectorTileSourceOptions = VectorSourceSpecification & {
+	collectResourceTiming?: boolean;
+	tileSize?: number;
+};
+export type LoadTileResult = {
+	/**
+	 * Indicates that the tile requested was not modified.
+	 */
+	unmodified?: boolean;
+};
+/**
+ * A source containing vector tiles in [Maplibre Vector Tile format](https://maplibre.org/maplibre-tile-spec/) or [Mapbox Vector Tile format](https://docs.mapbox.com/vector-tiles/reference/).
+ * (See the [Style Specification](https://maplibre.org/maplibre-style-spec/) for detailed documentation of options.)
+ *
+ * @group Sources
+ *
+ * @example
+ * ```ts
+ * map.addSource('some id', {
+ *     type: 'vector',
+ *     url: 'https://demotiles.maplibre.org/tiles/tiles.json'
+ * });
+ * ```
+ *
+ * @example
+ * ```ts
+ * map.addSource('some id', {
+ *     type: 'vector',
+ *     tiles: ['https://d25uarhxywzl1j.cloudfront.net/v0.1/{z}/{x}/{y}.mvt'],
+ *     minzoom: 6,
+ *     maxzoom: 14
+ * });
+ * ```
+ *
+ * @example
+ * ```ts
+ * map.getSource('some id').setUrl("https://demotiles.maplibre.org/tiles/tiles.json");
+ * ```
+ *
+ * @example
+ * ```ts
+ * map.getSource('some id').setTiles(['https://d25uarhxywzl1j.cloudfront.net/v0.1/{z}/{x}/{y}.mvt']);
+ * ```
+ * @see [Add a vector tile source](https://maplibre.org/maplibre-gl-js/docs/examples/add-a-vector-tile-source/)
+ */
+export declare class VectorTileSource extends Evented implements Source {
+	type: "vector";
+	id: string;
+	minzoom: number;
+	maxzoom: number;
+	url: string;
+	scheme: string;
+	encoding: string;
+	tileSize: number;
+	promoteId: PromoteIdSpecification;
+	_options: VectorSourceSpecification;
+	_collectResourceTiming: boolean;
+	dispatcher: Dispatcher;
+	map: Map$1;
+	bounds: [
+		number,
+		number,
+		number,
+		number
+	];
+	tiles: Array<string>;
+	tileBounds: TileBounds;
+	reparseOverscaled: boolean;
+	isTileClipped: boolean;
+	_tileJSONRequest: AbortController;
+	_loaded: boolean;
+	constructor(id: string, options: VectorTileSourceOptions, dispatcher: Dispatcher, eventedParent: Evented);
+	load(sourceDataChanged?: boolean): Promise<void>;
+	loaded(): boolean;
+	hasTile(tileID: OverscaledTileID): boolean;
+	onAdd(map: Map$1): void;
+	setSourceProperty(callback: Function): void;
+	/**
+	 * Sets the source `tiles` property and re-renders the map.
+	 *
+	 * @param tiles - An array of one or more tile source URLs, as in the TileJSON spec.
+	 */
+	setTiles(tiles: Array<string>): this;
+	/**
+	 * Sets the source `url` property and re-renders the map.
+	 *
+	 * @param url - A URL to a TileJSON resource. Supported protocols are `http:` and `https:`.
+	 */
+	setUrl(url: string): this;
+	onRemove(): void;
+	serialize(): VectorSourceSpecification;
+	loadTile(tile: Tile): Promise<LoadTileResult | void>;
+	/**
+	 * When the requested tile has a higher canonical Z than source maxzoom, pass overzoom parameters so worker can load the
+	 * deepest tile at source max zoom to generate sub tiles using geojsonvt for highest performance on vector overscaling
+	 */
+	private _getOverzoomParameters;
+	private _afterTileLoadWorkerResponse;
+	abortTile(tile: Tile): Promise<void>;
+	unloadTile(tile: Tile): Promise<void>;
 	hasTransition(): boolean;
 }
 /**
@@ -2862,7 +3030,7 @@ export interface Source {
 	 * In most cases it will defer the work to the relevant worker source.
 	 * @param tile - The tile to load
 	 */
-	loadTile(tile: Tile): Promise<void>;
+	loadTile(tile: Tile): Promise<LoadTileResult | void>;
 	/**
 	 * True is the tile is part of the source, false otherwise.
 	 * @param tileID - The tile ID
@@ -2983,7 +3151,7 @@ declare class TileManager extends Evented {
 	 */
 	reload(sourceDataChanged?: boolean, shouldReloadTileOptions?: any): void;
 	_reloadTile(id: string, state: TileState): Promise<void>;
-	_tileLoaded(tile: Tile, id: string, previousState: TileState): void;
+	_tileLoaded(tile: Tile, id: string, previousState: TileState, result: LoadTileResult): void;
 	/**
 	 * Get a specific tile by TileID
 	 */
@@ -3815,11 +3983,11 @@ export declare const enum ResourceType {
  * This function is used to tranform a request.
  * It is used just before executing the relevant request.
  */
-export type RequestTransformFunction = (url: string, resourceType?: ResourceType) => RequestParameters | undefined;
+export type RequestTransformFunction = (url: string, resourceType?: ResourceType) => RequestParameters | Promise<RequestParameters> | undefined;
 declare class RequestManager {
 	_transformRequestFn: RequestTransformFunction | null;
 	constructor(transformRequestFn?: RequestTransformFunction | null);
-	transformRequest(url: string, type: ResourceType): RequestParameters;
+	transformRequest(url: string, type: ResourceType): RequestParameters | Promise<RequestParameters>;
 	setTransformRequest(transformRequest: RequestTransformFunction | null): void;
 }
 declare function loadGlyphRange(fontstack: string, range: number, urlTemplate: string, requestManager: RequestManager): Promise<{
@@ -3928,12 +4096,13 @@ declare class RenderToTexture {
 		};
 	};
 	/**
-	 * create a string representation of all to tiles rendered to render-to-texture tiles
-	 * this string representation is used to check if tile should be re-rendered.
+	 * fingerprint string representing the unique state of source tiles and revision
+	 * for a given render-to-texture tile. Used to detect changes and trigger re-rendering.
+	 * Format: "sorted_tile_keys#revision"
 	 */
-	_coordsAscendingStr: {
-		[_: string]: {
-			[_: string]: string;
+	_rttFingerprints: {
+		[sourceId: string]: {
+			[rttTileKey: string]: string;
 		};
 	};
 	/**
@@ -3985,12 +4154,17 @@ type PainterOptions = {
 	zooming: boolean;
 	moving: boolean;
 	fadeDuration: number;
+	anisotropicFilterPitch: number;
 };
 type RenderOptions = {
 	isRenderingToTexture: boolean;
 	isRenderingGlobe: boolean;
 };
-declare class Painter {
+/**
+ * @internal
+ * Initialize a new painter object.
+ */
+export declare class Painter {
 	context: Context;
 	transform: IReadonlyTransform;
 	renderToTexture: RenderToTexture;
@@ -4087,6 +4261,7 @@ declare class Painter {
 	 */
 	maybeDrawDepthAndCoords(requireExact: boolean): void;
 	renderLayer(painter: Painter, tileManager: TileManager, layer: StyleLayer, coords: Array<OverscaledTileID>, renderOptions: RenderOptions): void;
+	static readonly MAX_TEXTURE_POOL_SIZE_PER_BUCKET = 50;
 	saveTileTexture(texture: Texture): void;
 	getTileTexture(size: number): Texture;
 	/**
@@ -4194,11 +4369,14 @@ declare class Terrain {
 		};
 	};
 	constructor(painter: Painter, tileManager: TileManager, options: TerrainSpecification);
+	destroy(): void;
 	/**
-	 * get the elevation-value from original dem-data for a given tile-coordinate
-	 * @param tileID - the tile to get elevation for
-	 * @param x - between 0 .. EXTENT
-	 * @param y - between 0 .. EXTENT
+	 * Get the elevation-value from original dem-data for a given tile-coordinate.
+	 * Coordinates that fall outside `[0, extent)` are normalized to the
+	 * appropriate neighbor tile before lookup.
+	 * @param tileID - the tile to get the elevation for
+	 * @param x - x coordinate relative to the tile, may be outside `[0, extent)`
+	 * @param y - y coordinate relative to the tile, may be outside `[0, extent)`
 	 * @param extent - optional, default 8192
 	 * @returns the elevation
 	 */
@@ -4220,8 +4398,8 @@ declare class Terrain {
 	/**
 	 * Get the elevation for given coordinate in respect of exaggeration.
 	 * @param tileID - the tile id
-	 * @param x - between 0 .. EXTENT
-	 * @param y - between 0 .. EXTENT
+	 * @param x - x coordinate relative to the tile, may be outside `[0, extent)`
+	 * @param y - y coordinate relative to the tile, may be outside `[0, extent)`
 	 * @param extent - optional, default 8192
 	 * @returns the elevation
 	 */
@@ -5133,6 +5311,7 @@ type WorkerTileParameters = TileParameters & {
 	 * This allows the worker to know that it needs to overzoom from a source tile.
 	 */
 	overzoomParameters?: OverzoomParameters;
+	etag?: string;
 };
 type OverzoomParameters = {
 	maxZoomTileID: CanonicalTileID;
@@ -5146,10 +5325,7 @@ type WorkerDEMTileParameters = TileParameters & {
 	blueFactor: number;
 	baseShift: number;
 };
-/**
- * The worker tile's result type
- */
-export type WorkerTileResult = ExpiryData & {
+type WorkerTileWithData = ExpiryData & {
 	buckets: Array<Bucket>;
 	imageAtlas: ImageAtlas;
 	dashPositions: Record<string, DashEntry>;
@@ -5168,7 +5344,13 @@ export type WorkerTileResult = ExpiryData & {
 		[_: string]: StyleImage;
 	} | null;
 	glyphPositions?: GlyphPositions | null;
+	etagUnmodified?: false;
 };
+type WorkerTileWithoutData = ExpiryData & {
+	etagUnmodified: true;
+	resourceTiming?: Array<PerformanceResourceTiming>;
+};
+export type WorkerTileResult = WorkerTileWithData | WorkerTileWithoutData;
 type OverlapMode = "never" | "always" | "cooperative";
 type QueryResult<T> = {
 	key: T;
@@ -5522,6 +5704,7 @@ export declare class Tile {
 	};
 	glyphAtlasImage: AlphaImage;
 	glyphAtlasTexture: Texture;
+	etag?: string;
 	expirationTime: any;
 	expiredRequestCount: number;
 	state: TileState;
@@ -5567,8 +5750,8 @@ export declare class Tile {
 		id: number;
 		stamp: number;
 	}>;
-	rttCoords: {
-		[_: string]: string;
+	rttFingerprint: {
+		[sourceId: string]: string;
 	};
 	/**
 	 * @param tileID - the tile ID
@@ -5597,7 +5780,7 @@ export declare class Tile {
 	 * @param painter - the painter
 	 * @param justReloaded - `true` to just reload
 	 */
-	loadVectorData(data: WorkerTileResult, painter: any, justReloaded?: boolean | null): void;
+	loadVectorData(data: WorkerTileResult, painter: Painter, justReloaded?: boolean | null): void;
 	/**
 	 * Release any data or WebGL resources referenced by this tile.
 	 */
@@ -5633,6 +5816,7 @@ declare class SourceFeatureState {
 	state: LayerFeatureStates;
 	stateChanges: LayerFeatureStates;
 	deletedStates: {};
+	revision: number;
 	constructor();
 	updateState(sourceLayer: string, featureId: number | string, newState: any): void;
 	removeFeatureState(sourceLayer: string, featureId?: number | string, key?: string): void;
@@ -5881,6 +6065,7 @@ type HillshadePaintProps = {
 	"hillshade-highlight-color": DataConstantProperty<ColorArray>;
 	"hillshade-accent-color": DataConstantProperty<Color>;
 	"hillshade-method": DataConstantProperty<"standard" | "basic" | "combined" | "igor" | "multidirectional">;
+	"resampling": DataConstantProperty<"linear" | "nearest">;
 };
 type HillshadePaintPropsPossiblyEvaluated = {
 	"hillshade-illumination-direction": NumberArray;
@@ -5891,6 +6076,7 @@ type HillshadePaintPropsPossiblyEvaluated = {
 	"hillshade-highlight-color": ColorArray;
 	"hillshade-accent-color": Color;
 	"hillshade-method": "standard" | "basic" | "combined" | "igor" | "multidirectional";
+	"resampling": "linear" | "nearest";
 };
 declare class HillshadeStyleLayer extends StyleLayer {
 	_transitionablePaint: Transitionable<HillshadePaintProps>;
@@ -5908,10 +6094,12 @@ declare class HillshadeStyleLayer extends StyleLayer {
 type ColorReliefPaintProps = {
 	"color-relief-opacity": DataConstantProperty<number>;
 	"color-relief-color": ColorRampProperty;
+	"resampling": DataConstantProperty<"linear" | "nearest">;
 };
 type ColorReliefPaintPropsPossiblyEvaluated = {
 	"color-relief-opacity": number;
 	"color-relief-color": ColorRampProperty;
+	"resampling": "linear" | "nearest";
 };
 type ColorRamp = {
 	elevationStops: Array<number>;
@@ -6346,6 +6534,8 @@ declare class Texture {
 	filter: TextureFilter;
 	wrap: TextureWrap;
 	useMipmap: boolean;
+	/** Tracks the original handle to detect corruption after context loss (#2811) */
+	private _ownedHandle;
 	constructor(context: Context, image: TextureImage, format: TextureFormat, options?: {
 		premultiply?: boolean;
 		useMipmap?: boolean;
@@ -6357,6 +6547,10 @@ declare class Texture {
 		x: number;
 		y: number;
 	}): void;
+	private _uploadDomImage;
+	private _uploadRawData;
+	private _updateDomImage;
+	private _updateRawData;
 	bind(filter: TextureFilter, wrap: TextureWrap, minFilter?: TextureFilter | null): void;
 	isSizePowerOfTwo(): boolean;
 	destroy(): void;
@@ -7075,7 +7269,7 @@ export declare class Style extends Evented {
 	 * For example, if a layer filter uses global-state expression, this function will find the source id of that layer.
 	 */
 	_applyGlobalStateChanges(globalStateRefs: string[]): void;
-	loadURL(url: string, options?: StyleSwapOptions & StyleSetterOptions, previousStyle?: StyleSpecification): void;
+	loadURL(url: string, options?: StyleSwapOptions & StyleSetterOptions, previousStyle?: StyleSpecification): Promise<void>;
 	loadJSON(json: StyleSpecification, options?: StyleSetterOptions & StyleSwapOptions, previousStyle?: StyleSpecification): void;
 	loadEmpty(): void;
 	_load(json: StyleSpecification, options: StyleSwapOptions & StyleSetterOptions, previousStyle?: StyleSpecification): void;
@@ -7488,12 +7682,12 @@ export declare abstract class StyleLayer extends Evented {
 }
 type GeoJSONWorkerOptions = {
 	source?: string;
-	cluster?: boolean;
 	geojsonVtOptions?: GeoJSONVTOptions;
-	superclusterOptions?: SuperclusterOptions<any, any>;
-	clusterProperties?: ClusterProperties;
-	filter?: Array<unknown>;
-	promoteId?: string;
+	clusterProperties?: Record<string, [
+		unknown,
+		unknown
+	]>;
+	filter?: FilterSpecification;
 	collectResourceTiming?: boolean;
 };
 type LoadGeoJSONParameters = GeoJSONWorkerOptions & {
@@ -7510,6 +7704,10 @@ type LoadGeoJSONParameters = GeoJSONWorkerOptions & {
 	 * GeoJSONSourceDiff to apply to the existing GeoJSON source data.
 	 */
 	dataDiff?: GeoJSONSourceDiff;
+	/**
+	 * Update the supercluster using the latest worker cluster options.
+	 */
+	updateCluster?: boolean;
 };
 type RTLPluginStatus = "unavailable" | "deferred" | "requested" | "loading" | "loaded" | "error";
 type PluginState = {
@@ -7582,7 +7780,6 @@ export declare const enum MessageType {
 	getClusterChildren = "GCC",
 	getClusterLeaves = "GCL",
 	loadData = "LD",
-	getData = "GD",
 	loadTile = "LT",
 	reloadTile = "RT",
 	getGlyphs = "GG",
@@ -7626,10 +7823,6 @@ export type RequestResponseMessageMap = {
 	[MessageType.loadData]: [
 		LoadGeoJSONParameters,
 		GeoJSONWorkerSourceLoadDataResult
-	];
-	[MessageType.getData]: [
-		LoadGeoJSONParameters,
-		GeoJSON.GeoJSON
 	];
 	[MessageType.loadTile]: [
 		WorkerTileParameters,
@@ -8329,6 +8522,7 @@ declare abstract class Camera extends Evented {
 	_rolling: boolean;
 	_padding: boolean;
 	_bearingSnap: number;
+	_zoomSnap: number;
 	_easeStart: number;
 	_easeOptions: {
 		duration?: number;
@@ -8383,6 +8577,7 @@ declare abstract class Camera extends Evented {
 	abstract _cancelRenderFrame(_: TaskID): void;
 	constructor(transform: ITransform, cameraHelper: ICameraHelper, options: {
 		bearingSnap: number;
+		zoomSnap: number;
 	});
 	/**
 	 * @internal
@@ -8523,7 +8718,7 @@ declare abstract class Camera extends Evented {
 	 */
 	zoomTo(zoom: number, options?: EaseToOptions | null, eventData?: any): this;
 	/**
-	 * Increases the map's zoom level by 1.
+	 * Incrementally increases the map's zoom level by 1, first snapping to the nearest `zoomSnap` increment.
 	 *
 	 * Triggers the following events: `movestart`, `move`, `moveend`, `zoomstart`, `zoom`, and `zoomend`.
 	 *
@@ -8537,7 +8732,7 @@ declare abstract class Camera extends Evented {
 	 */
 	zoomIn(options?: AnimationOptions, eventData?: any): this;
 	/**
-	 * Decreases the map's zoom level by 1.
+	 * Decreases the map's zoom level by 1, first snapping to the nearest `zoomSnap` increment.
 	 *
 	 * Triggers the following events: `movestart`, `move`, `moveend`, `zoomstart`, `zoom`, and `zoomend`.
 	 *
@@ -8584,6 +8779,18 @@ declare abstract class Camera extends Evented {
 	 * @see [Navigate the map with game-like controls](https://maplibre.org/maplibre-gl-js/docs/examples/navigate-the-map-with-game-like-controls/)
 	 */
 	getBearing(): number;
+	/**
+	 * Sets the map's zoom snap level.
+	 *
+	 * @param snap - The zoom snap level to set.
+	 */
+	setZoomSnap(snap: number): this;
+	/**
+	 * Returns the map's current zoom snap level.
+	 *
+	 * @returns The map's current zoom snap level.
+	 */
+	getZoomSnap(): number;
 	/**
 	 * Sets the map's bearing (rotation). The bearing is the compass direction that is "up"; for example, a bearing
 	 * of 90° orients the map so that east is up.
@@ -9043,7 +9250,7 @@ export type HandlerResult = {
 	/**
 	 * A method that can fire a one-off easing by directly changing the map's camera.
 	 */
-	cameraAnimation?: (map: Map$1) => any;
+	cameraAnimation?: (map: Map$1) => void;
 	/**
 	 * The last three properties are needed by only one handler: scrollzoom.
 	 * The DOM event to be used as the `originalEvent` on any camera change events.
@@ -9115,6 +9322,16 @@ declare class HandlerManager {
 			capture?: boolean;
 		} | undefined
 	]>;
+	/**
+	 * @internal
+	 * The document that contains the map container element, for cross-window support.
+	 */
+	get _ownerDocument(): Document;
+	/**
+	 * @internal
+	 * The window that contains the map container element, for cross-window support.
+	 */
+	get _ownerWindow(): Window;
 	constructor(map: Map$1, options: CompleteMapOptions);
 	destroy(): void;
 	_addDefaultHandlers(options: CompleteMapOptions): void;
@@ -9172,7 +9389,7 @@ export type ControlPosition = "top-left" | "top-right" | "bottom-left" | "bottom
  *     }
  *
  *     onRemove() {
- *         this._container.parentNode.removeChild(this._container);
+ *         this._container.remove();
  *         this._map = undefined;
  *     }
  * }
@@ -10243,6 +10460,20 @@ export declare class ScrollZoomHandler implements Handler {
 	reset(): void;
 }
 /**
+ * Callback for customizing what happens when a box zoom gesture ends.
+ */
+export type BoxZoomEndHandler = (map: Map$1, startPos: Point, endPos: Point, originalEvent: MouseEvent) => void;
+/**
+ * A {@link BoxZoomHandler} options object.
+ */
+export type BoxZoomHandlerOptions = {
+	/**
+	 * A callback that runs when the user completes the Shift-drag box gesture.
+	 * Providing this callback suppresses the default fit-to-box zoom behavior.
+	 */
+	boxZoomEnd?: BoxZoomEndHandler;
+};
+/**
  * The `BoxZoomHandler` allows the user to zoom the map to fit within a bounding box.
  * The bounding box is defined by clicking and holding `shift` while dragging the cursor.
  *
@@ -10259,9 +10490,11 @@ export declare class BoxZoomHandler implements Handler {
 	_lastPos: Point;
 	_box: HTMLElement;
 	_clickTolerance: number;
+	_boxZoomEnd?: BoxZoomEndHandler;
 	/** @internal */
 	constructor(map: Map$1, options: {
 		clickTolerance: number;
+		boxZoom?: boolean | BoxZoomHandlerOptions;
 	});
 	/**
 	 * Returns a Boolean indicating whether the "box zoom" interaction is enabled.
@@ -10717,6 +10950,13 @@ export type MapOptions = {
 	 */
 	bearingSnap?: number;
 	/**
+	 * The step increment the zoom level will snap to.
+	 * For example, if `zoomSnap` is 1, the map will snap to whole integers during discrete zoom operations.
+	 * If set to 0, zooming is continuous.
+	 * @defaultValue 0
+	 */
+	zoomSnap?: number;
+	/**
 	 * If set, an {@link AttributionControl} will be added to the map with the provided options.
 	 * To disable the attribution control, pass `false`.
 	 * !!! note
@@ -10775,10 +11015,17 @@ export type MapOptions = {
 	 */
 	maxPitch?: number | null;
 	/**
+	 * The pitch above which to apply anisotropic filtering to the map's raster layers (0-180).
+	 * @defaultValue 20
+	 */
+	anisotropicFilterPitch?: number | null;
+	/**
 	 * If `true`, the "box zoom" interaction is enabled (see {@link BoxZoomHandler}).
+	 * An `Object` value configures {@link BoxZoomHandler} options.
+	 * If `boxZoomEnd` is provided, the callback runs instead of the default fit-to-box zoom.
 	 * @defaultValue true
 	 */
-	boxZoom?: boolean;
+	boxZoom?: boolean | BoxZoomHandlerOptions;
 	/**
 	 * If `true`, the "drag to rotate" interaction is enabled (see {@link DragRotateHandler}).
 	 * @defaultValue true
@@ -10963,7 +11210,9 @@ export type MapOptions = {
 	 */
 	pixelRatio?: number;
 	/**
-	 * If false, style validation will be skipped. Useful in production environment.
+	 * If false, style validation will be skipped.
+	 * Useful in production environments due to enabling tree-shaking of the validation code in some environments and minor performance improvements.
+	 * Disabling this option comes at the cost of less clear error messages
 	 * @defaultValue true
 	 */
 	validateStyle?: boolean;
@@ -11002,6 +11251,15 @@ export type MapOptions = {
 	 * @experimental
 	 */
 	experimentalZoomLevelsToOverscale?: number;
+	/**
+	 * Determines the rotation interaction model:
+	 * - When true: Uses "Orbital" logic where rotation is relative to the pivot center.
+	 *   Dragging right at the top rotates clockwise, while dragging right at the bottom
+	 *   rotates counter-clockwise (like spinning a physical globe).
+	 * - When false: Uses "Linear" logic where horizontal mouse movement translates directly
+	 *   to bearing change regardless of cursor position.
+	 */
+	aroundCenter?: boolean;
 };
 type CompleteMapOptions = Complete<MapOptions>;
 type DelegatedListener = {
@@ -11071,6 +11329,7 @@ declare class Map$1 extends Camera {
 	_styleDirty: boolean;
 	_sourcesDirty: boolean;
 	_placementDirty: boolean;
+	_anisotropicFilterPitch: number;
 	_loaded: boolean;
 	_idleTriggered: boolean;
 	_fullyLoaded: boolean;
@@ -11101,6 +11360,12 @@ declare class Map$1 extends Camera {
 	_terrainDataCallback: (e: MapStyleDataEvent | MapSourceDataEvent) => void;
 	/** @internal */
 	_zoomLevelsToOverscale: number | undefined;
+	/**
+	 * @internal
+	 * The window that owns the map container element, for cross-window support.
+	 * Returns `typeof window` to include global constructors like ResizeObserver.
+	 */
+	get _ownerWindow(): typeof window;
 	/**
 	 * @internal
 	 * image queue throttling handle. To be used later when clean up
@@ -11354,7 +11619,8 @@ declare class Map$1 extends Camera {
 	/**
 	 * Sets or clears the map's minimum zoom level.
 	 * If the map's current zoom level is lower than the new minimum,
-	 * the map will zoom to the new minimum.
+	 * the map will zoom to the new minimum and trigger the following events:
+	 * `movestart`, `move`, `moveend`, `zoomstart`, `zoom`, and `zoomend`.
 	 *
 	 * It is not always possible to zoom out and reach the set `minZoom`.
 	 * Other factors such as map height may restrict zooming. For example,
@@ -11384,7 +11650,8 @@ declare class Map$1 extends Camera {
 	/**
 	 * Sets or clears the map's maximum zoom level.
 	 * If the map's current zoom level is higher than the new maximum,
-	 * the map will zoom to the new maximum.
+	 * the map will zoom to the new maximum and trigger the following events:
+	 * `movestart`, `move`, `moveend`, `zoomstart`, `zoom`, and `zoomend`.
 	 *
 	 * A {@link ErrorEvent} event will be fired if minZoom is out of bounds.
 	 *
@@ -11409,7 +11676,8 @@ declare class Map$1 extends Camera {
 	/**
 	 * Sets or clears the map's minimum pitch.
 	 * If the map's current pitch is lower than the new minimum,
-	 * the map will pitch to the new minimum.
+	 * the map will pitch to the new minimum and trigger the following events:
+	 * `movestart`, `move`, `moveend`, `pitchstart`, `pitch`, and `pitchend`.
 	 *
 	 * A {@link ErrorEvent} event will be fired if minPitch is out of bounds.
 	 *
@@ -11426,7 +11694,8 @@ declare class Map$1 extends Camera {
 	/**
 	 * Sets or clears the map's maximum pitch.
 	 * If the map's current pitch is higher than the new maximum,
-	 * the map will pitch to the new maximum.
+	 * the map will pitch to the new maximum and trigger the following events:
+	 * `movestart`, `move`, `moveend`, `pitchstart`, `pitch`, and `pitchend`.
 	 *
 	 * A {@link ErrorEvent} event will be fired if maxPitch is out of bounds.
 	 *
@@ -11440,6 +11709,32 @@ declare class Map$1 extends Camera {
 	 * @returns The maxPitch
 	 */
 	getMaxPitch(): number;
+	/**
+	 * Returns the map's anisotropic filter pitch.
+	 * If the map is pitched beyond this threshold, anisotropic filtering will be applied to all raster layers.
+	 *
+	 * @returns The anisotropicFilterPitch
+	 * @example
+	 * ```ts
+	 * let anisotropicFilterPitch = map.getAnisotropicFilterPitch();
+	 * ```
+	 */
+	getAnisotropicFilterPitch(): number;
+	/**
+	 * Sets the map's anisotropic filter pitch or reverts it to its default.
+	 *
+	 * A {@link ErrorEvent} event will be fired if anisotropicFilterPitch is out of bounds.
+	 *
+	 * @param anisotropicFilterPitch - The pitch above which to apply anisotropic filtering to the map's raster layers (0-180).
+	 * If `null` or `undefined` is provided, the function reverts to the default pitch threshold (20).
+	 *
+	 *
+	 * @example
+	 * ```ts
+	 * map.setAnisotropicFilterPitch(85);
+	 * ```
+	 */
+	setAnisotropicFilterPitch(anisotropicFilterPitch?: number | null): Map$1;
 	/**
 	 * Returns the state of `renderWorldCopies`. If `true`, multiple copies of the world will be rendered side by side beyond -180 and 180 degrees longitude. If set to `false`:
 	 *
@@ -11923,7 +12218,7 @@ declare class Map$1 extends Camera {
 	_getUIString(key: keyof typeof defaultLocale): string;
 	_updateStyle(style: StyleSpecification | string | null, options?: StyleSwapOptions & StyleOptions): this;
 	_lazyInitEmptyStyle(): void;
-	_diffStyle(style: StyleSpecification | string, options?: StyleSwapOptions & StyleOptions): void;
+	_diffStyle(style: StyleSpecification | string, options?: StyleSwapOptions & StyleOptions): Promise<void>;
 	_updateDiff(style: StyleSpecification, options?: StyleSwapOptions & StyleOptions): void;
 	/**
 	 * Returns the map's MapLibre style object, a JSON object which can be used to recreate the map's style.
@@ -12732,6 +13027,18 @@ declare class Map$1 extends Camera {
 	 */
 	getCanvas(): HTMLCanvasElement;
 	_containerDimensions(): number[];
+	/**
+	 * @internal
+	 * Sets up the ResizeObserver to track container size changes.
+	 * Uses the owning window's ResizeObserver for cross-window support.
+	 */
+	private _setupResizeObserver;
+	/**
+	 * @internal
+	 * Resolves the container option to an HTMLElement.
+	 * Supports string ID, HTMLElement, or cross-window elements (using nodeType check).
+	 */
+	private _resolveContainer;
 	_setupContainer(): void;
 	_resizeCanvas(width: number, height: number, pixelRatio: number): void;
 	_setupPainter(): void;
@@ -13328,10 +13635,7 @@ export declare class Popup extends Evented {
 	 */
 	setPadding(padding?: PaddingOptions): void;
 	_createCloseButton(): void;
-	_onMouseUp: (event: MapMouseEvent) => void;
-	_onMouseMove: (event: MapMouseEvent) => void;
-	_onDrag: (event: MapMouseEvent) => void;
-	_update: (cursor?: Point) => void;
+	_update: (event?: MapLibreEvent | MapMouseEvent) => void;
 	_focusFirstElement(): void;
 	_onClose: () => void;
 }
@@ -13444,6 +13748,8 @@ export type MarkerOptions = {
  * **Event** `drag` of type {@link Event} will be fired while dragging.
  *
  * **Event** `dragend` of type {@link Event} will be fired when the marker is finished being dragged.
+ *
+ * **Event** `click` of type {@link Event} will be fired when the marker is clicked.
  */
 export declare class Marker extends Evented {
 	_map: Map$1;
@@ -13558,6 +13864,7 @@ export declare class Marker extends Evented {
 	  * ```
 	  */
 	setSubpixelPositioning(value: boolean): this;
+	_onClick: (e: MouseEvent) => void;
 	_onKeyPress: (e: KeyboardEvent) => void;
 	_onMapClick: (e: MapMouseEvent) => void;
 	/**
@@ -13952,6 +14259,7 @@ export declare class GeolocateControl extends Evented implements IControl {
 	_onUpdate: () => void;
 	_onError: (error: GeolocationPositionError) => void;
 	_finish: () => void;
+	_onMoveStart: (event: any) => void;
 	_setupUI: () => void;
 	_finishSetupUI: (supported: boolean) => void;
 	/**
@@ -14077,6 +14385,12 @@ export type FullscreenControlOptions = {
 	 * `container` is the [compatible DOM element](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullScreen#Compatible_elements) which should be made full screen. By default, the map container element will be made full screen.
 	 */
 	container?: HTMLElement;
+	/**
+	 * If `true`, the fullscreen control will always use pseudo fullscreen mode (CSS-based, expanding to browser viewport) instead of native fullscreen API.
+	 * This can be useful for faster transitions and to allow multiple maps to be "fullscreen" simultaneously in different browser windows.
+	 * @defaultValue false
+	 */
+	pseudo?: boolean;
 };
 /**
  * A `FullscreenControl` control contains a button for toggling the map in and out of fullscreen mode.
@@ -14107,6 +14421,7 @@ export declare class FullscreenControl extends Evented implements IControl {
 	_fullscreenButton: HTMLButtonElement;
 	_container: HTMLElement;
 	_prevCooperativeGesturesEnabled: boolean;
+	_pseudo: boolean;
 	/**
 	 * @param options - the control's options
 	 */
@@ -14182,7 +14497,7 @@ export declare class GlobeControl implements IControl {
 /**
  * Returns the current time in milliseconds.
  * When time is frozen via setNow(), returns the frozen timestamp.
- * Otherwise returns real browser time (performance.now() or Date.now()).
+ * Otherwise returns real browser time via performance.now().
  *
  * @returns Current time in milliseconds
  * @example
@@ -14279,24 +14594,6 @@ export declare function prewarm(): void;
  * ```
  */
 export declare function clearPrewarmedResources(): void;
-declare class TileBounds {
-	bounds: LngLatBounds;
-	minzoom: number;
-	maxzoom: number;
-	constructor(bounds: [
-		number,
-		number,
-		number,
-		number
-	], minzoom?: number | null, maxzoom?: number | null);
-	validateBounds(bounds: [
-		number,
-		number,
-		number,
-		number
-	]): LngLatBoundsLike;
-	contains(tileID: CanonicalTileID): boolean;
-}
 /**
  * A source containing raster tiles (See the [raster source documentation](https://maplibre.org/maplibre-style-spec/sources/#raster) for detailed documentation of options.)
  *
@@ -14405,102 +14702,6 @@ export declare class RasterDEMTileSource extends RasterTileSource implements Sou
 	}>;
 	unloadTile(tile: Tile): Promise<void>;
 }
-type VectorTileSourceOptions = VectorSourceSpecification & {
-	collectResourceTiming?: boolean;
-	tileSize?: number;
-};
-/**
- * A source containing vector tiles in [Maplibre Vector Tile format](https://maplibre.org/maplibre-tile-spec/) or [Mapbox Vector Tile format](https://docs.mapbox.com/vector-tiles/reference/).
- * (See the [Style Specification](https://maplibre.org/maplibre-style-spec/) for detailed documentation of options.)
- *
- * @group Sources
- *
- * @example
- * ```ts
- * map.addSource('some id', {
- *     type: 'vector',
- *     url: 'https://demotiles.maplibre.org/tiles/tiles.json'
- * });
- * ```
- *
- * @example
- * ```ts
- * map.addSource('some id', {
- *     type: 'vector',
- *     tiles: ['https://d25uarhxywzl1j.cloudfront.net/v0.1/{z}/{x}/{y}.mvt'],
- *     minzoom: 6,
- *     maxzoom: 14
- * });
- * ```
- *
- * @example
- * ```ts
- * map.getSource('some id').setUrl("https://demotiles.maplibre.org/tiles/tiles.json");
- * ```
- *
- * @example
- * ```ts
- * map.getSource('some id').setTiles(['https://d25uarhxywzl1j.cloudfront.net/v0.1/{z}/{x}/{y}.mvt']);
- * ```
- * @see [Add a vector tile source](https://maplibre.org/maplibre-gl-js/docs/examples/add-a-vector-tile-source/)
- */
-export declare class VectorTileSource extends Evented implements Source {
-	type: "vector";
-	id: string;
-	minzoom: number;
-	maxzoom: number;
-	url: string;
-	scheme: string;
-	encoding: string;
-	tileSize: number;
-	promoteId: PromoteIdSpecification;
-	_options: VectorSourceSpecification;
-	_collectResourceTiming: boolean;
-	dispatcher: Dispatcher;
-	map: Map$1;
-	bounds: [
-		number,
-		number,
-		number,
-		number
-	];
-	tiles: Array<string>;
-	tileBounds: TileBounds;
-	reparseOverscaled: boolean;
-	isTileClipped: boolean;
-	_tileJSONRequest: AbortController;
-	_loaded: boolean;
-	constructor(id: string, options: VectorTileSourceOptions, dispatcher: Dispatcher, eventedParent: Evented);
-	load(): Promise<void>;
-	loaded(): boolean;
-	hasTile(tileID: OverscaledTileID): boolean;
-	onAdd(map: Map$1): void;
-	setSourceProperty(callback: Function): void;
-	/**
-	 * Sets the source `tiles` property and re-renders the map.
-	 *
-	 * @param tiles - An array of one or more tile source URLs, as in the TileJSON spec.
-	 */
-	setTiles(tiles: Array<string>): this;
-	/**
-	 * Sets the source `url` property and re-renders the map.
-	 *
-	 * @param url - A URL to a TileJSON resource. Supported protocols are `http:` and `https:`.
-	 */
-	setUrl(url: string): this;
-	onRemove(): void;
-	serialize(): VectorSourceSpecification;
-	loadTile(tile: Tile): Promise<void>;
-	/**
-	 * When the requested tile has a higher canonical Z than source maxzoom, pass overzoom parameters so worker can load the
-	 * deepest tile at source max zoom to generate sub tiles using geojsonvt for highest performance on vector overscaling
-	 */
-	private _getOverzoomParameters;
-	private _afterTileLoadWorkerResponse;
-	abortTile(tile: Tile): Promise<void>;
-	unloadTile(tile: Tile): Promise<void>;
-	hasTransition(): boolean;
-}
 /**
  * A data source containing video.
  * (See the [Style Specification](https://maplibre.org/maplibre-style-spec/#sources-video) for detailed documentation of options.)
@@ -14546,6 +14747,7 @@ export declare class VideoSource extends ImageSource {
 	urls: Array<string>;
 	video: HTMLVideoElement;
 	roundZoom: boolean;
+	private _onPlayingHandler;
 	constructor(id: string, options: VideoSourceSpecification, dispatcher: Dispatcher, eventedParent: Evented);
 	load(): Promise<void>;
 	/**
@@ -14567,6 +14769,7 @@ export declare class VideoSource extends ImageSource {
 	 */
 	getVideo(): HTMLVideoElement;
 	onAdd(map: Map$1): void;
+	onRemove(): void;
 	/**
 	 * Sets the video's coordinates and re-renders the map.
 	 */
@@ -14682,6 +14885,19 @@ export type IndicesType = "32bit" | "16bit" | undefined;
  * @returns Typed arrays of the mesh vertices and indices.
  */
 export declare function createTileMesh(options: CreateTileMeshOptions, forceIndicesSize?: IndicesType): TileMesh;
+/**
+ * The maximum value of a coordinate in the internal tile coordinate system. Coordinates of
+ * all source features normalized to this extent upon load.
+ *
+ * The value is a consequence of the following:
+ *
+ * * Vertex buffer store positions as signed 16 bit integers.
+ * * One bit is lost for signedness to support tile buffers.
+ * * One bit is lost because the line vertex buffer used to pack 1 bit of other data into the int.
+ * * One bit is lost to support features extending past the extent on the right edge of the tile.
+ * * This leaves us with 2^13 = 8192
+ */
+export declare const EXTENT = 8192;
 /**
  * Sets the map's [RTL text plugin](https://www.mapbox.com/mapbox-gl-js/plugins/#mapbox-gl-rtl-text).
  * Necessary for supporting the Arabic and Hebrew languages, which are written right-to-left.
@@ -14822,6 +15038,7 @@ export {
 	LayerSpecification,
 	LightSpecification,
 	Map$1 as Map,
+	Map$1 as MapLibreMap,
 	NumberArray,
 	Padding,
 	Point,
