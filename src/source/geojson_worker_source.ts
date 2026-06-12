@@ -1,5 +1,5 @@
 import {getJSON} from '../util/ajax';
-import {RequestPerformance} from '../util/performance';
+import {RequestPerformance} from '../util/request_performance';
 import {GeoJSONWrapper} from '@maplibre/vt-pbf';
 import {EXTENT} from '../data/extent';
 import {GeoJSONVT, type GeoJSONVTOptions} from '@maplibre/geojson-vt';
@@ -63,14 +63,14 @@ export type LoadGeoJSONParameters = GeoJSONWorkerOptions & {
 export class GeoJSONWorkerSource implements WorkerSource {
     actor: IActor;
     layerIndex: StyleLayerIndex;
-    availableImages: Array<string>;
+    availableImages: string[];
     tileState: WorkerTileState;
 
     _pendingRequest: AbortController;
     _geoJSONIndex: GeoJSONVT;
     _createGeoJSONIndex: typeof createGeoJSONIndex;
 
-    constructor(actor: IActor, layerIndex: StyleLayerIndex, availableImages: Array<string>, createGeoJSONIndexFunc: typeof createGeoJSONIndex = createGeoJSONIndex) {
+    constructor(actor: IActor, layerIndex: StyleLayerIndex, availableImages: string[], createGeoJSONIndexFunc: typeof createGeoJSONIndex = createGeoJSONIndex) {
         this.actor = actor;
         this.layerIndex = layerIndex;
         this.availableImages = availableImages;
@@ -281,7 +281,7 @@ export class GeoJSONWorkerSource implements WorkerSource {
      */
     _filterGeoJSON(data: GeoJSON.GeoJSON, filter: FilterSpecification): GeoJSON.GeoJSON {
         if (data.type !== 'FeatureCollection') return data;
-        
+
         const predicate = this._getFilterPredicate(filter);
         if (!predicate) return data;
 
@@ -298,9 +298,8 @@ export class GeoJSONWorkerSource implements WorkerSource {
         if (compiled.result === 'error') {
             throw new Error(compiled.value.map(err => `${err.key}: ${err.message}`).join(', '));
         }
-        
-        const predicate = (feature: GeoJSON.Feature) => compiled.value.evaluate({zoom: 0}, feature as any);
-        return predicate;
+
+        return (feature: GeoJSON.Feature) => compiled.value.evaluate({zoom: 0}, feature as any);
     }
 
     async removeSource(_params: RemoveSourceParams): Promise<void> {
@@ -311,7 +310,7 @@ export class GeoJSONWorkerSource implements WorkerSource {
         return this._geoJSONIndex.getClusterExpansionZoom(params.clusterId);
     }
 
-    getClusterChildren(params: ClusterIDAndSource): Array<GeoJSON.Feature> {
+    getClusterChildren(params: ClusterIDAndSource): GeoJSON.Feature[] {
         return this._geoJSONIndex.getClusterChildren(params.clusterId);
     }
 
@@ -319,7 +318,7 @@ export class GeoJSONWorkerSource implements WorkerSource {
         clusterId: number;
         limit: number;
         offset: number;
-    }): Array<GeoJSON.Feature> {
+    }): GeoJSON.Feature[] {
         return this._geoJSONIndex.getClusterLeaves(params.clusterId, params.limit, params.offset);
     }
 }

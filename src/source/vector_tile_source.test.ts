@@ -3,6 +3,7 @@ import {fakeServer, type FakeServer} from 'nise';
 import {type Source} from './source';
 import {VectorTileSource} from './vector_tile_source';
 import {type Tile} from '../tile/tile';
+import {AJAXError} from '../util/ajax';
 import {OverscaledTileID} from '../tile/tile_id';
 import {Evented} from '../util/evented';
 import {RequestManager} from '../util/request_manager';
@@ -115,17 +116,15 @@ describe('VectorTileSource', () => {
     test('fires "dataloading" event', async () => {
         server.respondWith('/source.json', JSON.stringify(fixturesSource));
         const evented = new Evented();
-        let dataloadingFired = false;
-        evented.on('dataloading', () => {
-            dataloadingFired = true;
-        });
+        const dataloadingSpy = vi.fn();
+        evented.on('dataloading', dataloadingSpy);
         const source = createSource({url: '/source.json', eventedParent: evented});
         const promise = waitForMetadataEvent(source);
         await sleep(0);
         server.respond();
 
         await promise;
-        expect(dataloadingFired).toBeTruthy();
+        expect(dataloadingSpy).toHaveBeenCalled();
     });
 
     test('fires "error" event if TileJSON request fails', async () => {
@@ -254,9 +253,7 @@ describe('VectorTileSource', () => {
         const source = createSource({url: '/source.json'});
         source.dispatcher = getWrapDispatcher()({
             sendAsync(_message) {
-                const error = new Error();
-                (error as any).status = 404;
-                return Promise.reject(error);
+                return Promise.reject(new AJAXError(404, 'Not Found', 'http://localhost/tile', new Blob()));
             }
         });
         const promise = waitForMetadataEvent(source);

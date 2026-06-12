@@ -1,6 +1,6 @@
 /**
  * MapLibre GL JS
- * @license 3-Clause BSD. Full text of license: https://github.com/maplibre/maplibre-gl-js/blob/v5.21.1/LICENSE.txt
+ * @license 3-Clause BSD. Full text of license: https://github.com/maplibre/maplibre-gl-js/blob/v5.24.0/LICENSE.txt
  */
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -10,7 +10,7 @@ typeof define === 'function' && define.amd ? define(['exports'], factory) :
 
 var name = "maplibre-gl";
 var description = "BSD licensed community fork of mapbox-gl, a WebGL interactive maps library";
-var version$2 = "5.21.1";
+var version$2 = "5.24.0";
 var main = "dist/maplibre-gl.js";
 var style = "dist/maplibre-gl.css";
 var license = "BSD-3-Clause";
@@ -28,12 +28,12 @@ var type = "module";
 var dependencies = {
 	"@mapbox/jsonlint-lines-primitives": "^2.0.2",
 	"@mapbox/point-geometry": "^1.1.0",
-	"@mapbox/tiny-sdf": "^2.0.7",
+	"@mapbox/tiny-sdf": "^2.1.0",
 	"@mapbox/unitbezier": "^0.0.1",
 	"@mapbox/vector-tile": "^2.0.4",
 	"@mapbox/whoots-js": "^3.1.0",
-	"@maplibre/geojson-vt": "^6.0.4",
-	"@maplibre/maplibre-gl-style-spec": "^24.7.0",
+	"@maplibre/geojson-vt": "^6.1.0",
+	"@maplibre/maplibre-gl-style-spec": "^24.8.1",
 	"@maplibre/mlt": "^1.1.8",
 	"@maplibre/vt-pbf": "^4.3.0",
 	"@types/geojson": "^7946.0.16",
@@ -47,13 +47,12 @@ var dependencies = {
 	tinyqueue: "^3.0.0"
 };
 var devDependencies = {
-	"@mapbox/mapbox-gl-rtl-text": "^0.3.0",
+	"@mapbox/mapbox-gl-rtl-text": "^0.4.0",
 	"@mapbox/mvt-fixtures": "^3.10.0",
 	"@rollup/plugin-commonjs": "^29.0.2",
 	"@rollup/plugin-json": "^6.1.0",
 	"@rollup/plugin-node-resolve": "^16.0.3",
 	"@rollup/plugin-replace": "^6.0.3",
-	"@rollup/plugin-strip": "^3.0.4",
 	"@rollup/plugin-terser": "^1.0.0",
 	"@rollup/plugin-typescript": "^12.1.4",
 	"@stylistic/eslint-plugin": "^5.10.0",
@@ -62,11 +61,11 @@ var devDependencies = {
 	"@types/earcut": "^3.0.0",
 	"@types/eslint": "^9.6.1",
 	"@types/gl": "^6.0.5",
-	"@types/jsdom": "^28.0.0",
+	"@types/jsdom": "^28.0.1",
 	"@types/minimist": "^1.2.5",
 	"@types/murmurhash-js": "^1.0.7",
 	"@types/nise": "^1.4.5",
-	"@types/node": "^25.5.0",
+	"@types/node": "^25.6.0",
 	"@types/offscreencanvas": "^2019.7.3",
 	"@types/pixelmatch": "^5.2.6",
 	"@types/pngjs": "^6.0.5",
@@ -75,24 +74,24 @@ var devDependencies = {
 	"@types/request": "^2.48.13",
 	"@types/shuffle-seed": "^1.1.3",
 	"@types/window-or-global": "^1.0.6",
-	"@typescript-eslint/eslint-plugin": "^8.57.1",
-	"@typescript-eslint/parser": "^8.57.1",
+	"@typescript-eslint/eslint-plugin": "^8.58.2",
+	"@typescript-eslint/parser": "^8.58.1",
 	"@unicode/unicode-17.0.0": "^1.6.16",
-	"@vitest/coverage-v8": "4.1.0",
-	"@vitest/eslint-plugin": "^1.6.13",
-	"@vitest/ui": "4.1.0",
+	"@vitest/coverage-v8": "4.1.4",
+	"@vitest/eslint-plugin": "^1.6.16",
+	"@vitest/ui": "4.1.4",
 	address: "^2.0.3",
-	autoprefixer: "^10.4.27",
+	autoprefixer: "^10.5.0",
 	benchmark: "^2.1.4",
-	canvas: "^3.2.2",
-	cspell: "^9.7.0",
-	cssnano: "^7.1.3",
+	canvas: "^3.2.3",
+	cspell: "^10.0.0",
+	cssnano: "^7.1.5",
 	d3: "^7.9.0",
 	"d3-queue": "^3.0.7",
-	"devtools-protocol": "^0.0.1602427",
-	diff: "^8.0.3",
+	"devtools-protocol": "^0.0.1617013",
+	diff: "^9.0.0",
 	"dts-bundle-generator": "^9.5.1",
-	esbuild: "^0.27.4",
+	esbuild: "^0.28.0",
 	eslint: "^9.39.2",
 	"eslint-plugin-html": "^8.1.4",
 	"eslint-plugin-import": "^2.32.0",
@@ -100,28 +99,28 @@ var devDependencies = {
 	"eslint-plugin-tsdoc": "0.5.2",
 	expect: "^30.3.0",
 	glob: "^13.0.6",
-	globals: "^17.4.0",
+	globals: "^17.5.0",
 	"is-builtin-module": "^5.0.0",
-	jsdom: "^29.0.0",
-	"junit-report-builder": "^5.1.1",
+	jsdom: "^29.0.2",
+	"junit-report-builder": "^5.1.2",
 	minimist: "^1.2.8",
 	"mock-geolocation": "^1.0.11",
-	"monocart-coverage-reports": "^2.12.9",
-	nise: "^6.1.4",
+	"monocart-coverage-reports": "^2.12.10",
+	nise: "^6.1.5",
 	"npm-font-open-sans": "^1.1.0",
 	"npm-run-all": "^4.1.5",
 	"pdf-merger-js": "^5.1.2",
 	pixelmatch: "^7.1.0",
 	pngjs: "^7.0.0",
-	postcss: "^8.5.8",
+	postcss: "^8.5.10",
 	"postcss-cli": "^11.0.1",
 	"postcss-inline-svg": "^6.0.0",
 	"pretty-bytes": "^7.1.0",
-	puppeteer: "^24.40.0",
-	react: "^19.2.4",
-	"react-dom": "^19.2.4",
+	puppeteer: "^24.41.0",
+	react: "^19.2.5",
+	"react-dom": "^19.2.5",
 	regenerate: "^1.4.2",
-	rollup: "^4.60.0",
+	rollup: "^4.60.2",
 	"rollup-plugin-sourcemaps2": "^0.5.6",
 	"rollup-plugin-visualizer": "^7.0.1",
 	rw: "^1.3.3",
@@ -129,14 +128,14 @@ var devDependencies = {
 	sharp: "^0.34.5",
 	"shuffle-seed": "^1.1.6",
 	st: "^3.0.3",
-	stylelint: "^16.26.1",
-	"stylelint-config-standard": "^39.0.1",
+	stylelint: "^17.8.0",
+	"stylelint-config-standard": "^40.0.0",
 	"ts-node": "^10.9.2",
 	tslib: "^2.8.1",
-	typedoc: "^0.28.17",
+	typedoc: "^0.28.19",
 	"typedoc-plugin-markdown": "^4.11.0",
-	typescript: "^5.9.3",
-	vitest: "4.1.0",
+	typescript: "^6.0.3",
+	vitest: "4.1.4",
 	"vitest-webgl-canvas-mock": "^1.1.0"
 };
 var scripts = {
@@ -166,7 +165,7 @@ var scripts = {
 	start: "run-p watch-css watch-dev start-server",
 	"start-bench": "run-p watch-css watch-benchmarks start-server",
 	lint: "eslint",
-	"lint-css": "stylelint **/*.css --fix -f verbose",
+	"lint-css": "stylelint **/*.css verbose",
 	test: "run-p lint lint-css test-render test-unit test-integration test-build",
 	"test-unit": "vitest run --config vitest.config.unit.ts",
 	"test-unit-ci": "vitest run --config vitest.config.unit.ts --coverage",
@@ -1074,11 +1073,9 @@ var UnitBezier$1 = /*@__PURE__*/getDefaultExportFromCjs$1(unitbezierExports$1);
 
 let supportsOffscreenCanvas;
 function offscreenCanvasSupported() {
-    if (supportsOffscreenCanvas == null) {
-        supportsOffscreenCanvas = typeof OffscreenCanvas !== 'undefined' &&
-            new OffscreenCanvas(1, 1).getContext('2d') &&
-            typeof createImageBitmap === 'function';
-    }
+    supportsOffscreenCanvas !== null && supportsOffscreenCanvas !== void 0 ? supportsOffscreenCanvas : (supportsOffscreenCanvas = typeof OffscreenCanvas !== 'undefined' &&
+        new OffscreenCanvas(1, 1).getContext('2d') &&
+        typeof createImageBitmap === 'function');
     return supportsOffscreenCanvas;
 }
 
@@ -8900,6 +8897,16 @@ function pixelsToTileUnits(tile, pixelValue, z) {
 }
 
 /**
+ * Ensures that a value is an `Error` instance.
+ * If the value is already an `Error`, it is returned as-is.
+ * Otherwise, a new `Error` is created from its string representation.
+ */
+function ensureError(e) {
+    if (e instanceof Error)
+        return e;
+    return new Error(typeof e === 'string' ? e : String(e));
+}
+/**
  * Returns a new 64 bit float vec4 of zeroes.
  */
 function createVec4f64() { return new Float64Array(4); }
@@ -9279,8 +9286,7 @@ function extend(dest, ...sources) {
  */
 function pick(src, properties) {
     const result = {};
-    for (let i = 0; i < properties.length; i++) {
-        const k = properties[i];
+    for (const k of properties) {
         if (k in src) {
             result[k] = src[k];
         }
@@ -9407,8 +9413,8 @@ function clone(input) {
  * Check if two arrays have at least one common element.
  */
 function arraysIntersect(a, b) {
-    for (let l = 0; l < a.length; l++) {
-        if (b.indexOf(a[l]) >= 0)
+    for (const element of a) {
+        if (b.includes(element))
             return true;
     }
     return false;
@@ -9581,7 +9587,7 @@ const arrayBufferToImageBitmap = (data) => __awaiter(void 0, void 0, void 0, fun
         return createImageBitmap(blob);
     }
     catch (e) {
-        throw new Error(`Could not load image because of ${e.message}. Please make sure to use a supported image type such as PNG or JPEG. Note that SVGs are not supported.`);
+        throw new Error(`Could not load image because of ${ensureError(e).message}. Please make sure to use a supported image type such as PNG or JPEG. Note that SVGs are not supported.`);
     }
 });
 const transparentPngUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQYV2NgAAIAAAUAAarVyFEAAAAASUVORK5CYII=';
@@ -9605,7 +9611,7 @@ const arrayBufferToImage = (data) => {
             // but don't free the image immediately because it might be uploaded in the next frame
             // https://github.com/mapbox/mapbox-gl-js/issues/10226
             img.onload = null;
-            window.requestAnimationFrame(() => { img.src = transparentPngUrl; });
+            window.requestAnimationFrame(() => img.src = transparentPngUrl);
         };
         img.onerror = () => reject(new Error('Could not load image. Please make sure to use a supported image type such as PNG or JPEG. Note that SVGs are not supported.'));
         const blob = new Blob([new Uint8Array(data)], { type: 'image/png' });
@@ -9898,7 +9904,18 @@ class AbortError extends Error {
  * @returns - true if the error is an abort error
  */
 function isAbortError(error) {
-    return error.name === ABORT_ERROR;
+    return error instanceof Error && error.name === ABORT_ERROR;
+}
+/**
+ * Throws an AbortError if the provided abort signal has already been aborted.
+ *
+ * @param signal - The abort signal to check.
+ * @throws AbortError If the signal is aborted.
+ */
+function throwIfAborted(signal) {
+    if (signal.aborted) {
+        throw new AbortError(signal.reason);
+    }
 }
 
 let linkEl;
@@ -9955,8 +9972,7 @@ const browser = {
         return context;
     },
     resolveURL(path) {
-        if (!linkEl)
-            linkEl = document.createElement('a');
+        linkEl || (linkEl = document.createElement('a'));
         linkEl.href = path;
         return linkEl.href;
     },
@@ -9968,9 +9984,7 @@ const browser = {
         if (!matchMedia)
             return false;
         //Lazily initialize media query
-        if (reducedMotionQuery == null) {
-            reducedMotionQuery = matchMedia('(prefers-reduced-motion: reduce)');
-        }
+        reducedMotionQuery !== null && reducedMotionQuery !== void 0 ? reducedMotionQuery : (reducedMotionQuery = matchMedia('(prefers-reduced-motion: reduce)'));
         return reducedMotionQuery.matches;
     },
     set prefersReducedMotion(value) {
@@ -10088,6 +10102,7 @@ function isTimeFrozen() {
     return timeManager.isFrozen();
 }
 
+var _a;
 class DOM {
     static create(tagName, className, container) {
         const el = window.document.createElement(tagName);
@@ -10098,8 +10113,7 @@ class DOM {
         return el;
     }
     static createNS(namespaceURI, tagName) {
-        const el = window.document.createElementNS(namespaceURI, tagName);
-        return el;
+        return window.document.createElementNS(namespaceURI, tagName);
     }
     static disableDrag() {
         if (DOM.docStyle && DOM.selectProp) {
@@ -10146,8 +10160,8 @@ class DOM {
     static touchPos(el, touches) {
         const points = [];
         const scale = DOM.getScale(el);
-        for (let i = 0; i < touches.length; i++) {
-            points.push(DOM.getPoint(el, scale, touches[i]));
+        for (const touch of touches) {
+            points.push(DOM.getPoint(el, scale, touch));
         }
         return points;
     }
@@ -10202,7 +10216,7 @@ class DOM {
         }
     }
 }
-DOM.docStyle = typeof window !== 'undefined' && window.document && window.document.documentElement.style;
+DOM.docStyle = typeof window !== 'undefined' && ((_a = window.document) === null || _a === void 0 ? void 0 : _a.documentElement.style);
 DOM.selectProp = !DOM.docStyle || 'userSelect' in DOM.docStyle ? 'userSelect' : 'webkitUserSelect';
 
 const config = {
@@ -10242,6 +10256,10 @@ function getProtocol(url) {
  *      throw new Error('someErrorMessage');
  * });
  * ```
+ * @see [Add a COG raster source](https://maplibre.org/maplibre-gl-js/docs/examples/add-a-cog-raster-source/)
+ * @see [Add Contour Lines](https://maplibre.org/maplibre-gl-js/docs/examples/add-contour-lines/)
+ * @see [PMTiles source and protocol](https://maplibre.org/maplibre-gl-js/docs/examples/pmtiles-source-and-protocol/)
+ * @see [Use addProtocol to Transform Feature Properties](https://maplibre.org/maplibre-gl-js/docs/examples/use-addprotocol-to-transform-feature-properties/)
  */
 function addProtocol(customProtocol, loadFn) {
     config.REGISTERED_PROTOCOLS[customProtocol] = loadFn;
@@ -10287,9 +10305,12 @@ class AJAXError extends Error {
  * to the string(!) "null" (Firefox), or "file://" (Chrome, Safari, Edge),
  * and we will set an empty referrer. Otherwise, we're using the document's URL.
  */
-const getReferrer = () => isWorker(self) ?
-    self.worker && self.worker.referrer :
-    (window.location.protocol === 'blob:' ? window.parent : window).location.href;
+const getReferrer = () => {
+    var _a;
+    return isWorker(self) ?
+        (_a = self.worker) === null || _a === void 0 ? void 0 : _a.referrer :
+        (window.location.protocol === 'blob:' ? window.parent : window).location.href;
+};
 /**
  * Determines whether a URL is a file:// URL. This is obviously the case if it begins
  * with file://. Relative URLs are also file:// URLs iff the original document was loaded
@@ -10297,7 +10318,7 @@ const getReferrer = () => isWorker(self) ?
  * @param url - The URL to check
  * @returns `true` if the URL is a file:// URL, `false` otherwise
  */
-const isFileURL = url => /^file:/.test(url) || (/^file:/.test(getReferrer()) && !/^\w+:/.test(url));
+const isFileURL = url => { var _a; return url.startsWith('file:') || (((_a = getReferrer()) === null || _a === void 0 ? void 0 : _a.startsWith('file:')) && !/^\w+:/.test(url)); };
 function makeFetchRequest(requestParameters, abortController) {
     return __awaiter(this, void 0, void 0, function* () {
         const request = new Request(requestParameters.url, {
@@ -10326,7 +10347,7 @@ function makeFetchRequest(requestParameters, abortController) {
             // When the error is due to CORS policy, DNS issue or malformed URL, the fetch call does not resolve but throws a generic TypeError instead.
             // It is preferable to throw an AJAXError so that the Map event "error" can catch it and still have
             // access to the faulty url. In such case, we provide the arbitrary HTTP error code of `0`.
-            throw new AJAXError(0, e.message, requestParameters.url, new Blob());
+            throw new AJAXError(0, ensureError(e).message, requestParameters.url, new Blob());
         }
         if (!response.ok) {
             const body = yield response.blob();
@@ -10343,7 +10364,7 @@ function makeFetchRequest(requestParameters, abortController) {
             parsePromise = response.text();
         }
         const result = yield parsePromise;
-        abortController.signal.throwIfAborted();
+        throwIfAborted(abortController.signal);
         return { data: result, cacheControl: response.headers.get('Cache-Control'), expires: response.headers.get('Expires'), etag: response.headers.get('ETag') };
     });
 }
@@ -10408,24 +10429,32 @@ function makeXMLHttpRequest(requestParameters, abortController) {
  * @returns a promise resolving to the response, including cache control and expiry data
  */
 const makeRequest = function (requestParameters, abortController) {
-    if (/:\/\//.test(requestParameters.url) && !(/^https?:|^file:/.test(requestParameters.url))) {
-        const protocolLoadFn = getProtocol(requestParameters.url);
-        if (protocolLoadFn) {
-            return protocolLoadFn(requestParameters, abortController);
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a, _b;
+        if (requestParameters.url.includes('://') && !(/^https?:|^file:/.test(requestParameters.url))) {
+            const protocolLoadFn = getProtocol(requestParameters.url);
+            if (protocolLoadFn) {
+                const response = yield protocolLoadFn(requestParameters, abortController);
+                if (!response.data && requestParameters.type === 'arrayBuffer') {
+                    // A successful array buffer request should always return data even if empty
+                    return extend(response, { data: new ArrayBuffer(0) });
+                }
+                return response;
+            }
+            if (isWorker(self) && ((_a = self.worker) === null || _a === void 0 ? void 0 : _a.actor)) {
+                return self.worker.actor.sendAsync({ type: "GR" /* MessageType.getResource */, data: requestParameters, targetMapId: GLOBAL_DISPATCHER_ID }, abortController);
+            }
         }
-        if (isWorker(self) && self.worker && self.worker.actor) {
-            return self.worker.actor.sendAsync({ type: "GR" /* MessageType.getResource */, data: requestParameters, targetMapId: GLOBAL_DISPATCHER_ID }, abortController);
+        if (!isFileURL(requestParameters.url)) {
+            if (fetch && Request && AbortController && Object.hasOwn(Request.prototype, 'signal')) {
+                return makeFetchRequest(requestParameters, abortController);
+            }
+            if (isWorker(self) && ((_b = self.worker) === null || _b === void 0 ? void 0 : _b.actor)) {
+                return self.worker.actor.sendAsync({ type: "GR" /* MessageType.getResource */, data: requestParameters, mustQueue: true, targetMapId: GLOBAL_DISPATCHER_ID }, abortController);
+            }
         }
-    }
-    if (!isFileURL(requestParameters.url)) {
-        if (fetch && Request && AbortController && Object.prototype.hasOwnProperty.call(Request.prototype, 'signal')) {
-            return makeFetchRequest(requestParameters, abortController);
-        }
-        if (isWorker(self) && self.worker && self.worker.actor) {
-            return self.worker.actor.sendAsync({ type: "GR" /* MessageType.getResource */, data: requestParameters, mustQueue: true, targetMapId: GLOBAL_DISPATCHER_ID }, abortController);
-        }
-    }
-    return makeXMLHttpRequest(requestParameters, abortController);
+        return makeXMLHttpRequest(requestParameters, abortController);
+    });
 };
 const getJSON = (requestParameters, abortController) => {
     return makeRequest(extend(requestParameters, { type: 'json' }), abortController);
@@ -10439,8 +10468,8 @@ function sameOrigin(inComingUrl) {
     // also check data URL
     if (!inComingUrl ||
         inComingUrl.indexOf('://') <= 0 || // relative URL
-        inComingUrl.indexOf('data:image/') === 0 || // data image URL
-        inComingUrl.indexOf('blob:') === 0) { // blob
+        inComingUrl.startsWith('data:image/') || // data image URL
+        inComingUrl.startsWith('blob:')) { // blob
         return true;
     }
     const urlObj = new URL(inComingUrl);
@@ -10538,9 +10567,7 @@ var ImageRequest;
      */
     ImageRequest.getImage = (requestParameters, abortController, supportImageRefresh = true) => {
         return new Promise((resolve, reject) => {
-            if (!requestParameters.headers) {
-                requestParameters.headers = {};
-            }
+            requestParameters.headers || (requestParameters.headers = {});
             requestParameters.headers.accept = 'image/webp,*/*';
             extend(requestParameters, { type: 'image' });
             const request = {
@@ -10605,7 +10632,7 @@ var ImageRequest;
         }
         catch (err) {
             delete itemInQueue.abortController;
-            onError(err);
+            onError(ensureError(err));
         }
         finally {
             currentParallelImageRequests--;
@@ -10679,14 +10706,15 @@ class RequestManager {
 }
 
 function _addEventListener(type, listener, listenerList) {
-    const listenerExists = listenerList[type] && listenerList[type].indexOf(listener) !== -1;
+    var _a;
+    const listenerExists = (_a = listenerList[type]) === null || _a === void 0 ? void 0 : _a.includes(listener);
     if (!listenerExists) {
-        listenerList[type] = listenerList[type] || [];
+        listenerList[type] || (listenerList[type] = []);
         listenerList[type].push(listener);
     }
 }
 function _removeEventListener(type, listener, listenerList) {
-    if (listenerList && listenerList[type]) {
+    if (listenerList === null || listenerList === void 0 ? void 0 : listenerList[type]) {
         const index = listenerList[type].indexOf(listener);
         if (index !== -1) {
             listenerList[type].splice(index, 1);
@@ -10725,7 +10753,7 @@ class Evented {
      * extended with `target` and `type` properties.
      */
     on(type, listener) {
-        this._listeners = this._listeners || {};
+        this._listeners || (this._listeners = {});
         _addEventListener(type, listener, this._listeners);
         return {
             unsubscribe: () => {
@@ -10757,11 +10785,12 @@ class Evented {
         if (!listener) {
             return new Promise((resolve) => this.once(type, resolve));
         }
-        this._oneTimeListeners = this._oneTimeListeners || {};
+        this._oneTimeListeners || (this._oneTimeListeners = {});
         _addEventListener(type, listener, this._oneTimeListeners);
         return this;
     }
     fire(event, properties) {
+        var _a, _b;
         // Compatibility with (type: string, properties: Object) signature from previous versions.
         // See https://github.com/mapbox/mapbox-gl-js/issues/6522,
         //     https://github.com/mapbox/mapbox-gl-draw/issues/766
@@ -10772,11 +10801,11 @@ class Evented {
         if (this.listens(type)) {
             event.target = this;
             // make sure adding or removing listeners inside other listeners won't cause an infinite loop
-            const listeners = this._listeners && this._listeners[type] ? this._listeners[type].slice() : [];
+            const listeners = ((_a = this._listeners) === null || _a === void 0 ? void 0 : _a[type]) ? this._listeners[type].slice() : [];
             for (const listener of listeners) {
                 listener.call(this, event);
             }
-            const oneTimeListeners = this._oneTimeListeners && this._oneTimeListeners[type] ? this._oneTimeListeners[type].slice() : [];
+            const oneTimeListeners = ((_b = this._oneTimeListeners) === null || _b === void 0 ? void 0 : _b[type]) ? this._oneTimeListeners[type].slice() : [];
             for (const listener of oneTimeListeners) {
                 _removeEventListener(type, listener, this._oneTimeListeners);
                 listener.call(this, event);
@@ -10801,9 +10830,10 @@ class Evented {
      * @returns `true` if there is at least one registered listener for specified event type, `false` otherwise
      */
     listens(type) {
-        return ((this._listeners && this._listeners[type] && this._listeners[type].length > 0) ||
-            (this._oneTimeListeners && this._oneTimeListeners[type] && this._oneTimeListeners[type].length > 0) ||
-            (this._eventedParent && this._eventedParent.listens(type)));
+        var _a, _b, _c, _d, _e;
+        return ((((_b = (_a = this._listeners) === null || _a === void 0 ? void 0 : _a[type]) === null || _b === void 0 ? void 0 : _b.length) > 0) ||
+            (((_d = (_c = this._oneTimeListeners) === null || _c === void 0 ? void 0 : _c[type]) === null || _d === void 0 ? void 0 : _d.length) > 0) ||
+            ((_e = this._eventedParent) === null || _e === void 0 ? void 0 : _e.listens(type)));
     }
     /**
      * Bubble all events fired by this instance of Evented to this parent instance of Evented.
@@ -11415,10 +11445,11 @@ var layout_line = {
 		expression: {
 			interpolated: false,
 			parameters: [
-				"zoom"
+				"zoom",
+				"feature"
 			]
 		},
-		"property-type": "data-constant"
+		"property-type": "data-driven"
 	},
 	"line-join": {
 		type: "enum",
@@ -11451,10 +11482,11 @@ var layout_line = {
 		expression: {
 			interpolated: true,
 			parameters: [
-				"zoom"
+				"zoom",
+				"feature"
 			]
 		},
-		"property-type": "data-constant"
+		"property-type": "data-driven"
 	},
 	"line-round-limit": {
 		type: "number",
@@ -11467,10 +11499,11 @@ var layout_line = {
 		expression: {
 			interpolated: true,
 			parameters: [
-				"zoom"
+				"zoom",
+				"feature"
 			]
 		},
-		"property-type": "data-constant"
+		"property-type": "data-driven"
 	},
 	"line-sort-key": {
 		type: "number",
@@ -19451,7 +19484,7 @@ CompoundExpression.register(expressions$1, {
     join: [
         StringType,
         [array(StringType), StringType],
-        (ctx, [arr, delim]) => arr.value.join(delim.evaluate(ctx))
+        (ctx, [arr, delim]) => arr.evaluate(ctx).join(delim.evaluate(ctx))
     ],
     'resolved-locale': [
         StringType,
@@ -22964,7 +22997,7 @@ const validatePaintProperty = validateStyle.paintProperty;
 const validateLayoutProperty = validateStyle.layoutProperty;
 function emitValidationErrors$1(emitter, errors) {
     let hasErrors = false;
-    if (errors && errors.length) {
+    if (errors === null || errors === void 0 ? void 0 : errors.length) {
         for (const error of errors) {
             emitter.fire(new ErrorEvent(new Error(error.message)));
             hasErrors = true;
@@ -23062,8 +23095,7 @@ class TransferableGridIndex {
         if (cell !== null) {
             const keys = this.keys;
             const bboxes = this.bboxes;
-            for (let u = 0; u < cell.length; u++) {
-                const uid = cell[u];
+            for (const uid of cell) {
                 if (seenUids[uid] === undefined) {
                     const offset = uid * 4;
                     if (intersectionTest ?
@@ -23109,8 +23141,8 @@ class TransferableGridIndex {
         const cells = this.cells;
         const metadataLength = NUM_PARAMS + this.cells.length + 1 + 1;
         let totalCellLength = 0;
-        for (let i = 0; i < this.cells.length; i++) {
-            totalCellLength += this.cells[i].length;
+        for (const cell of this.cells) {
+            totalCellLength += cell.length;
         }
         const array = new Int32Array(metadataLength + totalCellLength + this.keys.length + this.bboxes.length);
         array[0] = this.extent;
@@ -23180,8 +23212,9 @@ for (const name in expressions$1) {
     register(`Expression_${name}`, expressions$1[name]);
 }
 function isArrayBuffer(value) {
+    var _a;
     return value && typeof ArrayBuffer !== 'undefined' &&
-        (value instanceof ArrayBuffer || (value.constructor && value.constructor.name === 'ArrayBuffer'));
+        (value instanceof ArrayBuffer || (((_a = value.constructor) === null || _a === void 0 ? void 0 : _a.name) === 'ArrayBuffer'));
 }
 function getClassRegistryKey(input) {
     const klass = input.constructor;
@@ -23192,10 +23225,7 @@ function isRegistered(input) {
         return false;
     }
     const classRegistryKey = getClassRegistryKey(input);
-    if (classRegistryKey && classRegistryKey !== 'Object') {
-        return true;
-    }
-    return false;
+    return classRegistryKey && classRegistryKey !== 'Object';
 }
 function isSerializeHandledByBuiltin(input) {
     return (!isRegistered(input) && (input === null ||
@@ -23235,9 +23265,8 @@ function serialize(input, transferables) {
             }
         }
         if (ArrayBuffer.isView(input)) {
-            const view = input;
             if (transferables) {
-                transferables.push(view.buffer);
+                transferables.push(input.buffer);
             }
         }
         if (input instanceof ImageData) {
@@ -23277,10 +23306,10 @@ function serialize(input, transferables) {
         for (const key in input) {
             if (!input.hasOwnProperty(key))
                 continue;
-            if (registry[classRegistryKey].omit.indexOf(key) >= 0)
+            if (registry[classRegistryKey].omit.includes(key))
                 continue;
             const property = input[key];
-            properties[key] = registry[classRegistryKey].shallow.indexOf(key) >= 0 ?
+            properties[key] = registry[classRegistryKey].shallow.includes(key) ?
                 property :
                 serialize(property, transferables);
         }
@@ -23289,7 +23318,7 @@ function serialize(input, transferables) {
         }
     }
     else {
-        if (transferables && properties === transferables[transferables.length - 1]) {
+        if (properties === (transferables === null || transferables === void 0 ? void 0 : transferables[transferables.length - 1])) {
             throw new Error('statically serialized object won\'t survive transfer of $name property');
         }
     }
@@ -23327,7 +23356,7 @@ function deserialize$1(input) {
         if (key === '$name')
             continue;
         const value = input[key];
-        result[key] = registry[classRegistryKey].shallow.indexOf(key) >= 0 ? value : deserialize$1(value);
+        result[key] = registry[classRegistryKey].shallow.includes(key) ? value : deserialize$1(value);
     }
     return result;
 }
@@ -23540,10 +23569,7 @@ function charInSupportedScript(char, canRenderRTL) {
     if (!canRenderRTL && charInRTLScript(char)) {
         return false;
     }
-    if (codePointRequiresComplexTextShaping(char)) {
-        return false;
-    }
-    return true;
+    return !codePointRequiresComplexTextShaping(char);
 }
 function stringContainsRTLText(chars) {
     for (const char of chars) {
@@ -23752,14 +23778,17 @@ class TransitionablePropertyValue {
 class Transitionable {
     constructor(properties, globalState) {
         this._properties = properties;
-        this._values = Object.create(properties.defaultTransitionablePropertyValues);
+        this._values = (Object.create(properties.defaultTransitionablePropertyValues));
         this._globalState = globalState;
+    }
+    hasProperty(name) {
+        return name in this._properties.defaultTransitionablePropertyValues;
     }
     getValue(name) {
         return clone(this._values[name].value.value);
     }
     setValue(name, value) {
-        if (!Object.prototype.hasOwnProperty.call(this._values, name)) {
+        if (!Object.hasOwn(this._values, name)) {
             this._values[name] = new TransitionablePropertyValue(this._values[name].property, this._globalState);
         }
         // Note that we do not _remove_ an own property in the case where a value is being reset
@@ -23770,7 +23799,7 @@ class Transitionable {
         return clone(this._values[name].transition);
     }
     setTransition(name, value) {
-        if (!Object.prototype.hasOwnProperty.call(this._values, name)) {
+        if (!Object.hasOwn(this._values, name)) {
             this._values[name] = new TransitionablePropertyValue(this._values[name].property, this._globalState);
         }
         this._values[name].transition = clone(value) || undefined;
@@ -23862,7 +23891,7 @@ class TransitioningPropertyValue {
 class Transitioning {
     constructor(properties) {
         this._properties = properties;
-        this._values = Object.create(properties.defaultTransitioningPropertyValues);
+        this._values = (Object.create(properties.defaultTransitioningPropertyValues));
     }
     possiblyEvaluate(parameters, canonical, availableImages) {
         const result = new PossiblyEvaluated(this._properties);
@@ -23893,11 +23922,14 @@ class Transitioning {
 class Layout {
     constructor(properties, globalState) {
         this._properties = properties;
-        this._values = Object.create(properties.defaultPropertyValues);
+        this._values = (Object.create(properties.defaultPropertyValues));
         this._globalState = globalState;
     }
     hasValue(name) {
         return this._values[name].value !== undefined;
+    }
+    hasProperty(name) {
+        return name in this._properties.defaultPropertyValues;
     }
     getValue(name) {
         return clone(this._values[name].value);
@@ -24174,6 +24206,8 @@ register('CrossFadedDataDrivenProperty', CrossFadedDataDrivenProperty);
 register('CrossFadedProperty', CrossFadedProperty);
 register('ColorRampProperty', ColorRampProperty);
 
+const ERROR_PAINT_NOT_LAYOUT = ' is a PAINT property not a LAYOUT property. Use get/setPaintProperty instead?';
+const ERROR_LAYOUT_NOT_PAINT = ' is a LAYOUT property not a PAINT property. Use get/setLayoutProperty instead?';
 /**
  * A base class for style layers
  */
@@ -24221,8 +24255,15 @@ class StyleLayer extends Evented {
         return this._crossfadeParameters;
     }
     getLayoutProperty(name) {
+        var _a;
         if (name === 'visibility') {
             return this.visibility;
+        }
+        if ((_a = this._transitionablePaint) === null || _a === void 0 ? void 0 : _a.hasProperty(name)) {
+            throw new Error(name + ERROR_PAINT_NOT_LAYOUT);
+        }
+        if (!this._unevaluatedLayout) {
+            throw new Error(`Cannot get layout property "${name}" on layer type "${this.type}" which has no layout properties.`);
         }
         return this._unevaluatedLayout.getValue(name);
     }
@@ -24277,35 +24318,45 @@ class StyleLayer extends Evented {
         return this._visibilityExpression.getGlobalStateRefs();
     }
     setLayoutProperty(name, value, options = {}) {
-        if (value !== null && value !== undefined) {
-            const key = `layers.${this.id}.layout.${name}`;
-            if (this._validate(validateLayoutProperty, key, name, value, options)) {
-                return;
-            }
-        }
+        var _a;
         if (name === 'visibility') {
             this.visibility = value;
             this._visibilityExpression.setValue(value);
             this.recalculateVisibility();
             return;
         }
+        if ((_a = this._transitionablePaint) === null || _a === void 0 ? void 0 : _a.hasProperty(name)) {
+            this.fire(new ErrorEvent(new Error(name + ERROR_PAINT_NOT_LAYOUT)));
+            return;
+        }
+        if (value !== null && value !== undefined && this._validate(validateLayoutProperty, `layers.${this.id}.layout.${name}`, name, value, options))
+            return;
         this._unevaluatedLayout.setValue(name, value);
     }
     getPaintProperty(name) {
+        var _a, _b;
         if (name.endsWith(TRANSITION_SUFFIX)) {
-            return this._transitionablePaint.getTransition(name.slice(0, -TRANSITION_SUFFIX.length));
+            const baseName = name.slice(0, -TRANSITION_SUFFIX.length);
+            if (baseName === 'visibility' || ((_a = this._unevaluatedLayout) === null || _a === void 0 ? void 0 : _a.hasProperty(baseName))) {
+                throw new Error(name + ERROR_LAYOUT_NOT_PAINT);
+            }
+            return this._transitionablePaint.getTransition(baseName);
         }
         else {
+            if (name === 'visibility' || ((_b = this._unevaluatedLayout) === null || _b === void 0 ? void 0 : _b.hasProperty(name))) {
+                throw new Error(name + ERROR_LAYOUT_NOT_PAINT);
+            }
             return this._transitionablePaint.getValue(name);
         }
     }
     setPaintProperty(name, value, options = {}) {
-        if (value !== null && value !== undefined) {
-            const key = `layers.${this.id}.paint.${name}`;
-            if (this._validate(validatePaintProperty, key, name, value, options)) {
-                return false;
-            }
+        var _a;
+        if (name === 'visibility' || ((_a = this._unevaluatedLayout) === null || _a === void 0 ? void 0 : _a.hasProperty(name))) {
+            this.fire(new ErrorEvent(new Error(name + ERROR_LAYOUT_NOT_PAINT)));
+            return false;
         }
+        if (value !== null && value !== undefined && this._validate(validatePaintProperty, `layers.${this.id}.paint.${name}`, name, value, options))
+            return false;
         if (name.endsWith(TRANSITION_SUFFIX)) {
             this._transitionablePaint.setTransition(name.slice(0, -TRANSITION_SUFFIX.length), value || undefined);
             return false;
@@ -24359,6 +24410,7 @@ class StyleLayer extends Evented {
         this.paint = this._transitioningPaint.possiblyEvaluate(parameters, undefined, availableImages);
     }
     serialize() {
+        var _a, _b;
         const output = {
             'id': this.id,
             'type': this.type,
@@ -24368,11 +24420,11 @@ class StyleLayer extends Evented {
             'minzoom': this.minzoom,
             'maxzoom': this.maxzoom,
             'filter': this.filter,
-            'layout': this._unevaluatedLayout && this._unevaluatedLayout.serialize(),
-            'paint': this._transitionablePaint && this._transitionablePaint.serialize()
+            'layout': (_a = this._unevaluatedLayout) === null || _a === void 0 ? void 0 : _a.serialize(),
+            'paint': (_b = this._transitionablePaint) === null || _b === void 0 ? void 0 : _b.serialize()
         };
         if (this.visibility) {
-            output.layout = output.layout || {};
+            output.layout || (output.layout = {});
             output.layout.visibility = this.visibility;
         }
         return filterObject(output, (value, key) => {
@@ -24382,7 +24434,7 @@ class StyleLayer extends Evented {
         });
     }
     _validate(validate, key, name, value, options = {}) {
-        if (options && options.validate === false) {
+        if ((options === null || options === void 0 ? void 0 : options.validate) === false) {
             return false;
         }
         return emitValidationErrors$1(this, validate.call(validateStyle, {
@@ -26195,9 +26247,9 @@ class SourceExpressionBinder {
         }
     }
     upload(context) {
-        var _a;
+        var _a, _b;
         if ((_a = this.paintVertexArray) === null || _a === void 0 ? void 0 : _a.arrayBuffer.byteLength) {
-            if (this.paintVertexBuffer && this.paintVertexBuffer.buffer) {
+            if ((_b = this.paintVertexBuffer) === null || _b === void 0 ? void 0 : _b.buffer) {
                 this.paintVertexBuffer.updateData(this.paintVertexArray);
             }
             else {
@@ -26255,9 +26307,9 @@ class CompositeExpressionBinder {
         }
     }
     upload(context) {
-        var _a;
+        var _a, _b;
         if ((_a = this.paintVertexArray) === null || _a === void 0 ? void 0 : _a.arrayBuffer.byteLength) {
-            if (this.paintVertexBuffer && this.paintVertexBuffer.buffer) {
+            if ((_b = this.paintVertexBuffer) === null || _b === void 0 ? void 0 : _b.buffer) {
                 this.paintVertexBuffer.updateData(this.paintVertexArray);
             }
             else {
@@ -26335,7 +26387,8 @@ class CrossFadedPatternBinder extends CrossFadedBinder {
         return options.imagePositions;
     }
     getPositionIds(feature) {
-        return feature.patterns && feature.patterns[this.layerId];
+        var _a;
+        return (_a = feature.patterns) === null || _a === void 0 ? void 0 : _a[this.layerId];
     }
     getVertexAttributes() {
         return patternAttributes.members;
@@ -26349,7 +26402,8 @@ class CrossFadedDasharrayBinder extends CrossFadedBinder {
         return options.dashPositions;
     }
     getPositionIds(feature) {
-        return feature.dashes && feature.dashes[this.layerId];
+        var _a;
+        return (_a = feature.dashes) === null || _a === void 0 ? void 0 : _a[this.layerId];
     }
     getVertexAttributes() {
         return dashAttributes.members;
@@ -26479,8 +26533,8 @@ class ProgramConfiguration {
         for (const property in this.binders) {
             const binder = this.binders[property];
             if (binder instanceof SourceExpressionBinder || binder instanceof CompositeExpressionBinder) {
-                for (let i = 0; i < binder.paintVertexAttributes.length; i++) {
-                    result.push(binder.paintVertexAttributes[i].name);
+                for (const attribute of binder.paintVertexAttributes) {
+                    result.push(attribute.name);
                 }
             }
             else if (binder instanceof CrossFadedBinder) {
@@ -26654,7 +26708,7 @@ function layoutType(property, type, binderType) {
         }
     };
     const layoutException = getLayoutException(property);
-    return layoutException && layoutException[binderType] || defaultLayouts[type][binderType];
+    return (layoutException === null || layoutException === void 0 ? void 0 : layoutException[binderType]) || defaultLayouts[type][binderType];
 }
 register('ConstantBinder', ConstantBinder);
 register('CrossFadedConstantBinder', CrossFadedConstantBinder);
@@ -26680,10 +26734,8 @@ const MIN = -MAX - 1;
 function loadGeometry(feature) {
     const scale = EXTENT$1 / feature.extent;
     const geometry = feature.loadGeometry();
-    for (let r = 0; r < geometry.length; r++) {
-        const ring = geometry[r];
-        for (let p = 0; p < ring.length; p++) {
-            const point = ring[p];
+    for (const ring of geometry) {
+        for (const point of ring) {
             // round here because mapbox-gl-native uses integers to represent
             // points and we need to do the same to avoid rendering differences.
             const x = Math.round(point.x * scale);
@@ -26753,7 +26805,7 @@ class CircleBucket {
             circleSortKey = circleStyle.layout.get('circle-sort-key');
             sortFeaturesByKey = !circleSortKey.isConstant();
             // Circles that are "printed" onto the map surface should be tessellated to follow the globe's curvature.
-            subdivide = subdivide || circleStyle.paint.get('circle-pitch-alignment') === 'map';
+            subdivide || (subdivide = circleStyle.paint.get('circle-pitch-alignment') === 'map');
         }
         const granularity = subdivide ? options.subdivisionGranularity.circle : 1;
         for (const { feature, id, index, sourceLayerIndex } of features) {
@@ -26871,52 +26923,46 @@ class CircleBucket {
 register('CircleBucket', CircleBucket, { omit: ['layers'] });
 
 function polygonIntersectsPolygon(polygonA, polygonB) {
-    for (let i = 0; i < polygonA.length; i++) {
-        if (polygonContainsPoint(polygonB, polygonA[i]))
+    for (const point of polygonA) {
+        if (polygonContainsPoint(polygonB, point))
             return true;
     }
-    for (let i = 0; i < polygonB.length; i++) {
-        if (polygonContainsPoint(polygonA, polygonB[i]))
+    for (const point of polygonB) {
+        if (polygonContainsPoint(polygonA, point))
             return true;
     }
-    if (lineIntersectsLine(polygonA, polygonB))
-        return true;
-    return false;
+    return lineIntersectsLine(polygonA, polygonB);
 }
 function polygonIntersectsBufferedPoint(polygon, point, radius) {
     if (polygonContainsPoint(polygon, point))
         return true;
-    if (pointIntersectsBufferedLine(point, polygon, radius))
-        return true;
-    return false;
+    return pointIntersectsBufferedLine(point, polygon, radius);
 }
 function polygonIntersectsMultiPolygon(polygon, multiPolygon) {
     if (polygon.length === 1) {
         return multiPolygonContainsPoint(multiPolygon, polygon[0]);
     }
-    for (let m = 0; m < multiPolygon.length; m++) {
-        const ring = multiPolygon[m];
-        for (let n = 0; n < ring.length; n++) {
-            if (polygonContainsPoint(polygon, ring[n]))
+    for (const ring of multiPolygon) {
+        for (const point of ring) {
+            if (polygonContainsPoint(polygon, point))
                 return true;
         }
     }
-    for (let i = 0; i < polygon.length; i++) {
-        if (multiPolygonContainsPoint(multiPolygon, polygon[i]))
+    for (const point of polygon) {
+        if (multiPolygonContainsPoint(multiPolygon, point))
             return true;
     }
-    for (let k = 0; k < multiPolygon.length; k++) {
-        if (lineIntersectsLine(polygon, multiPolygon[k]))
+    for (const ring of multiPolygon) {
+        if (lineIntersectsLine(polygon, ring))
             return true;
     }
     return false;
 }
 function polygonIntersectsBufferedMultiLine(polygon, multiLine, radius) {
-    for (let i = 0; i < multiLine.length; i++) {
-        const line = multiLine[i];
+    for (const line of multiLine) {
         if (polygon.length >= 3) {
-            for (let k = 0; k < line.length; k++) {
-                if (polygonContainsPoint(polygon, line[k]))
+            for (const point of line) {
+                if (polygonContainsPoint(polygon, point))
                     return true;
             }
         }
@@ -26930,13 +26976,13 @@ function lineIntersectsBufferedLine(lineA, lineB, radius) {
         if (lineIntersectsLine(lineA, lineB))
             return true;
         // Check whether any point in either line is within radius of the other line
-        for (let j = 0; j < lineB.length; j++) {
-            if (pointIntersectsBufferedLine(lineB[j], lineA, radius))
+        for (const point of lineB) {
+            if (pointIntersectsBufferedLine(point, lineA, radius))
                 return true;
         }
     }
-    for (let k = 0; k < lineA.length; k++) {
-        if (pointIntersectsBufferedLine(lineA[k], lineB, radius))
+    for (const point of lineA) {
+        if (pointIntersectsBufferedLine(point, lineB, radius))
             return true;
     }
     return false;
@@ -26988,8 +27034,8 @@ function distToSegmentSquared(p, v, w) {
 // point in polygon ray casting algorithm
 function multiPolygonContainsPoint(rings, p) {
     let c = false, ring, p1, p2;
-    for (let k = 0; k < rings.length; k++) {
-        ring = rings[k];
+    for (const currentRing of rings) {
+        ring = currentRing;
         for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
             p1 = ring[i];
             p2 = ring[j];
@@ -27086,8 +27132,7 @@ function translate(queryGeometry, translate, translateAnchor, bearing, pixelsToT
         pt._rotate(-bearing);
     }
     const translated = [];
-    for (let i = 0; i < queryGeometry.length; i++) {
-        const point = queryGeometry[i];
+    for (const point of queryGeometry) {
         translated.push(point.sub(pt));
     }
     return translated;
@@ -27108,8 +27153,8 @@ function _stripDuplicates(ring) {
 }
 function offsetLine(rings, offset) {
     const newRings = [];
-    for (let ringIndex = 0; ringIndex < rings.length; ringIndex++) {
-        const ring = _stripDuplicates(rings[ringIndex]);
+    for (const rawRing of rings) {
+        const ring = _stripDuplicates(rawRing);
         const newRing = [];
         for (let index = 0; index < ring.length; index++) {
             const point = ring[index];
@@ -27165,8 +27210,7 @@ function projectPoint(tilePoint, transform, unwrappedTileID, getElevation) {
     // Convert `tilePoint` from tile coordinates to clip coordinates.
     const clipPoint = transform.projectTileCoordinates(tilePoint.x, tilePoint.y, unwrappedTileID, getElevation).point;
     // Convert `clipPoint` from clip coordinates into pixel/screen coordinates.
-    const pixelPoint = new Point((clipPoint.x * 0.5 + 0.5) * transform.width, (-clipPoint.y * 0.5 + 0.5) * transform.height);
-    return pixelPoint;
+    return new Point((clipPoint.x * 0.5 + 0.5) * transform.width, (-clipPoint.y * 0.5 + 0.5) * transform.height);
 }
 function projectQueryGeometry$1(queryGeometry, transform, unwrappedTileID, getElevation) {
     return queryGeometry.map((p) => {
@@ -27542,15 +27586,16 @@ class Texture {
         this.update(image, options);
     }
     update(image, options, position) {
+        var _a;
         const { width, height } = image;
-        const resize = (!this.size || this.size[0] !== width || this.size[1] !== height) && !position;
+        const resize = (((_a = this.size) === null || _a === void 0 ? void 0 : _a[0]) !== width || this.size[1] !== height) && !position;
         const { context } = this;
         const { gl } = context;
-        this.useMipmap = Boolean(options && options.useMipmap);
+        this.useMipmap = Boolean(options === null || options === void 0 ? void 0 : options.useMipmap);
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
         context.pixelStoreUnpackFlipY.set(false);
         context.pixelStoreUnpack.set(1);
-        const wantPremultiply = this.format === gl.RGBA && (!options || options.premultiply !== false);
+        const wantPremultiply = this.format === gl.RGBA && ((options === null || options === void 0 ? void 0 : options.premultiply) !== false);
         if (resize) {
             this.size = [width, height];
             if (hasDataProperty(image)) {
@@ -27891,9 +27936,9 @@ function addPatternDependencies(type, layers, patternFeature, parameters, option
             let min = patternPropertyValue.evaluate({ zoom: zoom - 1 }, patternFeature, {}, options.availableImages);
             let mid = patternPropertyValue.evaluate({ zoom }, patternFeature, {}, options.availableImages);
             let max = patternPropertyValue.evaluate({ zoom: zoom + 1 }, patternFeature, {}, options.availableImages);
-            min = min && min.name ? min.name : min;
-            mid = mid && mid.name ? mid.name : mid;
-            max = max && max.name ? max.name : max;
+            min = (min === null || min === void 0 ? void 0 : min.name) ? min.name : min;
+            mid = (mid === null || mid === void 0 ? void 0 : mid.name) ? mid.name : mid;
+            max = (max === null || max === void 0 ? void 0 : max.name) ? max.name : max;
             // add to patternDependencies
             patterns[min] = true;
             patterns[mid] = true;
@@ -28744,7 +28789,7 @@ class Subdivider {
     }
     /**
      * Takes a triangle and a cell row index, returns a subdivided vertex ring of the intersection of the triangle and the cell row.
-     * @param cellRow - Index of the cell row. A cell row of index `i` covert range from `i * granularityCellSize` to `(i + 1) * granularityCellSize`.
+     * @param cellRow - Index of the cell row. A cell row of index `i` convert range from `i * granularityCellSize` to `(i + 1) * granularityCellSize`.
      * @param triangleVertices - An array of 6 elements, contains flattened positions of the triangle's vertices: `[v0x, v0y, v1x, v1y, v2x, v2y]`.
      * @param triangleIndices - An array of 3 elements, contains the original indices of the triangle's vertices: `[index0, index1, index2]`.
      * @returns The resulting ring of vertex indices and the index (to the returned ring array) of the leftmost vertex in the ring.
@@ -28782,7 +28827,7 @@ class Subdivider {
                 // Skip this edge
                 // But make sure to add its endpoint vertex if needed.
                 if (bY >= cellRowYTop && bY <= cellRowYBottom) {
-                    // The edge endpoint is withing this row, add it to the ring
+                    // The edge endpoint is within this row, add it to the ring
                     ring.push(triangleIndices[(edgeIndex + 1) % 3]);
                 }
                 continue;
@@ -29149,9 +29194,9 @@ class Subdivider {
      */
     _convertIndices(vertices, oldIndices) {
         const newIndices = [];
-        for (let i = 0; i < oldIndices.length; i++) {
-            const x = vertices[oldIndices[i] * 2];
-            const y = vertices[oldIndices[i] * 2 + 1];
+        for (const oldIndex of oldIndices) {
+            const x = vertices[oldIndex * 2];
+            const y = vertices[oldIndex * 2 + 1];
             newIndices.push(this._vertexToIndex(x, y));
         }
         return newIndices;
@@ -29161,8 +29206,7 @@ class Subdivider {
      */
     _pointArrayToIndices(array) {
         const indices = [];
-        for (let i = 0; i < array.length; i++) {
-            const p = array[i];
+        for (const p of array) {
             indices.push(this._vertexToIndex(p.x, p.y));
         }
         return indices;
@@ -29335,9 +29379,9 @@ function flatten(polygon) {
         if (ring !== polygon[0]) {
             holeIndices.push(flattened.length / 2);
         }
-        for (let i = 0; i < ring.length; i++) {
-            flattened.push(ring[i].x);
-            flattened.push(ring[i].y);
+        for (const vertex of ring) {
+            flattened.push(vertex.x);
+            flattened.push(vertex.y);
         }
     }
     return {
@@ -29431,10 +29475,8 @@ function scanlineTriangulateVertexRing(vertexBuffer, ring, finalIndices) {
         }
         else {
             // Pick the candidate that is more "right" of the last edge's line
-            const ex = lastEdgeBx - lastEdgeAx;
-            const ey = lastEdgeBy - lastEdgeAy;
-            const nx = ey;
-            const ny = -ex;
+            const nx = lastEdgeBy - lastEdgeAy;
+            const ny = -(lastEdgeBx - lastEdgeAx);
             const sign = (lastEdgeAy < lastEdgeBy) ? 1 : -1;
             // dot( (candidateA <-- lastEdgeA), normal )
             const aRight = ((candidateAx - lastEdgeAx) * nx + (candidateAy - lastEdgeAy) * ny) * sign;
@@ -29522,8 +29564,7 @@ function fillLargeMeshArrays(addVertex, segmentsTriangles, vertexArray, triangle
             addVertex(flattened[i], flattened[i + 1]);
         }
         if (hasLines) {
-            for (let listIndex = 0; listIndex < lineList.length; listIndex++) {
-                const lineIndices = lineList[listIndex];
+            for (const lineIndices of lineList) {
                 for (let i = 1; i < lineIndices.length; i += 2) {
                     lineIndexArray.emplaceBack(lineIndicesStart + lineIndices[i - 1], lineIndicesStart + lineIndices[i]);
                 }
@@ -29623,9 +29664,8 @@ function fillSegmentsLines(segmentsLines, vertexArray, lineIndexArray, flattened
     let currentSegmentCutoff = 0;
     let segment = segmentsLines.getOrCreateLatestSegment(vertexArray, lineIndexArray);
     let baseVertex = segment.vertexLength;
-    for (let lineListIndex = 0; lineListIndex < lineList.length; lineListIndex++) {
-        const currentLine = lineList[lineListIndex];
-        for (let lineVertex = 1; lineVertex < lineList[lineListIndex].length; lineVertex += 2) {
+    for (const currentLine of lineList) {
+        for (let lineVertex = 1; lineVertex < currentLine.length; lineVertex += 2) {
             const i0 = currentLine[lineVertex - 1];
             const i1 = currentLine[lineVertex];
             let i0needsVertexCopy = actualVertexIndices[i0] < currentSegmentCutoff;
@@ -31013,26 +31053,34 @@ function createFeature(id, type, geom, tags) {
     switch (data.type) {
         case 'Point':
         case 'MultiPoint':
-        case 'LineString':
             calcLineBBox(feature, data.geom);
+            break;
+        case 'LineString':
+            calcLineBBox(feature, data.geom.points);
             break;
         case 'Polygon':
             // the outer ring (ie [0]) contains all inner rings
-            calcLineBBox(feature, data.geom[0]);
+            calcLineBBox(feature, data.geom[0].points);
             break;
         case 'MultiLineString':
             for (const line of data.geom) {
-                calcLineBBox(feature, line);
+                calcLineBBox(feature, line.points);
             }
             break;
         case 'MultiPolygon':
             for (const polygon of data.geom) {
                 // the outer ring (ie [0]) contains all inner rings
-                calcLineBBox(feature, polygon[0]);
+                calcLineBBox(feature, polygon[0].points);
             }
             break;
     }
     return feature;
+}
+function optimizeLineMemory(line) {
+    const lineImmutable = line;
+    if (line.points.length > 64) {
+        lineImmutable.points = new Float64Array(line.points);
+    }
 }
 function calcLineBBox(feature, geom) {
     for (let i = 0; i < geom.length; i += 3) {
@@ -31131,7 +31179,7 @@ function convertMultiPointFeature(features, id, geom, properties) {
     features.push(createFeature(id, 'MultiPoint', out, properties));
 }
 function convertLineStringFeature(features, id, geom, tolerance, properties) {
-    const out = [];
+    const out = { points: [] };
     convertLine(geom.coordinates, out, tolerance, false);
     features.push(createFeature(id, 'LineString', out, properties));
 }
@@ -31139,7 +31187,7 @@ function convertMultiLineStringFeature(features, id, geom, tolerance, options, p
     if (options.lineMetrics) {
         // explode into linestrings to be able to track metrics
         for (const line of geom.coordinates) {
-            const out = [];
+            const out = { points: [] };
             convertLine(line, out, tolerance, false);
             features.push(createFeature(id, 'LineString', out, properties));
         }
@@ -31170,7 +31218,7 @@ function convertLine(ring, out, tolerance, isPolygon) {
     for (let j = 0; j < ring.length; j++) {
         const x = projectX(ring[j][0]);
         const y = projectY(ring[j][1]);
-        out.push(x, y, 0);
+        out.points.push(x, y, 0);
         if (j > 0) {
             if (isPolygon) {
                 size += (x0 * y - x * y0) / 2; // area
@@ -31182,18 +31230,19 @@ function convertLine(ring, out, tolerance, isPolygon) {
         x0 = x;
         y0 = y;
     }
-    const last = out.length - 3;
-    out[2] = 1;
+    const last = out.points.length - 3;
+    out.points[2] = 1;
     if (tolerance > 0)
-        simplify(out, 0, last, tolerance);
-    out[last + 2] = 1;
+        simplify(out.points, 0, last, tolerance);
+    out.points[last + 2] = 1;
+    optimizeLineMemory(out);
     out.size = Math.abs(size);
     out.start = 0;
     out.end = out.size;
 }
 function convertLines(rings, out, tolerance, isPolygon) {
     for (let i = 0; i < rings.length; i++) {
-        const geom = [];
+        const geom = { points: [] };
         convertLine(rings[i], geom, tolerance, isPolygon);
         out.push(geom);
     }
@@ -31249,21 +31298,25 @@ function geometryToGeoJSON(feature) {
                 coordinates: unprojectPoint(geometry[0], geometry[1])
             };
         case 'MultiPoint':
-        case 'LineString':
             return {
                 type: type,
                 coordinates: unprojectPoints(geometry)
+            };
+        case 'LineString':
+            return {
+                type: type,
+                coordinates: unprojectPoints(geometry.points)
             };
         case 'MultiLineString':
         case 'Polygon':
             return {
                 type: type,
-                coordinates: geometry.map(ring => unprojectPoints(ring))
+                coordinates: geometry.map(ring => unprojectPoints(ring.points))
             };
         case 'MultiPolygon':
             return {
                 type: type,
-                coordinates: geometry.map(polygon => polygon.map(ring => unprojectPoints(ring)))
+                coordinates: geometry.map(polygon => polygon.map(ring => unprojectPoints(ring.points)))
             };
     }
 }
@@ -31428,12 +31481,12 @@ function clipLine$1(geom, newGeom, start, end, axis, isPolygon, trackMetrics) {
     const intersect = axis === AxisType.X ? intersectX : intersectY;
     let len = geom.start;
     let segLen, t;
-    for (let i = 0; i < geom.length - 3; i += 3) {
-        const ax = geom[i];
-        const ay = geom[i + 1];
-        const az = geom[i + 2];
-        const bx = geom[i + 3];
-        const by = geom[i + 4];
+    for (let i = 0; i < geom.points.length - 3; i += 3) {
+        const ax = geom.points[i];
+        const ay = geom.points[i + 1];
+        const az = geom.points[i + 2];
+        const bx = geom.points[i + 3];
+        const by = geom.points[i + 4];
         const a = axis === AxisType.X ? ax : ay;
         const b = axis === AxisType.X ? bx : by;
         let exited = false;
@@ -31456,7 +31509,7 @@ function clipLine$1(geom, newGeom, start, end, axis, isPolygon, trackMetrics) {
             }
         }
         else {
-            addPoint(slice, ax, ay, az);
+            addPoint(slice.points, ax, ay, az);
         }
         if (b < start && a >= start) {
             // <--|---  | or <--|-----|--- (line exits the clip region on the left)
@@ -31478,29 +31531,31 @@ function clipLine$1(geom, newGeom, start, end, axis, isPolygon, trackMetrics) {
             len += segLen;
     }
     // add the last point
-    let last = geom.length - 3;
-    const ax = geom[last];
-    const ay = geom[last + 1];
-    const az = geom[last + 2];
+    let last = geom.points.length - 3;
+    const ax = geom.points[last];
+    const ay = geom.points[last + 1];
+    const az = geom.points[last + 2];
     const a = axis === AxisType.X ? ax : ay;
     if (a >= start && a <= end)
-        addPoint(slice, ax, ay, az);
+        addPoint(slice.points, ax, ay, az);
     // close the polygon if its endpoints are not the same after clipping
-    last = slice.length - 3;
-    if (isPolygon && last >= 3 && (slice[last] !== slice[0] || slice[last + 1] !== slice[1])) {
-        addPoint(slice, slice[0], slice[1], slice[2]);
+    last = slice.points.length - 3;
+    if (isPolygon && last >= 3 && (slice.points[last] !== slice.points[0] || slice.points[last + 1] !== slice.points[1])) {
+        addPoint(slice.points, slice.points[0], slice.points[1], slice.points[2]);
     }
     // add the final slice
-    if (slice.length) {
+    if (slice.points.length) {
+        optimizeLineMemory(slice);
         newGeom.push(slice);
     }
 }
 function newSlice(line) {
-    const slice = [];
-    slice.size = line.size;
-    slice.start = line.start;
-    slice.end = line.end;
-    return slice;
+    return {
+        points: [],
+        size: line.size,
+        start: line.start,
+        end: line.end
+    };
 }
 function clipLines$1(geom, newGeom, start, end, axis, isPolygon) {
     for (const line of geom) {
@@ -31512,12 +31567,12 @@ function addPoint(out, x, y, z) {
 }
 function intersectX(out, ax, ay, bx, by, x) {
     const t = (x - ax) / (bx - ax);
-    addPoint(out, x, ay + (by - ay) * t, 1);
+    addPoint(out.points, x, ay + (by - ay) * t, 1);
     return t;
 }
 function intersectY(out, ax, ay, bx, by, y) {
     const t = (y - ay) / (by - ay);
-    addPoint(out, ax + (bx - ax) * t, y, 1);
+    addPoint(out.points, ax + (bx - ax) * t, y, 1);
     return t;
 }
 
@@ -31540,9 +31595,13 @@ function shiftFeatureCoords(features, offset) {
     for (const feature of features) {
         switch (feature.type) {
             case 'Point':
-            case 'MultiPoint':
+            case 'MultiPoint': {
+                const newGeometry = shiftPointCoords(feature.geometry, offset);
+                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
+                continue;
+            }
             case 'LineString': {
-                const newGeometry = shiftCoords(feature.geometry, offset);
+                const newGeometry = shiftLineCoords(feature.geometry, offset);
                 newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
                 continue;
             }
@@ -31550,7 +31609,7 @@ function shiftFeatureCoords(features, offset) {
             case 'Polygon': {
                 const newGeometry = [];
                 for (const line of feature.geometry) {
-                    newGeometry.push(shiftCoords(line, offset));
+                    newGeometry.push(shiftLineCoords(line, offset));
                 }
                 newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
                 continue;
@@ -31560,7 +31619,7 @@ function shiftFeatureCoords(features, offset) {
                 for (const polygon of feature.geometry) {
                     const newPolygon = [];
                     for (const line of polygon) {
-                        newPolygon.push(shiftCoords(line, offset));
+                        newPolygon.push(shiftLineCoords(line, offset));
                     }
                     newGeometry.push(newPolygon);
                 }
@@ -31571,17 +31630,27 @@ function shiftFeatureCoords(features, offset) {
     }
     return newFeatures;
 }
-function shiftCoords(points, offset) {
-    const newPoints = [];
-    newPoints.size = points.size;
-    if (points.start !== undefined) {
-        newPoints.start = points.start;
-        newPoints.end = points.end;
+function shiftPointCoords(coords, offset) {
+    const newCoords = [];
+    for (let i = 0; i < coords.length; i += 3) {
+        newCoords.push(coords[i] + offset, coords[i + 1], coords[i + 2]);
     }
-    for (let i = 0; i < points.length; i += 3) {
-        newPoints.push(points[i] + offset, points[i + 1], points[i + 2]);
+    return newCoords;
+}
+function shiftLineCoords(line, offset) {
+    const newLine = {
+        points: [],
+        size: line.size
+    };
+    if (line.start !== undefined) {
+        newLine.start = line.start;
+        newLine.end = line.end;
     }
-    return newPoints;
+    for (let i = 0; i < line.points.length; i += 3) {
+        newLine.points.push(line.points[i] + offset, line.points[i + 1], line.points[i + 2]);
+    }
+    optimizeLineMemory(newLine);
+    return newLine;
 }
 
 /**
@@ -31593,7 +31662,7 @@ function shiftCoords(points, offset) {
  */
 function applySourceDiff$1(source, dataDiff, options) {
     // convert diff to sets/maps for o(1) lookups
-    const diff = diffToHashed$1(dataDiff);
+    const diff = diffToHashed$1(dataDiff, options);
     // collection for features that will be affected by this update and used to invalidate tiles
     let affected = [];
     if (diff.removeAll) {
@@ -31622,26 +31691,25 @@ function applySourceDiff$1(source, dataDiff, options) {
     }
     if (diff.update.size) {
         // Features can be duplicated across the antimeridian (wrap) in a single tile, so must update all instances with the same id
-        for (const [id, update] of diff.update) {
-            const oldFeatures = [];
-            const keepFeatures = [];
-            for (const feature of source) {
-                if (feature.id === id) {
-                    oldFeatures.push(feature);
-                }
-                else {
-                    keepFeatures.push(feature);
-                }
+        const oldFeaturesMap = new Map();
+        const keepFeatures = [];
+        for (const feature of source) {
+            if (diff.update.has(feature.id)) {
+                oldFeaturesMap.set(feature.id, [...(oldFeaturesMap.get(feature.id) || []), feature]);
             }
-            if (!oldFeatures.length)
+            else {
+                keepFeatures.push(feature);
+            }
+        }
+        for (const [id, update] of diff.update) {
+            const oldFeatures = oldFeaturesMap.get(id);
+            if (!oldFeatures || oldFeatures.length === 0)
                 continue;
             const updatedFeatures = getUpdatedFeatures(oldFeatures, update, options);
-            if (!updatedFeatures.length)
-                continue;
             affected.push(...oldFeatures, ...updatedFeatures);
             keepFeatures.push(...updatedFeatures);
-            source = keepFeatures;
         }
+        source = keepFeatures;
     }
     return { affected, source };
 }
@@ -31679,7 +31747,7 @@ function getUpdatedFeatures(vtFeatures, update, options) {
         }
         return updated;
     }
-    return [];
+    return vtFeatures;
 }
 /**
  * helper to apply property updates from a diff update object to a properties object
@@ -31704,7 +31772,7 @@ function applyPropertyUpdates(tags, update) {
 /**
  * Convert a GeoJSON Source Diff to an idempotent hashed representation using Sets and Maps
  */
-function diffToHashed$1(diff) {
+function diffToHashed$1(diff, options) {
     if (!diff)
         return {
             remove: new Set(),
@@ -31714,7 +31782,7 @@ function diffToHashed$1(diff) {
     const hashed = {
         removeAll: diff.removeAll,
         remove: new Set(diff.remove || []),
-        add: new Map(diff.add?.map(feature => [feature.id, feature])),
+        add: new Map(diff.add?.map(feature => [options.promoteId ? feature.properties[options.promoteId] : feature.id, feature])),
         update: new Map(diff.update?.map(update => [update.id, update]))
     };
     return hashed;
@@ -32292,14 +32360,14 @@ function addMultiPolygonTileFeature(tile, feature, tolerance) {
 function addLine(result, geom, tile, tolerance, isPolygon, isOuter) {
     const sqTolerance = tolerance * tolerance;
     if (tolerance > 0 && (geom.size < (isPolygon ? sqTolerance : tolerance))) {
-        tile.numPoints += geom.length / 3;
+        tile.numPoints += geom.points.length / 3;
         return;
     }
     const ring = [];
-    for (let i = 0; i < geom.length; i += 3) {
-        if (tolerance === 0 || geom[i + 2] > sqTolerance) {
+    for (let i = 0; i < geom.points.length; i += 3) {
+        if (tolerance === 0 || geom.points[i + 2] > sqTolerance) {
             tile.numSimplified++;
-            ring.push(geom[i], geom[i + 1]);
+            ring.push(geom.points[i], geom.points[i + 1]);
         }
         tile.numPoints++;
     }
@@ -32389,10 +32457,9 @@ function transformPoint(x, y, extent, z2, tx, ty) {
 class TileIndex {
     constructor(options) {
         this.options = options;
+        this.total = 0;
         /** @internal */
         this.stats = {};
-        /** @internal */
-        this.total = 0;
         this.tiles = {};
         this.tileCoords = [];
         this.stats = {};
@@ -32667,30 +32734,6 @@ const defaultOptions$6 = {
  * Main class for creating and managing a vector tile index from GeoJSON data.
  */
 class GeoJSONVT {
-    /**
-     * @internal
-     * This is for the tests
-     */
-    get tiles() {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return this.tileIndex?.tiles ?? {};
-    }
-    /**
-     * @internal
-     * This is for the tests
-     */
-    get stats() {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return this.tileIndex.stats;
-    }
-    /**
-    * @internal
-    * This is for the tests
-    */
-    get total() {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return this.tileIndex.total;
-    }
     constructor(data, options) {
         options = this.options = Object.assign({}, defaultOptions$6, options);
         const debug = options.debug;
@@ -32928,9 +32971,9 @@ class LineBucket {
         this.patternFeatures = [];
         this.lineClipsArray = [];
         this.gradients = {};
-        this.layers.forEach(layer => {
+        for (const layer of this.layers) {
             this.gradients[layer.id] = {};
-        });
+        }
         this.layoutVertexArray = new LineLayoutArray();
         this.layoutVertexArray2 = new LineExtLayoutArray();
         this.indexArray = new TriangleIndexArray();
@@ -33029,7 +33072,7 @@ class LineBucket {
         this.segments.destroy();
     }
     lineFeatureClips(feature) {
-        if (!!feature.properties && Object.prototype.hasOwnProperty.call(feature.properties, GEOJSONVT_CLIP_START) && Object.prototype.hasOwnProperty.call(feature.properties, GEOJSONVT_CLIP_END)) {
+        if (!!feature.properties && Object.hasOwn(feature.properties, GEOJSONVT_CLIP_START) && Object.hasOwn(feature.properties, GEOJSONVT_CLIP_END)) {
             const start = +feature.properties[GEOJSONVT_CLIP_START];
             const end = +feature.properties[GEOJSONVT_CLIP_END];
             return { start, end };
@@ -33038,9 +33081,9 @@ class LineBucket {
     addFeature(feature, geometry, index, canonical, imagePositions, dashPositions, subdivisionGranularity) {
         const layout = this.layers[0].layout;
         const join = layout.get('line-join').evaluate(feature, {});
-        const cap = layout.get('line-cap');
-        const miterLimit = layout.get('line-miter-limit');
-        const roundLimit = layout.get('line-round-limit');
+        const cap = layout.get('line-cap').evaluate(feature, {});
+        const miterLimit = layout.get('line-miter-limit').evaluate(feature, {});
+        const roundLimit = layout.get('line-round-limit').evaluate(feature, {});
         this.lineClips = this.lineFeatureClips(feature);
         for (const line of geometry) {
             this.addLine(line, feature, join, cap, miterLimit, roundLimit, canonical, subdivisionGranularity);
@@ -33112,7 +33155,7 @@ class LineBucket {
             nextNormal = nextVertex ? nextVertex.sub(currentVertex)._unit()._perp() : prevNormal;
             // If we still don't have a previous normal, this is the beginning of a
             // non-closed line, so we're doing a straight "join".
-            prevNormal = prevNormal || nextNormal;
+            prevNormal || (prevNormal = nextNormal);
             // Determine the normal of the join extrusion. It is the angle bisector
             // of the segments between the previous line and the next line.
             // In the case of 180° angles, the prev and next normals cancel each other out:
@@ -33351,7 +33394,7 @@ class LineBucket {
             if (!dasharrayProperty || dasharrayProperty.value.kind === 'constant') {
                 continue;
             }
-            const round = layer.layout.get('line-cap') === 'round';
+            const round = layer.layout.get('line-cap').evaluate(bucketFeature, {}) === 'round';
             const min = {
                 dasharray: dasharrayProperty.value.evaluate({ zoom: zoom - 1 }, bucketFeature, {}),
                 round
@@ -33380,10 +33423,10 @@ register('LineBucket', LineBucket, { omit: ['layers', 'patternFeatures'] });
 /* eslint-disable */
 let layout$1;
 const getLayout$1 = () => layout$1 = layout$1 || new Properties({
-    "line-cap": new DataConstantProperty(v8Spec["layout_line"]["line-cap"]),
+    "line-cap": new DataDrivenProperty(v8Spec["layout_line"]["line-cap"]),
     "line-join": new DataDrivenProperty(v8Spec["layout_line"]["line-join"]),
-    "line-miter-limit": new DataConstantProperty(v8Spec["layout_line"]["line-miter-limit"]),
-    "line-round-limit": new DataConstantProperty(v8Spec["layout_line"]["line-round-limit"]),
+    "line-miter-limit": new DataDrivenProperty(v8Spec["layout_line"]["line-miter-limit"]),
+    "line-round-limit": new DataDrivenProperty(v8Spec["layout_line"]["line-round-limit"]),
     "line-sort-key": new DataDrivenProperty(v8Spec["layout_line"]["line-sort-key"]),
 });
 let paint$2;
@@ -33601,9 +33644,9 @@ function transformTextInternal(text, layer, feature) {
     return text;
 }
 function transformText(text, layer, feature) {
-    text.sections.forEach(section => {
+    for (const section of text.sections) {
         section.text = transformTextInternal(section.text, layer, feature);
-    });
+    }
     return text;
 }
 
@@ -33816,7 +33859,7 @@ const breakableBefore = {
 function getGlyphAdvance(codePoint, section, glyphMap, imagePositions, spacing, layoutTextSize) {
     if ('fontStack' in section) {
         const positions = glyphMap[section.fontStack];
-        const glyph = positions && positions[codePoint];
+        const glyph = positions === null || positions === void 0 ? void 0 : positions[codePoint];
         if (!glyph)
             return 0;
         return glyph.metrics.advance * section.scale + spacing;
@@ -33899,8 +33942,7 @@ class TaggedString {
     }
     static fromFeature(text, defaultFontStack) {
         const result = new TaggedString();
-        for (let i = 0; i < text.sections.length; i++) {
-            const section = text.sections[i];
+        for (const section of text.sections) {
             if (!section.image) {
                 result.addTextSection(section, defaultFontStack);
             }
@@ -35288,11 +35330,11 @@ function getVerticalAlignFactor(verticalAlign) {
     }
 }
 function getRectAndMetrics(glyphPosition, glyphMap, section, codePoint) {
-    if (glyphPosition && glyphPosition.rect) {
+    if (glyphPosition === null || glyphPosition === void 0 ? void 0 : glyphPosition.rect) {
         return glyphPosition;
     }
     const glyphs = glyphMap[section.fontStack];
-    const glyph = glyphs && glyphs[codePoint];
+    const glyph = glyphs === null || glyphs === void 0 ? void 0 : glyphs[codePoint];
     if (!glyph)
         return null;
     const metrics = glyph.metrics;
@@ -35406,7 +35448,7 @@ function shapeLines(shaping, glyphMap, glyphPositions, imagePositions, lines, li
 }
 function shapeTextSection(section, codePoint, vertical, lineShapingSize, glyphMap, glyphPositions) {
     const positions = glyphPositions[section.fontStack];
-    const glyphPosition = positions && positions[codePoint];
+    const glyphPosition = positions === null || positions === void 0 ? void 0 : positions[codePoint];
     const rectAndMetrics = getRectAndMetrics(glyphPosition, glyphMap, section, codePoint);
     if (rectAndMetrics === null)
         return null;
@@ -35606,7 +35648,7 @@ function getSizeData(tileZoom, value) {
         const maxZoom = zoomStops[upper];
         // We'd like to be able to use CameraExpression or CompositeExpression in these
         // return types rather than ExpressionSpecification, but the former are not
-        // transferrable across Web Worker boundaries.
+        // transferable across Web Worker boundaries.
         if (expression.kind === 'composite') {
             return { kind: 'composite', minZoom, maxZoom, interpolationType };
         }
@@ -35835,8 +35877,8 @@ class SymbolBucket {
         this.sourceID = options.sourceID;
     }
     createArrays() {
-        this.text = new SymbolBuffers(new ProgramConfigurationSet(this.layers, this.zoom, property => /^text/.test(property)));
-        this.icon = new SymbolBuffers(new ProgramConfigurationSet(this.layers, this.zoom, property => /^icon/.test(property)));
+        this.text = new SymbolBuffers(new ProgramConfigurationSet(this.layers, this.zoom, property => property.startsWith('text')));
+        this.icon = new SymbolBuffers(new ProgramConfigurationSet(this.layers, this.zoom, property => property.startsWith('icon')));
         this.glyphOffsetArray = new GlyphOffsetArray();
         this.lineVertexArray = new SymbolLineVertexArray();
         this.symbolInstances = new SymbolInstanceArray();
@@ -35854,6 +35896,7 @@ class SymbolBucket {
         }
     }
     populate(features, options, canonical) {
+        var _a;
         const layer = this.layers[0];
         const layout = layer.layout;
         const textFont = layout.get('text-font');
@@ -35893,10 +35936,10 @@ class SymbolBucket {
                 const resolvedTokens = layer.getValueAndResolveTokens('text-field', evaluationFeature, canonical, availableImages);
                 const formattedText = Formatted.factory(resolvedTokens);
                 // on this instance: if hasRTLText is already true, all future calls to containsRTLText can be skipped.
-                const bucketHasRTLText = this.hasRTLText = (this.hasRTLText || containsRTLText(formattedText));
-                if (!bucketHasRTLText || // non-rtl text so can proceed safely
+                this.hasRTLText || (this.hasRTLText = containsRTLText(formattedText));
+                if (!this.hasRTLText || // non-rtl text so can proceed safely
                     rtlWorkerPlugin.getRTLTextPluginStatus() === 'unavailable' || // We don't intend to lazy-load the rtl text plugin, so proceed with incorrect shaping
-                    bucketHasRTLText && rtlWorkerPlugin.isParsed() // Use the rtlText plugin to shape text
+                    this.hasRTLText && rtlWorkerPlugin.isParsed() // Use the rtlText plugin to shape text
                 ) {
                     text = transformText(formattedText, layer, evaluationFeature);
                 }
@@ -35938,13 +35981,13 @@ class SymbolBucket {
             if (text) {
                 const fontStack = textFont.evaluate(evaluationFeature, {}, canonical).join(',');
                 const textAlongLine = layout.get('text-rotation-alignment') !== 'viewport' && layout.get('symbol-placement') !== 'point';
-                this.allowVerticalPlacement = this.writingModes && this.writingModes.indexOf(WritingMode.vertical) >= 0;
+                this.allowVerticalPlacement = (_a = this.writingModes) === null || _a === void 0 ? void 0 : _a.includes(WritingMode.vertical);
                 for (const section of text.sections) {
                     if (!section.image) {
                         const doesAllowVerticalWritingMode = allowsVerticalWritingMode(text.toString());
                         const sectionFont = section.fontStack || fontStack;
-                        const sectionStack = stacks[sectionFont] = stacks[sectionFont] || {};
-                        this.calculateGlyphDependencies(section.text, sectionStack, textAlongLine, this.allowVerticalPlacement, doesAllowVerticalWritingMode);
+                        stacks[sectionFont] || (stacks[sectionFont] = {});
+                        this.calculateGlyphDependencies(section.text, stacks[sectionFont], textAlongLine, this.allowVerticalPlacement, doesAllowVerticalWritingMode);
                     }
                     else {
                         // Add section image to the list of dependencies.
@@ -35954,7 +35997,7 @@ class SymbolBucket {
             }
         }
         if (layout.get('symbol-placement') === 'line') {
-            // Merge adjacent lines with the same text to improve labelling.
+            // Merge adjacent lines with the same text to improve labeling.
             // It's better to place labels on one long line than on many short segments.
             this.features = mergeLines(this.features);
         }
@@ -36054,7 +36097,7 @@ class SymbolBucket {
             segment.primitiveLength += 2;
             this.glyphOffsetArray.emplaceBack(glyphOffset[0]);
             if (i === quads.length - 1 || sectionIndex !== quads[i + 1].sectionIndex) {
-                arrays.programConfigurations.populatePaintArrays(layoutVertexArray.length, feature, feature.index, { imagePositions: {}, canonical, formattedSection: sections && sections[sectionIndex] });
+                arrays.programConfigurations.populatePaintArrays(layoutVertexArray.length, feature, feature.index, { imagePositions: {}, canonical, formattedSection: sections === null || sections === void 0 ? void 0 : sections[sectionIndex] });
             }
         }
         arrays.placedSymbolArray.emplaceBack(labelAnchor.x, labelAnchor.y, glyphOffsetArrayStart, this.glyphOffsetArray.length - glyphOffsetArrayStart, vertexStartIndex, lineStartIndex, lineLength, labelAnchor.segment, sizeVertex ? sizeVertex[0] : 0, sizeVertex ? sizeVertex[1] : 0, lineOffset[0], lineOffset[1], writingMode, 
@@ -36201,7 +36244,7 @@ class SymbolBucket {
     }
     addToSortKeyRanges(symbolInstanceIndex, sortKey) {
         const last = this.sortKeyRanges[this.sortKeyRanges.length - 1];
-        if (last && last.sortKey === sortKey) {
+        if ((last === null || last === void 0 ? void 0 : last.sortKey) === sortKey) {
             last.symbolInstanceEnd = symbolInstanceIndex + 1;
         }
         else {
@@ -36233,18 +36276,20 @@ class SymbolBucket {
         for (const i of this.symbolInstanceIndexes) {
             const symbolInstance = this.symbolInstances.get(i);
             this.featureSortOrder.push(symbolInstance.featureIndex);
-            [
+            const textIndices = [
                 symbolInstance.rightJustifiedTextSymbolIndex,
                 symbolInstance.centerJustifiedTextSymbolIndex,
                 symbolInstance.leftJustifiedTextSymbolIndex
-            ].forEach((index, i, array) => {
+            ];
+            for (let i = 0; i < textIndices.length; i++) {
+                const index = textIndices[i];
                 // Only add a given index the first time it shows up,
                 // to avoid duplicate opacity entries when multiple justifications
                 // share the same glyphs.
-                if (index >= 0 && array.indexOf(index) === i) {
+                if (index >= 0 && textIndices.indexOf(index) === i) {
                     this.addIndicesForPlacedSymbol(this.text, index);
                 }
-            });
+            }
             if (symbolInstance.verticalPlacedTextSymbolIndex >= 0) {
                 this.addIndicesForPlacedSymbol(this.text, symbolInstance.verticalPlacedTextSymbolIndex);
             }
@@ -36366,7 +36411,7 @@ class FormatSectionOverride {
     evaluate(ctx) {
         if (ctx.formattedSection) {
             const overrides = this.defaultValue.property.overrides;
-            if (overrides && overrides.hasOverride(ctx.formattedSection)) {
+            if (overrides === null || overrides === void 0 ? void 0 : overrides.hasOverride(ctx.formattedSection)) {
                 return overrides.getOverride(ctx.formattedSection);
             }
         }
@@ -36427,7 +36472,7 @@ class SymbolStyleLayer extends StyleLayer {
                 // remove duplicates, preserving order
                 const deduped = [];
                 for (const m of writingModes) {
-                    if (deduped.indexOf(m) < 0)
+                    if (!deduped.includes(m))
                         deduped.push(m);
                 }
                 this.layout._values['text-writing-mode'] = deduped;
@@ -36484,8 +36529,9 @@ class SymbolStyleLayer extends StyleLayer {
         const property = properties$3.paint.properties[propertyName];
         let hasOverrides = false;
         const checkSections = (sections) => {
+            var _a;
             for (const section of sections) {
-                if (property.overrides && property.overrides.hasOverride(section)) {
+                if ((_a = property.overrides) === null || _a === void 0 ? void 0 : _a.hasOverride(section)) {
                     hasOverrides = true;
                     return;
                 }
@@ -36520,7 +36566,7 @@ class SymbolStyleLayer extends StyleLayer {
 function getIconPadding(layout, feature, canonical, pixelRatio = 1) {
     // Support text-padding in addition to icon-padding? Unclear how to apply asymmetric text-padding to the radius for collision circles.
     const result = layout.get('icon-padding').evaluate(feature, {}, canonical);
-    const values = result && result.values;
+    const values = result === null || result === void 0 ? void 0 : result.values;
     return [
         values[0] * pixelRatio,
         values[1] * pixelRatio,
@@ -36642,7 +36688,7 @@ function coerceSpriteToArray(sprite) {
         const dedupArray = [];
         for (const { id, url } of sprite) {
             const key = `${id}${url}`;
-            if (dedupArray.indexOf(key) === -1) {
+            if (!dedupArray.includes(key)) {
                 dedupArray.push(key);
                 resultArray.push({ id, url });
             }
@@ -36700,7 +36746,7 @@ function doOnceCompleted(jsonsMap, imagesMap) {
 
 function renderStyleImage(image) {
     const { userImage } = image;
-    if (userImage && userImage.render) {
+    if (userImage === null || userImage === void 0 ? void 0 : userImage.render) {
         const updated = userImage.render();
         if (updated) {
             image.data.replace(new Uint8Array(userImage.data.buffer));
@@ -36793,11 +36839,11 @@ class ImageManager extends Evented {
     _validate(id, image) {
         let valid = true;
         const data = image.data || image.spriteData;
-        if (!this._validateStretch(image.stretchX, data && data.width)) {
+        if (!this._validateStretch(image.stretchX, data === null || data === void 0 ? void 0 : data.width)) {
             this.fire(new ErrorEvent(new Error(`Image "${id}" has invalid "stretchX" value`)));
             valid = false;
         }
-        if (!this._validateStretch(image.stretchY, data && data.height)) {
+        if (!this._validateStretch(image.stretchY, data === null || data === void 0 ? void 0 : data.height)) {
             this.fire(new ErrorEvent(new Error(`Image "${id}" has invalid "stretchY" value`)));
             valid = false;
         }
@@ -36824,8 +36870,8 @@ class ImageManager extends Evented {
         if (content.length !== 4)
             return false;
         const spriteData = image.spriteData;
-        const width = (spriteData && spriteData.width) || image.data.width;
-        const height = (spriteData && spriteData.height) || image.data.height;
+        const width = (spriteData === null || spriteData === void 0 ? void 0 : spriteData.width) || image.data.width;
+        const height = (spriteData === null || spriteData === void 0 ? void 0 : spriteData.height) || image.data.height;
         if (content[0] < 0 || width < content[0])
             return false;
         if (content[1] < 0 || height < content[1])
@@ -36836,9 +36882,7 @@ class ImageManager extends Evented {
             return false;
         if (content[2] < content[0])
             return false;
-        if (content[3] < content[1])
-            return false;
-        return true;
+        return content[3] >= content[1];
     }
     updateImage(id, image, validate = true) {
         const oldImage = this.getImage(id);
@@ -36850,10 +36894,11 @@ class ImageManager extends Evented {
         this.updatedImages[id] = true;
     }
     removeImage(id) {
+        var _a;
         const image = this.images[id];
         delete this.images[id];
         delete this.patterns[id];
-        if (image.userImage && image.userImage.onRemove) {
+        if ((_a = image.userImage) === null || _a === void 0 ? void 0 : _a.onRemove) {
             image.userImage.onRemove();
         }
     }
@@ -36883,6 +36928,7 @@ class ImageManager extends Evented {
         });
     }
     _getImagesForIds(ids) {
+        var _a;
         const response = {};
         for (const id of ids) {
             let image = this.getImage(id);
@@ -36903,7 +36949,7 @@ class ImageManager extends Evented {
                     content: image.content,
                     textFitWidth: image.textFitWidth,
                     textFitHeight: image.textFitHeight,
-                    hasRenderCallback: Boolean(image.userImage && image.userImage.render)
+                    hasRenderCallback: Boolean((_a = image.userImage) === null || _a === void 0 ? void 0 : _a.render)
                 };
             }
             else {
@@ -36923,6 +36969,7 @@ class ImageManager extends Evented {
         if (!image) {
             return null;
         }
+        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain -- pattern?.position.version would be undefined when pattern is nullish, making undefined === undefined true
         if (pattern && pattern.position.version === image.version) {
             return pattern.position;
         }
@@ -37008,7 +37055,7 @@ function loadGlyphRange(fontstack, range, urlTemplate, requestManager) {
         const end = begin + 255;
         const request = yield requestManager.transformRequest(urlTemplate.replace('{fontstack}', fontstack).replace('{range}', `${begin}-${end}`), "Glyphs" /* ResourceType.Glyphs */);
         const response = yield getArrayBuffer(request, new AbortController());
-        if (!response || !response.data) {
+        if (!(response === null || response === void 0 ? void 0 : response.data)) {
             throw new Error(`Could not load glyph range. range: ${range}, ${begin}-${end}`);
         }
         const glyphs = {};
@@ -37021,6 +37068,14 @@ function loadGlyphRange(fontstack, range, urlTemplate, requestManager) {
 
 const INF = 1e20;
 
+// lookup table for gamma-corrected, signed squared alpha distance values
+const alphaTable = new Float64Array(256);
+for (let i = 0; i < 256; i++) {
+    const d = 0.5 - Math.pow(i / 255, 1 / 2.2);
+    alphaTable[i] = d * Math.abs(d);
+}
+alphaTable[255] = -INF;
+
 class TinySDF {
     constructor({
         fontSize = 24,
@@ -37032,10 +37087,10 @@ class TinySDF {
         fontStyle = 'normal',
         lang = null
     } = {}) {
-        this.buffer = buffer;
-        this.cutoff = cutoff;
-        this.radius = radius;
-        this.lang = lang;
+        this.buffer = buffer; // padding around a glyph's bounding box
+        this.radius = radius; // how many pixels around the glyph edge are encoded as signed distances
+        this.cutoff = cutoff; // how much of the SDF byte range represents inside vs outside the edge
+        this.lang = lang; // language of the Canvas drawing context
 
         // make the canvas size big enough to both have the specified buffer around the glyph
         // for "halo", and account for some glyphs possibly being larger than their font size
@@ -37049,7 +37104,8 @@ class TinySDF {
         ctx.textAlign = 'left'; // Necessary so that RTL text doesn't have different alignment
         ctx.fillStyle = 'black';
 
-        // temporary arrays for the distance transform
+        // two grids of squared distances: one for the outside of the glyph shape, one for the inside;
+        // the signed distance is derived as sqrt(outer) - sqrt(inner)
         this.gridOuter = new Float64Array(size * size);
         this.gridInner = new Float64Array(size * size);
         this.f = new Float64Array(size);
@@ -37058,6 +37114,9 @@ class TinySDF {
     }
 
     _createCanvas(size) {
+        if (typeof OffscreenCanvas !== 'undefined') {
+            return new OffscreenCanvas(size, size);
+        }
         const canvas = document.createElement('canvas');
         canvas.width = canvas.height = size;
         return canvas;
@@ -37072,14 +37131,14 @@ class TinySDF {
             actualBoundingBoxRight
         } = this.ctx.measureText(char);
 
-        // The integer/pixel part of the top alignment is encoded in metrics.glyphTop
+        // The integer/pixel part of the alignment is encoded in metrics.glyphTop/glyphLeft
         // The remainder is implicitly encoded in the rasterization
         const glyphTop = Math.ceil(actualBoundingBoxAscent);
-        const glyphLeft = 0;
+        const glyphLeft = Math.floor(actualBoundingBoxLeft);
 
         // If the glyph overflows the canvas size, it will be clipped at the bottom/right
-        const glyphWidth = Math.max(0, Math.min(this.size - this.buffer, Math.ceil(actualBoundingBoxRight - actualBoundingBoxLeft)));
-        const glyphHeight = Math.min(this.size - this.buffer, glyphTop + Math.ceil(actualBoundingBoxDescent));
+        const glyphWidth = Math.max(0, Math.min(this.size - this.buffer, Math.ceil(actualBoundingBoxRight) - glyphLeft));
+        const glyphHeight = Math.max(0, Math.min(this.size - this.buffer, glyphTop + Math.ceil(actualBoundingBoxDescent)));
 
         const width = glyphWidth + 2 * this.buffer;
         const height = glyphHeight + 2 * this.buffer;
@@ -37092,38 +37151,39 @@ class TinySDF {
         const {ctx, buffer, gridInner, gridOuter} = this;
         if (this.lang) ctx.lang = this.lang;
         ctx.clearRect(buffer, buffer, glyphWidth, glyphHeight);
-        ctx.fillText(char, buffer, buffer + glyphTop);
+        ctx.fillText(char, buffer - glyphLeft, buffer + glyphTop);
         const imgData = ctx.getImageData(buffer, buffer, glyphWidth, glyphHeight);
 
-        // Initialize grids outside the glyph range to alpha 0
+        // default: outside the glyph (INF distance) for outer, inside (0 distance) for inner
         gridOuter.fill(INF, 0, len);
         gridInner.fill(0, 0, len);
 
+        // for anti-aliased pixels, treat partial coverage as a distance approximation:
+        // a fully covered pixel gets 0 outer / INF inner; a partial pixel gets a small
+        // non-zero outer or inner distance based on how far its coverage deviates from 0.5
+        let imgIdx = 3; // start at the alpha channel of the first pixel
         for (let y = 0; y < glyphHeight; y++) {
-            for (let x = 0; x < glyphWidth; x++) {
-                const a = imgData.data[4 * (y * glyphWidth + x) + 3] / 255; // alpha value
+            let j = (y + buffer) * width + buffer;
+            for (let x = 0; x < glyphWidth; x++, imgIdx += 4, j++) {
+                const a = imgData.data[imgIdx]; // alpha value
                 if (a === 0) continue; // empty pixels
-
-                const j = (y + buffer) * width + x + buffer;
-
-                if (a === 1) { // fully drawn pixels
-                    gridOuter[j] = 0;
-                    gridInner[j] = INF;
-
-                } else { // aliased pixels
-                    const d = 0.5 - a;
-                    gridOuter[j] = d > 0 ? d * d : 0;
-                    gridInner[j] = d < 0 ? d * d : 0;
-                }
+                const t = alphaTable[a];
+                gridOuter[j] = Math.max(0, t);
+                gridInner[j] = Math.max(0, -t);
             }
         }
 
         edt(gridOuter, 0, 0, width, height, width, this.f, this.v, this.z);
         edt(gridInner, buffer, buffer, glyphWidth, glyphHeight, width, this.f, this.v, this.z);
 
+        // encode signed distance as a byte: inside the glyph maps to high values, outside to low,
+        // with the edge gradient spanning [-radius * cutoff, radius * (1 - cutoff)] pixels around the edge;
+        // Uint8ClampedArray clamps beyond that
+        const scale = 255 / this.radius;
+        const base = 255 * (1 - this.cutoff);
         for (let i = 0; i < len; i++) {
             const d = Math.sqrt(gridOuter[i]) - Math.sqrt(gridInner[i]);
-            data[i] = Math.round(255 - 255 * (d / this.radius + this.cutoff));
+            data[i] = Math.round(base - scale * d);
         }
 
         return glyph;
@@ -37200,9 +37260,7 @@ class GlyphManager {
             const updatedGlyphs = yield Promise.all(glyphsPromises);
             const result = {};
             for (const { stack, id, glyph } of updatedGlyphs) {
-                if (!result[stack]) {
-                    result[stack] = {};
-                }
+                result[stack] || (result[stack] = {});
                 // Clone the glyph so that our own copy of its ArrayBuffer doesn't get transferred.
                 result[stack][id] = glyph && {
                     id: glyph.id,
@@ -37215,15 +37273,11 @@ class GlyphManager {
     }
     _getAndCacheGlyphsPromise(stack, id) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            var _b;
             // Create an entry for this fontstack if it doesn’t already exist.
-            let entry = this.entries[stack];
-            if (!entry) {
-                entry = this.entries[stack] = {
-                    glyphs: {},
-                    requests: {},
-                    ranges: {}
-                };
-            }
+            (_a = (_b = this.entries)[stack]) !== null && _a !== void 0 ? _a : (_b[stack] = { glyphs: {}, requests: {}, ranges: {} });
+            const entry = this.entries[stack];
             // Try to get the glyph from the cache of client-side glyphs by codepoint.
             let glyph = entry.glyphs[id];
             if (glyph !== undefined) {
@@ -37239,6 +37293,7 @@ class GlyphManager {
     }
     _downloadAndCacheRangePromise(stack, id) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             // Try to get the glyph from the cache of server-side glyphs by PBF range.
             const entry = this.entries[stack];
             const range = Math.floor(id / 256);
@@ -37246,10 +37301,7 @@ class GlyphManager {
                 return { stack, id, glyph: null };
             }
             // Start downloading this range unless we’re currently downloading it.
-            if (!entry.requests[range]) {
-                const promise = GlyphManager.loadGlyphRange(stack, range, this.url, this.requestManager);
-                entry.requests[range] = promise;
-            }
+            (_a = entry.requests)[range] || (_a[range] = GlyphManager.loadGlyphRange(stack, range, this.url, this.requestManager));
             try {
                 // Get the response and cache the glyphs from it.
                 const response = yield entry.requests[range];
@@ -37262,7 +37314,7 @@ class GlyphManager {
             catch (e) {
                 // Fall back to drawing the glyph locally and caching it.
                 const glyph = entry.glyphs[id] = this._drawGlyph(entry, stack, id);
-                this._warnOnMissingGlyphRange(glyph, range, id, e);
+                this._warnOnMissingGlyphRange(glyph, range, id, ensureError(e));
                 return { stack, id, glyph };
             }
         });
@@ -37329,7 +37381,7 @@ class GlyphManager {
             buffer: 3 * textureScale,
             radius: 8 * textureScale,
             cutoff: 0.25,
-            fontFamily: fontFamily,
+            fontFamily,
             fontWeight: this._fontWeight(fontFamilies[0]),
             fontStyle: this._fontStyle(fontFamilies[0]),
             lang: this.lang
@@ -37376,12 +37428,8 @@ class GlyphManager {
     destroy() {
         for (const stack in this.entries) {
             const entry = this.entries[stack];
-            if (entry.tinySDF) {
-                entry.tinySDF = null;
-            }
-            if (entry.ideographTinySDF) {
-                entry.ideographTinySDF = null;
-            }
+            entry.tinySDF = null;
+            entry.ideographTinySDF = null;
             entry.glyphs = {};
             entry.requests = {};
             entry.ranges = {};
@@ -37389,7 +37437,7 @@ class GlyphManager {
         this.entries = {};
     }
 }
-// exposed as statics to enable stubbing in unit tests
+// exposed as statistics to enable stubbing in unit tests
 GlyphManager.loadGlyphRange = loadGlyphRange;
 GlyphManager.TinySDF = TinySDF;
 
@@ -37415,12 +37463,12 @@ let lightProperties;
 class Light extends Evented {
     constructor(lightOptions) {
         super();
-        lightProperties = lightProperties || new Properties({
+        lightProperties || (lightProperties = new Properties({
             'anchor': new DataConstantProperty(v8Spec.light.anchor),
             'position': new LightPositionProperty(),
             'color': new DataConstantProperty(v8Spec.light.color),
             'intensity': new DataConstantProperty(v8Spec.light.intensity),
-        });
+        }));
         this._transitionable = new Transitionable(lightProperties, undefined);
         this.setLight(lightOptions);
         this._transitioning = this._transitionable.untransitioned();
@@ -37452,7 +37500,7 @@ class Light extends Evented {
         this.properties = this._transitioning.possiblyEvaluate(parameters);
     }
     _validate(validate, value, options) {
-        if (options && options.validate === false) {
+        if ((options === null || options === void 0 ? void 0 : options.validate) === false) {
             return false;
         }
         return emitValidationErrors$1(this, validate.call(validateStyle, {
@@ -37484,15 +37532,13 @@ class Sky extends Evented {
     setSky(sky, options = {}) {
         if (this._validate(validateSky, sky, options))
             return;
-        if (!sky) {
-            sky = {
-                'sky-color': 'transparent',
-                'horizon-color': 'transparent',
-                'fog-color': 'transparent',
-                'fog-ground-blend': 1,
-                'atmosphere-blend': 0,
-            };
-        }
+        sky || (sky = {
+            'sky-color': 'transparent',
+            'horizon-color': 'transparent',
+            'fog-color': 'transparent',
+            'fog-ground-blend': 1,
+            'atmosphere-blend': 0,
+        });
         for (const name in sky) {
             const value = sky[name];
             if (name.endsWith(TRANSITION_SUFFIX)) {
@@ -37570,10 +37616,9 @@ class LineAtlas {
      * @returns position of dash texture in {@link DashEntry}
      */
     getDash(dasharray, round) {
+        var _a;
         const key = dasharray.join(',') + String(round);
-        if (!this.dashEntry[key]) {
-            this.dashEntry[key] = this.addDash(dasharray, round);
-        }
+        (_a = this.dashEntry)[key] || (_a[key] = this.addDash(dasharray, round));
         return this.dashEntry[key];
     }
     getDashRanges(dasharray, lineAtlasWidth, stretch) {
@@ -37666,8 +37711,8 @@ class LineAtlas {
             return null;
         }
         let length = 0;
-        for (let i = 0; i < dasharray.length; i++) {
-            length += dasharray[i];
+        for (const dash of dasharray) {
+            length += dash;
         }
         if (length !== 0) {
             const stretch = this.width / length;
@@ -37882,7 +37927,7 @@ class Actor {
                     return;
                 }
                 if (task.error) {
-                    resolveReject.reject(deserialize$1(task.error));
+                    resolveReject.reject(ensureError(deserialize$1(task.error)));
                 }
                 else {
                     resolveReject.resolve(deserialize$1(task.data));
@@ -37901,7 +37946,7 @@ class Actor {
                 this.completeTask(id, null, data);
             }
             catch (err) {
-                this.completeTask(id, err);
+                this.completeTask(id, ensureError(err));
             }
         });
     }
@@ -37951,9 +37996,9 @@ class WorkerPool {
     release(mapId) {
         delete this.active[mapId];
         if (this.numActive() === 0) {
-            this.workers.forEach((w) => {
+            for (const w of this.workers) {
                 w.terminate();
-            });
+            }
             this.workers = null;
         }
     }
@@ -37974,9 +38019,7 @@ let globalWorkerPool;
  * to be shared across each Map
  */
 function getGlobalWorkerPool() {
-    if (!globalWorkerPool) {
-        globalWorkerPool = new WorkerPool();
-    }
+    globalWorkerPool || (globalWorkerPool = new WorkerPool());
     return globalWorkerPool;
 }
 /**
@@ -38068,7 +38111,9 @@ class Dispatcher {
         return this.actors[this.currentActor];
     }
     remove(mapRemoved = true) {
-        this.actors.forEach((actor) => { actor.remove(); });
+        for (const actor of this.actors) {
+            actor.remove();
+        }
         this.actors = [];
         if (mapRemoved)
             this.workerPool.release(this.id);
@@ -38085,6 +38130,13 @@ class Dispatcher {
     }
 }
 let globalDispatcher;
+/**
+ * This function is used to get the global dispatcher that is shared across all maps instances.
+ * It is used by the main thread to send messages to the workers, and by the workers to send messages back to the main thread.
+ * If you import a script into the worker and need to send a message to the workers to pass some parameters for example,
+ * you can use this function to get the global dispatcher and send a message to the workers.
+ * @returns The global dispatcher instance.
+ */
 function getGlobalDispatcher() {
     if (!globalDispatcher) {
         globalDispatcher = new Dispatcher(getGlobalWorkerPool(), GLOBAL_DISPATCHER_ID);
@@ -38113,7 +38165,7 @@ function queryIncludes3DLayer(layers, styleLayers, sourceID) {
     if (layers) {
         for (const layerID of layers) {
             const layer = styleLayers[layerID];
-            if (layer && layer.source === sourceID && layer.type === 'fill-extrusion') {
+            if ((layer === null || layer === void 0 ? void 0 : layer.source) === sourceID && layer.type === 'fill-extrusion') {
                 return true;
             }
         }
@@ -38158,7 +38210,7 @@ function queryRenderedSymbols(styleLayers, serializedLayers, tileManagers, query
             globalState: params.globalState
         }, params.layers, params.availableImages, styleLayers);
         for (const layerID in bucketSymbols) {
-            const resultFeatures = result[layerID] = result[layerID] || [];
+            result[layerID] || (result[layerID] = []);
             const layerSymbols = bucketSymbols[layerID];
             layerSymbols.sort((a, b) => {
                 // Match topDownFeatureComparator from FeatureIndex, but using
@@ -38167,7 +38219,7 @@ function queryRenderedSymbols(styleLayers, serializedLayers, tileManagers, query
                 if (featureSortOrder) {
                     // queryRenderedSymbols documentation says we'll return features in
                     // "top-to-bottom" rendering order (aka last-to-first).
-                    // Actually there can be multiple symbol instances per feature, so
+                    // Actually, there can be multiple symbol instances per feature, so
                     // we sort each feature based on the first matching symbol instance.
                     const sortedA = featureSortOrder.indexOf(a.featureIndex);
                     const sortedB = featureSortOrder.indexOf(b.featureIndex);
@@ -38180,7 +38232,7 @@ function queryRenderedSymbols(styleLayers, serializedLayers, tileManagers, query
                 }
             });
             for (const symbolFeature of layerSymbols) {
-                resultFeatures.push(symbolFeature);
+                result[layerID].push(symbolFeature);
             }
         }
     }
@@ -38192,8 +38244,7 @@ function querySourceFeatures(tileManager, params) {
     });
     const result = [];
     const dataTiles = {};
-    for (let i = 0; i < tiles.length; i++) {
-        const tile = tiles[i];
+    for (const tile of tiles) {
         const dataID = tile.tileID.canonical.key;
         if (!dataTiles[dataID]) {
             dataTiles[dataID] = true;
@@ -38212,18 +38263,18 @@ function mergeRenderedFeatureLayers(tiles) {
     // wrapped ID, don't duplicate features between the two tiles
     const result = {};
     const wrappedIDLayerMap = {};
-    for (const tile of tiles) {
-        const queryResults = tile.queryResults;
-        const wrappedID = tile.wrappedTileID;
-        const wrappedIDLayers = wrappedIDLayerMap[wrappedID] = wrappedIDLayerMap[wrappedID] || {};
+    for (const { queryResults, wrappedTileID } of tiles) {
+        wrappedIDLayerMap[wrappedTileID] || (wrappedIDLayerMap[wrappedTileID] = {});
+        const wrappedIDLayers = wrappedIDLayerMap[wrappedTileID];
         for (const layerID in queryResults) {
             const tileFeatures = queryResults[layerID];
-            const wrappedIDFeatures = wrappedIDLayers[layerID] = wrappedIDLayers[layerID] || {};
-            const resultFeatures = result[layerID] = result[layerID] || [];
+            wrappedIDLayers[layerID] || (wrappedIDLayers[layerID] = {});
+            const wrappedIDFeatures = wrappedIDLayers[layerID];
+            result[layerID] || (result[layerID] = []);
             for (const tileFeature of tileFeatures) {
                 if (!wrappedIDFeatures[tileFeature.featureIndex]) {
                     wrappedIDFeatures[tileFeature.featureIndex] = true;
-                    resultFeatures.push(tileFeature);
+                    result[layerID].push(tileFeature);
                 }
             }
         }
@@ -38236,7 +38287,6 @@ function convertFeaturesToMapFeatures(result, tileManager) {
         for (const featureWrapper of result[layerID]) {
             convertFeatureToMapFeature(featureWrapper, tileManager);
         }
-        ;
     }
     return result;
 }
@@ -38279,7 +38329,7 @@ function loadTileJson(options, requestManager, abortController, targetWindow) {
         // explicit source options take precedence over TileJSON
         extend(tileJSON, options), ['tiles', 'minzoom', 'maxzoom', 'attribution', 'bounds', 'scheme', 'tileSize', 'encoding']);
         if ('vector_layers' in tileJSON && tileJSON.vector_layers) {
-            result.vectorLayerIds = tileJSON.vector_layers.map((layer) => { return layer.id; });
+            result.vectorLayerIds = tileJSON.vector_layers.map((layer) => layer.id);
         }
         return result;
     });
@@ -38309,9 +38359,7 @@ const earthRadius = 6371008.8;
  * let ll = new LngLat(-123.9749, 40.7736);
  * ll.lng; // = -123.9749
  * ```
- * @see [Get coordinates of the mouse pointer](https://maplibre.org/maplibre-gl-js/docs/examples/mouse-position/)
- * @see [Display a popup](https://maplibre.org/maplibre-gl-js/docs/examples/popup/)
- * @see [Create a timeline animation](https://maplibre.org/maplibre-gl-js/docs/examples/timeline-animation/)
+ * @see [Get coordinates of the mouse pointer](https://maplibre.org/maplibre-gl-js/docs/examples/get-coordinates-of-the-mouse-pointer/)
  */
 class LngLat {
     /**
@@ -38386,8 +38434,7 @@ class LngLat {
         const lat1 = this.lat * rad;
         const lat2 = lngLat.lat * rad;
         const a = Math.sin(lat1) * Math.sin(lat2) + Math.cos(lat1) * Math.cos(lat2) * Math.cos((lngLat.lng - this.lng) * rad);
-        const maxMeters = earthRadius * Math.acos(Math.min(a, 1));
-        return maxMeters;
+        return earthRadius * Math.acos(Math.min(a, 1));
     }
     /**
      * Converts an array of two numbers or an object with `lng` and `lat` or `lon` and `lat` properties
@@ -38426,7 +38473,7 @@ class LngLat {
  *
  * If no arguments are provided to the constructor, a `null` bounding box is created.
  *
- * Note that any Mapbox GL method that accepts a `LngLatBounds` object as an argument or option
+ * Note that any MapLibre GL method that accepts a `LngLatBounds` object as an argument or option
  * can also accept an `Array` of two {@link LngLatLike} constructs and will perform an implicit conversion.
  * This flexible type is documented as {@link LngLatBoundsLike}.
  *
@@ -38438,6 +38485,7 @@ class LngLat {
  * let ne = new LngLat(-73.9397, 40.8002);
  * let llb = new LngLatBounds(sw, ne);
  * ```
+ * @see [Fit to the bounds of a LineString](https://maplibre.org/maplibre-gl-js/docs/examples/fit-to-the-bounds-of-a-linestring/)
  */
 class LngLatBounds {
     /**
@@ -38832,7 +38880,9 @@ function mercatorScale(lat) {
  * ```ts
  * let nullIsland = new MercatorCoordinate(0.5, 0.5, 0);
  * ```
- * @see [Add a custom style layer](https://maplibre.org/maplibre-gl-js/docs/examples/custom-style-layer/)
+ * @see [Add a custom style layer](https://maplibre.org/maplibre-gl-js/docs/examples/add-a-custom-style-layer/)
+ * @see [Add a 3D model using three.js](https://maplibre.org/maplibre-gl-js/docs/examples/add-a-3d-model-using-threejs/)
+ * @see [Add a simple custom layer on a globe](https://maplibre.org/maplibre-gl-js/docs/examples/add-a-simple-custom-layer-on-a-globe/)
  */
 class MercatorCoordinate {
     /**
@@ -38921,8 +38971,7 @@ class TileBounds {
             maxX: Math.ceil(mercatorXfromLng(this.bounds.getEast()) * worldSize),
             maxY: Math.ceil(mercatorYfromLat(this.bounds.getSouth()) * worldSize)
         };
-        const hit = tileID.x >= level.minX && tileID.x < level.maxX && tileID.y >= level.minY && tileID.y < level.maxY;
-        return hit;
+        return tileID.x >= level.minX && tileID.x < level.maxX && tileID.y >= level.minY && tileID.y < level.maxY;
     }
 }
 
@@ -39007,7 +39056,7 @@ class VectorTileSource extends Evented {
                 this._loaded = true; // let's pretend it's loaded so the source will be ignored
                 // only fire error event if it is not due to aborting the request
                 if (!isAbortError(err)) {
-                    this.fire(new ErrorEvent(err));
+                    this.fire(new ErrorEvent(ensureError(err)));
                 }
             }
         });
@@ -39257,7 +39306,7 @@ class RasterTileSource extends Evented {
                 this._loaded = true; // let's pretend it's loaded so the source will be ignored
                 // only fire error event if it is not due to aborting the request
                 if (!isAbortError(err)) {
-                    this.fire(new ErrorEvent(err));
+                    this.fire(new ErrorEvent(ensureError(err)));
                 }
             }
         });
@@ -39323,7 +39372,7 @@ class RasterTileSource extends Evented {
                     tile.state = 'unloaded';
                     return;
                 }
-                if (response && response.data) {
+                if (response === null || response === void 0 ? void 0 : response.data) {
                     if (this.map._refreshExpiredTiles && (response.cacheControl || response.expires)) {
                         tile.setExpiryData({ cacheControl: response.cacheControl, expires: response.expires });
                     }
@@ -39647,9 +39696,7 @@ class OverscaledTileID {
             return true;
         if (this.canonical.x > rhs.canonical.x)
             return false;
-        if (this.canonical.y < rhs.canonical.y)
-            return true;
-        return false;
+        return this.canonical.y < rhs.canonical.y;
     }
     wrapped() {
         return new OverscaledTileID(this.overscaledZ, 0, this.canonical.z, this.canonical.x, this.canonical.y);
@@ -39724,9 +39771,9 @@ function calculateTileKey(wrap, overscaledZ, z, x, y) {
     return (dim * dim * wrap + dim * y + x).toString(36) + z.toString(36) + overscaledZ.toString(36);
 }
 function getQuadkey(z, x, y) {
-    let quadkey = '', mask;
+    let quadkey = '';
     for (let i = z; i > 0; i--) {
-        mask = 1 << (i - 1);
+        const mask = 1 << (i - 1);
         quadkey += ((x & mask ? 1 : 0) + (y & mask ? 2 : 0));
     }
     return quadkey;
@@ -39783,7 +39830,7 @@ class RasterDEMTileSource extends RasterTileSource {
                     tile.state = 'unloaded';
                     return;
                 }
-                if (response && response.data) {
+                if (response === null || response === void 0 ? void 0 : response.data) {
                     const img = response.data;
                     if (this.map._refreshExpiredTiles && (response.cacheControl || response.expires)) {
                         tile.setExpiryData({ cacheControl: response.cacheControl, expires: response.expires });
@@ -39807,8 +39854,7 @@ class RasterDEMTileSource extends RasterTileSource {
                     if (!tile.actor || tile.state === 'expired') {
                         tile.actor = this.dispatcher.getActor();
                     }
-                    const data = yield tile.actor.sendAsync({ type: "LDT" /* MessageType.loadDEMTile */, data: params });
-                    tile.dem = data;
+                    tile.dem = yield tile.actor.sendAsync({ type: "LDT" /* MessageType.loadDEMTile */, data: params });
                     tile.needsHillshadePrepare = true;
                     tile.needsTerrainPrepare = true;
                     tile.state = 'loaded';
@@ -40208,8 +40254,8 @@ function getGeoJSONBounds(data) {
     if (coordinates.length === 0) {
         return bounds;
     }
-    for (let i = 0; i < coordinates.length; i++) {
-        const [lng, lat] = coordinates[i];
+    for (const coordinate of coordinates) {
+        const [lng, lat] = coordinate;
         bounds.extend([lng, lat]);
     }
     return bounds;
@@ -40565,7 +40611,7 @@ class GeoJSONSource extends Evented {
                     this.fire(new Event('dataabort', { dataType: 'source' }));
                     return;
                 }
-                this.fire(new ErrorEvent(err));
+                this.fire(new ErrorEvent(ensureError(err)));
             }
             finally {
                 // If there is more pending data, update the worker again.
@@ -40890,7 +40936,7 @@ class ImageSource extends Evented {
                 const image = yield ImageRequest.getImage(yield this.map._requestManager.transformRequest(this.url, "Image" /* ResourceType.Image */), this._request);
                 this._request = null;
                 this._loaded = true;
-                if (image && image.data) {
+                if (image === null || image === void 0 ? void 0 : image.data) {
                     this.image = image.data;
                     if (newCoordinates) {
                         this.coordinates = newCoordinates;
@@ -40902,7 +40948,7 @@ class ImageSource extends Evented {
                 this._request = null;
                 this._loaded = true;
                 if (!isAbortError(err)) {
-                    this.fire(new ErrorEvent(err));
+                    this.fire(new ErrorEvent(ensureError(err)));
                 }
             }
         });
@@ -40925,7 +40971,7 @@ class ImageSource extends Evented {
             this._request = null;
         }
         this.options.url = options.url;
-        this.load(options.coordinates).finally(() => { this.texture = null; });
+        this.load(options.coordinates).finally(() => this.texture = null);
         return this;
     }
     _finishLoading() {
@@ -41001,13 +41047,14 @@ class ImageSource extends Evented {
     }
     loadTile(tile) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             // We have a single tile -- whose coordinates are this.tileID -- that
             // covers the image we want to render.  If that's the one being
             // requested, set it up with the image; otherwise, mark the tile as
             // `errored` to indicate that we have no data for it.
             // If the world wraps, we may have multiple "wrapped" copies of the
             // single tile.
-            if (this.tileID && this.tileID.equals(tile.tileID.canonical)) {
+            if ((_a = this.tileID) === null || _a === void 0 ? void 0 : _a.equals(tile.tileID.canonical)) {
                 this.tiles[String(tile.tileID.wrap)] = tile;
                 tile.buckets = {};
             }
@@ -41157,7 +41204,7 @@ class VideoSource extends ImageSource {
                 this._finishLoading();
             }
             catch (err) {
-                this.fire(new ErrorEvent(err));
+                this.fire(new ErrorEvent(ensureError(err)));
             }
         });
     }
@@ -41316,13 +41363,11 @@ class CanvasSource extends ImageSource {
     load() {
         return __awaiter(this, void 0, void 0, function* () {
             this._loaded = true;
-            if (!this.canvas) {
-                this.canvas = (this.options.canvas instanceof HTMLCanvasElement) ?
-                    this.options.canvas :
-                    document.getElementById(this.options.canvas);
-                // cast to HTMLCanvasElement in else of ternary
-                // should we do a safety check and throw if it's not actually HTMLCanvasElement?
-            }
+            this.canvas || (this.canvas = (this.options.canvas instanceof HTMLCanvasElement) ?
+                this.options.canvas :
+                document.getElementById(this.options.canvas));
+            // cast to HTMLCanvasElement in else of ternary
+            // should we do a safety check and throw if it's not actually HTMLCanvasElement?
             this.width = this.canvas.width;
             this.height = this.canvas.height;
             if (this._hasInvalidDimensions()) {
@@ -46531,11 +46576,9 @@ class FeatureIndex {
         const key = this.featureIndexArray.length;
         this.featureIndexArray.emplaceBack(featureIndex, sourceLayerIndex, bucketIndex);
         const grid = is3D ? this.grid3D : this.grid;
-        for (let r = 0; r < geometry.length; r++) {
-            const ring = geometry[r];
+        for (const ring of geometry) {
             const bbox = [Infinity, Infinity, -Infinity, -Infinity];
-            for (let i = 0; i < ring.length; i++) {
-                const p = ring[i];
+            for (const p of ring) {
                 bbox[0] = Math.min(bbox[0], p.x);
                 bbox[1] = Math.min(bbox[1], p.y);
                 bbox[2] = Math.max(bbox[2], p.x);
@@ -46578,8 +46621,7 @@ class FeatureIndex {
         matching.sort(topDownFeatureComparator);
         const result = {};
         let previousIndex;
-        for (let k = 0; k < matching.length; k++) {
-            const index = matching[k];
+        for (const index of matching) {
             // don't check the same feature more than once
             if (index === previousIndex)
                 continue;
@@ -46587,9 +46629,7 @@ class FeatureIndex {
             const match = this.featureIndexArray.get(index);
             let featureGeometry = null;
             this.loadMatchingFeature(result, match.bucketIndex, match.sourceLayerIndex, match.featureIndex, filter, params.layers, params.availableImages, styleLayers, serializedLayers, sourceFeatureState, (feature, styleLayer, featureState) => {
-                if (!featureGeometry) {
-                    featureGeometry = loadGeometry(feature);
-                }
+                featureGeometry || (featureGeometry = loadGeometry(feature));
                 return styleLayer.queryIntersectsFeature({
                     queryGeometry,
                     feature,
@@ -46623,8 +46663,7 @@ class FeatureIndex {
             return;
         }
         const id = this.getId(feature, sourceLayerName);
-        for (let l = 0; l < layerIDs.length; l++) {
-            const layerID = layerIDs[l];
+        for (const layerID of layerIDs) {
             if (filterLayerIDs && !filterLayerIDs.has(layerID)) {
                 continue;
             }
@@ -46693,7 +46732,7 @@ register('FeatureIndex', FeatureIndex, { omit: ['rawTileData', 'sourceLayerCoder
 function evaluateProperties(serializedProperties, styleLayerProperties, feature, featureState, availableImages) {
     return mapObject(serializedProperties, (property, key) => {
         const prop = styleLayerProperties instanceof PossiblyEvaluated ? styleLayerProperties.get(key) : null;
-        return prop && prop.evaluate ? prop.evaluate(feature, featureState, availableImages) : prop;
+        return (prop === null || prop === void 0 ? void 0 : prop.evaluate) ? prop.evaluate(feature, featureState, availableImages) : prop;
     });
 }
 function topDownFeatureComparator(a, b) {
@@ -46775,9 +46814,7 @@ class RTLMainThreadPlugin extends Evented {
 }
 let rtlMainThreadPlugin = null;
 function rtlMainThreadPluginFactory() {
-    if (!rtlMainThreadPlugin) {
-        rtlMainThreadPlugin = new RTLMainThreadPlugin();
-    }
+    rtlMainThreadPlugin || (rtlMainThreadPlugin = new RTLMainThreadPlugin());
     return rtlMainThreadPlugin;
 }
 
@@ -46958,15 +46995,11 @@ class Tile {
         if (this.imageAtlasTexture) {
             this.imageAtlasTexture.destroy();
         }
-        if (this.imageAtlas) {
-            this.imageAtlas = null;
-        }
         if (this.glyphAtlasTexture) {
             this.glyphAtlasTexture.destroy();
         }
-        if (this.dashPositions) {
-            this.dashPositions = null;
-        }
+        this.imageAtlas = null;
+        this.dashPositions = null;
         this.latestFeatureIndex = null;
         this.state = 'unloaded';
     }
@@ -46998,7 +47031,8 @@ class Tile {
     // Queries non-symbol features rendered for this tile.
     // Symbol features are queried globally
     queryRenderedFeatures(layers, serializedLayers, sourceFeatureState, queryGeometry, cameraQueryGeometry, scale, params, transform, maxPitchScaleFactor, pixelPosMatrix, getElevation) {
-        if (!this.latestFeatureIndex || !this.latestFeatureIndex.rawTileData)
+        var _a;
+        if (!((_a = this.latestFeatureIndex) === null || _a === void 0 ? void 0 : _a.rawTileData))
             return {};
         return this.latestFeatureIndex.query({
             queryGeometry,
@@ -47014,10 +47048,10 @@ class Tile {
     }
     querySourceFeatures(result, params) {
         const featureIndex = this.latestFeatureIndex;
-        if (!featureIndex || !featureIndex.rawTileData)
+        if (!(featureIndex === null || featureIndex === void 0 ? void 0 : featureIndex.rawTileData))
             return;
         const vtLayers = featureIndex.loadVTLayers();
-        const sourceLayer = params && params.sourceLayer ? params.sourceLayer : '';
+        const sourceLayer = (params === null || params === void 0 ? void 0 : params.sourceLayer) ? params.sourceLayer : '';
         const layer = vtLayers[GEOJSON_TILE_LAYER_NAME] || vtLayers[sourceLayer];
         if (!layer)
             return;
@@ -47105,8 +47139,8 @@ class Tile {
         }
     }
     setFeatureState(states, painter) {
-        if (!this.latestFeatureIndex ||
-            !this.latestFeatureIndex.rawTileData ||
+        var _a, _b, _c;
+        if (!((_a = this.latestFeatureIndex) === null || _a === void 0 ? void 0 : _a.rawTileData) ||
             Object.keys(states).length === 0) {
             return;
         }
@@ -47121,8 +47155,8 @@ class Tile {
             const sourceLayerStates = states[sourceLayerId];
             if (!sourceLayer || !sourceLayerStates || Object.keys(sourceLayerStates).length === 0)
                 continue;
-            bucket.update(sourceLayerStates, sourceLayer, this.imageAtlas && this.imageAtlas.patternPositions || {}, this.dashPositions || {});
-            const layer = painter && painter.style && painter.style.getLayer(id);
+            bucket.update(sourceLayerStates, sourceLayer, ((_b = this.imageAtlas) === null || _b === void 0 ? void 0 : _b.patternPositions) || {}, this.dashPositions || {});
+            const layer = (_c = painter === null || painter === void 0 ? void 0 : painter.style) === null || _c === void 0 ? void 0 : _c.getLayer(id);
             if (layer) {
                 this.queryPadding = Math.max(this.queryPadding, layer.queryRadius(bucket));
             }
@@ -47393,9 +47427,11 @@ class SourceFeatureState {
         this.revision = 0;
     }
     updateState(sourceLayer, featureId, newState) {
+        var _a, _b, _c;
+        var _d, _e;
         const feature = String(featureId);
-        this.stateChanges[sourceLayer] = this.stateChanges[sourceLayer] || {};
-        this.stateChanges[sourceLayer][feature] = this.stateChanges[sourceLayer][feature] || {};
+        (_d = this.stateChanges)[sourceLayer] || (_d[sourceLayer] = {});
+        (_e = this.stateChanges[sourceLayer])[feature] || (_e[feature] = {});
         extend(this.stateChanges[sourceLayer][feature], newState);
         if (this.deletedStates[sourceLayer] === null) {
             this.deletedStates[sourceLayer] = {};
@@ -47405,7 +47441,7 @@ class SourceFeatureState {
             }
         }
         else {
-            const featureDeletionQueued = this.deletedStates[sourceLayer] && this.deletedStates[sourceLayer][feature] === null;
+            const featureDeletionQueued = ((_a = this.deletedStates[sourceLayer]) === null || _a === void 0 ? void 0 : _a[feature]) === null;
             if (featureDeletionQueued) {
                 this.deletedStates[sourceLayer][feature] = {};
                 for (const prop in this.state[sourceLayer][feature]) {
@@ -47415,7 +47451,7 @@ class SourceFeatureState {
             }
             else {
                 for (const key in newState) {
-                    const deletionInQueue = this.deletedStates[sourceLayer] && this.deletedStates[sourceLayer][feature] && this.deletedStates[sourceLayer][feature][key] === null;
+                    const deletionInQueue = ((_c = (_b = this.deletedStates[sourceLayer]) === null || _b === void 0 ? void 0 : _b[feature]) === null || _c === void 0 ? void 0 : _c[key]) === null;
                     if (deletionInQueue)
                         delete this.deletedStates[sourceLayer][feature][key];
                 }
@@ -47423,19 +47459,21 @@ class SourceFeatureState {
         }
     }
     removeFeatureState(sourceLayer, featureId, key) {
+        var _a;
+        var _b, _c;
         const sourceLayerDeleted = this.deletedStates[sourceLayer] === null;
         if (sourceLayerDeleted)
             return;
         const feature = String(featureId);
-        this.deletedStates[sourceLayer] = this.deletedStates[sourceLayer] || {};
+        (_b = this.deletedStates)[sourceLayer] || (_b[sourceLayer] = {});
         if (key && featureId !== undefined) {
             if (this.deletedStates[sourceLayer][feature] !== null) {
-                this.deletedStates[sourceLayer][feature] = this.deletedStates[sourceLayer][feature] || {};
+                (_c = this.deletedStates[sourceLayer])[feature] || (_c[feature] = {});
                 this.deletedStates[sourceLayer][feature][key] = null;
             }
         }
         else if (featureId !== undefined) {
-            const updateInQueue = this.stateChanges[sourceLayer] && this.stateChanges[sourceLayer][feature];
+            const updateInQueue = (_a = this.stateChanges[sourceLayer]) === null || _a === void 0 ? void 0 : _a[feature];
             if (updateInQueue) {
                 this.deletedStates[sourceLayer][feature] = {};
                 for (key in this.stateChanges[sourceLayer][feature])
@@ -47470,21 +47508,21 @@ class SourceFeatureState {
         tile.setFeatureState(this.state, painter);
     }
     coalesceChanges(inViewTiles, painter) {
+        var _a, _b, _c;
         //track changes with full state objects, but only for features that got modified
         const featuresChanged = {};
         for (const sourceLayer in this.stateChanges) {
-            this.state[sourceLayer] = this.state[sourceLayer] || {};
+            (_a = this.state)[sourceLayer] || (_a[sourceLayer] = {});
             const layerStates = {};
             for (const feature in this.stateChanges[sourceLayer]) {
-                if (!this.state[sourceLayer][feature])
-                    this.state[sourceLayer][feature] = {};
+                (_b = this.state[sourceLayer])[feature] || (_b[feature] = {});
                 extend(this.state[sourceLayer][feature], this.stateChanges[sourceLayer][feature]);
                 layerStates[feature] = this.state[sourceLayer][feature];
             }
             featuresChanged[sourceLayer] = layerStates;
         }
         for (const sourceLayer in this.deletedStates) {
-            this.state[sourceLayer] = this.state[sourceLayer] || {};
+            (_c = this.state)[sourceLayer] || (_c[sourceLayer] = {});
             const layerStates = {};
             if (this.deletedStates[sourceLayer] === null) {
                 for (const ft in this.state[sourceLayer]) {
@@ -47505,7 +47543,7 @@ class SourceFeatureState {
                     layerStates[feature] = this.state[sourceLayer][feature];
                 }
             }
-            featuresChanged[sourceLayer] = featuresChanged[sourceLayer] || {};
+            featuresChanged[sourceLayer] || (featuresChanged[sourceLayer] = {});
             extend(featuresChanged[sourceLayer], layerStates);
         }
         this.stateChanges = {};
@@ -47622,7 +47660,7 @@ function isTileVisible(frustum, tileBoundingVolume, plane) {
 /**
  * Definite integral of cos(x)^p. The analytical solution is described in `developer-guides/covering-tiles.md`,
  * but here the integral is evaluated numerically.
- * @param p - the power to raise cos(x) to inside the itegral
+ * @param p - the power to raise cos(x) to inside the integral
  * @param x1 - the starting point of the integral.
  * @param x2 - the ending point of the integral.
  * @return the integral of cos(x)^p from x=x1 to x=x2
@@ -47965,17 +48003,17 @@ function hasRasterTransition(inViewTiles, rasterFadeDuration) {
  * For raster terrain source, backfill DEM to eliminate visible tile boundaries
  */
 function backfillDEM(tile, inViewTiles) {
-    var _a, _b;
+    var _a, _b, _c;
     const renderables = inViewTiles.getRenderableIds();
     for (const borderId of renderables) {
-        if (!tile.neighboringTiles || !tile.neighboringTiles[borderId]) {
+        if (!((_a = tile.neighboringTiles) === null || _a === void 0 ? void 0 : _a[borderId])) {
             continue;
         }
         const borderTile = inViewTiles.getTileById(borderId);
         if (!tile.neighboringTiles[borderId].backfilled) {
             fillBorder(tile, borderTile);
         }
-        if ((_b = (_a = borderTile.neighboringTiles) === null || _a === void 0 ? void 0 : _a[tile.tileID.key]) === null || _b === void 0 ? void 0 : _b.backfilled) {
+        if ((_c = (_b = borderTile.neighboringTiles) === null || _b === void 0 ? void 0 : _b[tile.tileID.key]) === null || _c === void 0 ? void 0 : _c.backfilled) {
             continue;
         }
         fillBorder(borderTile, tile);
@@ -48105,7 +48143,7 @@ class TileManager extends Evented {
         super();
         this.id = id;
         this.dispatcher = dispatcher;
-        this.on('data', (e) => this._dataHandler(e));
+        this.on('data', (e) => { this._dataHandler(e); });
         this.on('dataloading', () => {
             this._sourceErrored = false;
         });
@@ -48126,19 +48164,21 @@ class TileManager extends Evented {
         this._updated = false;
     }
     onAdd(map) {
+        var _a;
         this.map = map;
         this._maxTileCacheSize = map ? map._maxTileCacheSize : null;
         this._maxTileCacheZoomLevels = map ? map._maxTileCacheZoomLevels : null;
-        if (this._source && this._source.onAdd) {
+        if ((_a = this._source) === null || _a === void 0 ? void 0 : _a.onAdd) {
             this._source.onAdd(map);
         }
     }
     onRemove(map) {
+        var _a;
         for (const tile of this._inViewTiles.getAllTiles()) {
             tile.unloadVectorData();
         }
         this.clearTiles();
-        if (this._source && this._source.onRemove) {
+        if ((_a = this._source) === null || _a === void 0 ? void 0 : _a.onRemove) {
             this._source.onRemove(map);
         }
         this._inViewTiles = new InViewTiles();
@@ -48199,7 +48239,7 @@ class TileManager extends Evented {
             catch (err) {
                 tile.state = 'errored';
                 if (err.status !== 404) {
-                    this._source.fire(new ErrorEvent(err, { tile }));
+                    this._source.fire(new ErrorEvent(ensureError(err), { tile }));
                 }
                 else {
                     // continue to try loading parent/children tiles if a tile doesn't exist (404)
@@ -48388,7 +48428,8 @@ class TileManager extends Evented {
             // determine if the loaded tile (hasData) is a qualified descendent of any target tile
             for (const targetID of targetTileIDs) {
                 if (tile.tileID.isChildOf(targetID)) {
-                    (loadedDescendents[_a = targetID.key] || (loadedDescendents[_a] = [])).push(tile);
+                    loadedDescendents[_a = targetID.key] || (loadedDescendents[_a] = []);
+                    loadedDescendents[targetID.key].push(tile);
                 }
             }
         }
@@ -48783,8 +48824,8 @@ class TileManager extends Evented {
         const cameraQueryGeometry = this.transformBbox(cameraPointQueryGeometry, project, !allowWorldCopies);
         const ids = this.getIds();
         const cameraBounds = Bounds.fromPoints(cameraQueryGeometry);
-        for (let i = 0; i < ids.length; i++) {
-            const tile = this._inViewTiles.getTileById(ids[i]);
+        for (const id of ids) {
+            const tile = this._inViewTiles.getTileById(id);
             if (tile.holdingForSymbolFade()) {
                 // Tiles held for fading are covered by tiles that are closer to ideal
                 continue;
@@ -48840,10 +48881,7 @@ class TileManager extends Evented {
         if (this._source.hasTransition()) {
             return true;
         }
-        if (isRasterType(this._source.type) && hasRasterTransition(this._inViewTiles, this._rasterFadeDuration)) {
-            return true;
-        }
-        return false;
+        return isRasterType(this._source.type) && hasRasterTransition(this._inViewTiles, this._rasterFadeDuration);
     }
     setRasterFadeDuration(fadeDuration) {
         this._rasterFadeDuration = fadeDuration;
@@ -48852,21 +48890,21 @@ class TileManager extends Evented {
      * Set the value of a particular state for a feature
      */
     setFeatureState(sourceLayer, featureId, state) {
-        sourceLayer = sourceLayer || GEOJSON_TILE_LAYER_NAME;
+        sourceLayer || (sourceLayer = GEOJSON_TILE_LAYER_NAME);
         this._state.updateState(sourceLayer, featureId, state);
     }
     /**
      * Resets the value of a particular state key for a feature
      */
     removeFeatureState(sourceLayer, featureId, key) {
-        sourceLayer = sourceLayer || GEOJSON_TILE_LAYER_NAME;
+        sourceLayer || (sourceLayer = GEOJSON_TILE_LAYER_NAME);
         this._state.removeFeatureState(sourceLayer, featureId, key);
     }
     /**
      * Get the entire state object for a feature
      */
     getFeatureState(sourceLayer, featureId) {
-        sourceLayer = sourceLayer || GEOJSON_TILE_LAYER_NAME;
+        sourceLayer || (sourceLayer = GEOJSON_TILE_LAYER_NAME);
         return this._state.getState(sourceLayer, featureId);
     }
     /**
@@ -48915,8 +48953,7 @@ TileManager.maxOverzooming = 3;
  */
 function clipLine(lines, x1, y1, x2, y2) {
     const clippedLines = [];
-    for (let l = 0; l < lines.length; l++) {
-        const line = lines[l];
+    for (const line of lines) {
         let clippedLine;
         for (let i = 0; i < line.length - 1; i++) {
             let p0 = line[i];
@@ -49293,6 +49330,11 @@ class GridIndex {
     _queryCell(x1, y1, x2, y2, cellIndex, result, queryArgs, predicate) {
         const { seenUids, hitTest, overlapMode } = queryArgs;
         const boxCell = this.boxCells[cellIndex];
+        // Use a small epsilon to account for floating-point imprecision
+        // when collision box boundaries are computed via different
+        // projection paths (different tiles/sources) but should
+        // mathematically produce the same boundary value.
+        const epsilon = 1e-6;
         if (boxCell !== null) {
             const bboxes = this.bboxes;
             for (const boxUid of boxCell) {
@@ -49300,10 +49342,10 @@ class GridIndex {
                     seenUids.box[boxUid] = true;
                     const offset = boxUid * 4;
                     const key = this.boxKeys[boxUid];
-                    if ((x1 <= bboxes[offset + 2]) &&
-                        (y1 <= bboxes[offset + 3]) &&
-                        (x2 >= bboxes[offset + 0]) &&
-                        (y2 >= bboxes[offset + 1]) &&
+                    if ((x1 <= bboxes[offset + 2] + epsilon) &&
+                        (y1 <= bboxes[offset + 3] + epsilon) &&
+                        (x2 >= bboxes[offset + 0] - epsilon) &&
+                        (y2 >= bboxes[offset + 1] - epsilon) &&
                         (!predicate || predicate(key))) {
                         if (!hitTest || !overlapAllowed(overlapMode, key.overlapMode)) {
                             result.push({
@@ -49437,6 +49479,101 @@ class GridIndex {
     }
 }
 
+/*
+Invert a transform matrix
+dst and src are in column-major flat format
+*/
+function fastInvertTransformMat4(dst, src) {
+    // extract scale. hyp: scale X = scale Y:
+    const sXYSqInv = 1.0 / (src[0] * src[0] + src[1] * src[1] + src[2] * src[2]);
+    const sZSqInv = 1.0 / (src[8] * src[8] + src[9] * src[9] + src[10] * src[10]);
+    // inv rotation and scaling part:
+    const s0 = src[0] * sXYSqInv;
+    const s4 = src[4] * sXYSqInv;
+    const s8 = src[8] * sZSqInv;
+    const s1 = src[1] * sXYSqInv;
+    const s5 = src[5] * sXYSqInv;
+    const s9 = src[9] * sZSqInv;
+    const s2 = src[2] * sXYSqInv;
+    const s6 = src[6] * sXYSqInv;
+    const s10 = src[10] * sZSqInv;
+    // rotation part:
+    dst[0] = s0;
+    dst[1] = s4;
+    dst[2] = s8;
+    dst[4] = s1;
+    dst[5] = s5;
+    dst[6] = s9;
+    dst[8] = s2;
+    dst[9] = s6;
+    dst[10] = s10;
+    // translation part:
+    const t0 = src[12];
+    const t1 = src[13];
+    const t2 = src[14];
+    dst[12] = -s0 * t0 - s1 * t1 - s2 * t2;
+    dst[13] = -s4 * t0 - s5 * t1 - s6 * t2;
+    dst[14] = -s8 * t0 - s9 * t1 - s10 * t2;
+    // constant part:
+    dst[3] = 0;
+    dst[7] = 0;
+    dst[11] = 0;
+    dst[15] = 1;
+    return dst;
+}
+/*
+Invert a perspective projection matrix
+dst and src are in column-major flat format
+*/
+function fastInvertProjMat4(dst, src) {
+    dst[0] = 1 / src[0];
+    dst[1] = 0;
+    dst[2] = 0;
+    dst[3] = 0;
+    dst[4] = 0;
+    dst[5] = 1 / src[5];
+    dst[6] = 0;
+    dst[7] = 0;
+    dst[8] = 0;
+    dst[9] = 0;
+    dst[10] = 0;
+    dst[11] = 1 / src[14];
+    dst[12] = 0;
+    dst[13] = 0;
+    dst[14] = -1;
+    dst[15] = src[10] / src[14];
+    return dst;
+}
+/*
+Invert a skew matrix
+with diag coefficients > 0 and XY counterdiag
+dst and src are in column-major flat format
+*/
+function fastInvertSkewMat4(dst, src) {
+    const invDetXY = 1.0 / (src[0] * src[5] - src[1] * src[4]);
+    dst[0] = src[5] * invDetXY;
+    dst[1] = -src[1] * invDetXY;
+    dst[2] = 0;
+    dst[3] = 0;
+    dst[4] = -src[4] * invDetXY;
+    dst[5] = src[0] * invDetXY;
+    dst[6] = 0;
+    dst[7] = 0;
+    dst[8] = 0;
+    dst[9] = 0;
+    dst[10] = 1 / src[10];
+    dst[11] = 0;
+    dst[12] = 0;
+    dst[13] = 0;
+    dst[14] = 0;
+    dst[15] = 1 / src[15];
+    return dst;
+}
+
+/**
+ * Pre-allocate objects to avoid online allocation
+ */
+const tmpMat4 = create$6();
 /*
  * # Overview of coordinate spaces
  *
@@ -49836,7 +49973,7 @@ function projectLineVertexToLabelPlane(index, projectionContext, syntheticVertex
     const projection = projectTileCoordinatesToLabelPlane(currentVertex.x, currentVertex.y, projectionContext);
     if (projection.signedDistanceFromCamera > 0) {
         cache.projections[index] = projection.point;
-        cache.anyProjectionOccluded = cache.anyProjectionOccluded || projection.isOccluded;
+        cache.anyProjectionOccluded || (cache.anyProjectionOccluded = projection.isOccluded);
         return projection.point;
     }
     // The vertex is behind the plane of the camera, so we can't project it
@@ -50011,8 +50148,7 @@ function placeGlyphAlongLine(offsetX, lineOffsetX, lineOffsetY, flip, anchorSegm
                 prevToCurrentOffsetNormal = transformToOffsetNormal(prevToCurrent, lineOffsetY, direction);
             }
             // Initialize offsetPrev on our first iteration, after that it will be pre-calculated
-            if (!offsetPreviousVertex)
-                offsetPreviousVertex = previousVertex.add(prevToCurrentOffsetNormal);
+            offsetPreviousVertex || (offsetPreviousVertex = previousVertex.add(prevToCurrentOffsetNormal));
             offsetIntersectionPoint = findOffsetIntersectionPoint(currentIndex, prevToCurrentOffsetNormal, currentVertex, lineStartIndex, lineEndIndex, offsetPreviousVertex, lineOffsetY, projectionContext, syntheticVertexArgs);
             pathVertices.push(offsetPreviousVertex);
             currentLineSegment = offsetIntersectionPoint.sub(offsetPreviousVertex);
@@ -50058,8 +50194,8 @@ function xyTransformMat4(out, a, m) {
  * Does not modify the input array.
  */
 function projectPathSpecialProjection(projectedPath, projectionContext) {
-    const inverseLabelPlaneMatrix = create$6();
-    invert$2(inverseLabelPlaneMatrix, projectionContext.pitchedLabelPlaneMatrix);
+    const inverseLabelPlaneMatrix = tmpMat4;
+    fastInvertSkewMat4(inverseLabelPlaneMatrix, projectionContext.pitchedLabelPlaneMatrix);
     return projectedPath.map(p => {
         const backProjected = projectWithMatrix(p.x, p.y, inverseLabelPlaneMatrix, projectionContext.getElevation);
         const projected = projectionContext.transform.projectTileCoordinates(backProjected.point.x, backProjected.point.y, projectionContext.unwrappedTileID, projectionContext.getElevation);
@@ -50272,8 +50408,8 @@ class CollisionIndex {
                     const y1 = centerY - radius;
                     const x2 = centerX + radius;
                     const y2 = centerY + radius;
-                    entirelyOffscreen = entirelyOffscreen && this.isOffscreen(x1, y1, x2, y2);
-                    inGrid = inGrid || this.isInsideGrid(x1, y1, x2, y2);
+                    entirelyOffscreen && (entirelyOffscreen = this.isOffscreen(x1, y1, x2, y2));
+                    inGrid || (inGrid = this.isInsideGrid(x1, y1, x2, y2));
                     if (overlapMode !== 'always' && this.grid.hitTestCircle(centerX, centerY, radius, overlapMode, collisionGroupPredicate)) {
                         // Don't early exit if we're showing the debug circles because we still want to calculate
                         // which circles are in use
@@ -51103,10 +51239,9 @@ class TinyQueue {
  *
  * @param polygonRings - first item in array is the outer ring followed optionally by the list of holes, should be an element of the result of util/classify_rings
  * @param precision - Specified in input coordinate units. If 0 returns after first run, if `> 0` repeatedly narrows the search space until the radius of the area searched for the best pole is less than precision
- * @param debug - Print some statistics to the console during execution
  * @returns Pole of Inaccessibility.
  */
-function findPoleOfInaccessibility(polygonRings, precision = 1, debug = false) {
+function findPoleOfInaccessibility(polygonRings, precision = 1) {
     const bounds = Bounds.fromPoints(polygonRings[0]);
     const cellSize = Math.min(bounds.width(), bounds.height());
     let h = cellSize / 2;
@@ -51122,16 +51257,14 @@ function findPoleOfInaccessibility(polygonRings, precision = 1, debug = false) {
         }
     }
     // take centroid as the first best guess
-    let bestCell = getCentroidCell(polygonRings);
-    let numProbes = cellQueue.length;
+    const centroidCell = getCentroidCell(polygonRings);
+    let bestCell = centroidCell;
     while (cellQueue.length) {
         // pick the most promising cell from the queue
         const cell = cellQueue.pop();
         // update the best cell if we found a better one
         if (cell.d > bestCell.d || !bestCell.d) {
             bestCell = cell;
-            if (debug)
-                console.log('found best %d after %d probes', Math.round(1e4 * cell.d) / 1e4, numProbes);
         }
         // do not drill down further if there's no chance of a better solution
         if (cell.max - bestCell.d <= precision)
@@ -51142,29 +51275,34 @@ function findPoleOfInaccessibility(polygonRings, precision = 1, debug = false) {
         cellQueue.push(new Cell(cell.p.x + h, cell.p.y - h, h, polygonRings));
         cellQueue.push(new Cell(cell.p.x - h, cell.p.y + h, h, polygonRings));
         cellQueue.push(new Cell(cell.p.x + h, cell.p.y + h, h, polygonRings));
-        numProbes += 4;
     }
-    if (debug) {
-        console.log(`num probes: ${numProbes}`);
-        console.log(`best distance: ${bestCell.d}`);
+    // For convex or nearly-convex polygons, the centroid provides visually
+    // better label placement than the mathematical POI.
+    // Coordinate rounding (e.g. in geojson-vt) can break polygon symmetry and cause the POI to
+    // drift far from center even though its distance-to-edge is only marginally better.
+    // Prefer the centroid when it is inside the polygon
+    // and its distance is within `precision` of the best found.
+    if (centroidCell.d > 0 && bestCell.d - centroidCell.d <= precision) {
+        return centroidCell.p;
     }
     return bestCell.p;
 }
 function compareMax(a, b) {
     return b.max - a.max;
 }
-function Cell(x, y, h, polygon) {
-    this.p = new Point(x, y);
-    this.h = h; // half the cell size
-    this.d = pointToPolygonDist(this.p, polygon); // distance from cell center to polygon
-    this.max = this.d + this.h * Math.SQRT2; // max distance to polygon within a cell
+class Cell {
+    constructor(x, y, h, polygon) {
+        this.p = new Point(x, y);
+        this.h = h; // half the cell size
+        this.d = pointToPolygonDist(this.p, polygon); // distance from cell center to polygon
+        this.max = this.d + this.h * Math.SQRT2; // max distance to polygon within a cell
+    }
 }
 // signed distance from point to polygon outline (negative if point is outside)
 function pointToPolygonDist(p, polygon) {
     let inside = false;
     let minDistSq = Infinity;
-    for (let k = 0; k < polygon.length; k++) {
-        const ring = polygon[k];
+    for (const ring of polygon) {
         for (let i = 0, len = ring.length, j = len - 1; i < len; j = i++) {
             const a = ring[i];
             const b = ring[j];
@@ -51333,6 +51471,7 @@ function getTextVariableAnchorOffset(layer, feature, canonical) {
 
 function performSymbolLayout(args) {
     var _a;
+    var _b;
     args.bucket.createArrays();
     const tileSize = 512 * args.bucket.overscaling;
     args.bucket.tilePixelRatio = EXTENT$1 / tileSize;
@@ -51462,7 +51601,7 @@ function performSymbolLayout(args) {
         }
         let shapedIcon;
         let isSDFIcon = false;
-        if (feature.icon && feature.icon.name) {
+        if ((_a = feature.icon) === null || _a === void 0 ? void 0 : _a.name) {
             const image = args.imageMap[feature.icon.name];
             if (image) {
                 shapedIcon = shapeIcon(args.imagePositions[feature.icon.name], layout.get('icon-offset').evaluate(feature, {}, args.canonical), layout.get('icon-anchor').evaluate(feature, {}, args.canonical));
@@ -51483,7 +51622,7 @@ function performSymbolLayout(args) {
             }
         }
         const shapedText = getDefaultHorizontalShaping(shapedTextOrientations.horizontal) || shapedTextOrientations.vertical;
-        (_a = args.bucket).iconsInText || (_a.iconsInText = shapedText ? shapedText.iconsInText : false);
+        (_b = args.bucket).iconsInText || (_b.iconsInText = shapedText ? shapedText.iconsInText : false);
         if (shapedText || shapedIcon) {
             addFeature(args.bucket, feature, shapedTextOrientations, shapedIcon, args.imageMap, sizes, layoutTextSize, layoutIconSize, textOffset, isSDFIcon, args.canonical, args.subdivisionGranularity);
         }
@@ -51740,7 +51879,7 @@ function addSymbol(bucket, anchor, line, shapedTextOrientations, shapedIcon, ima
     // All measurements are in glyph metrics and later converted into pixels using proper font size "layoutTextSize"
     let collisionCircleDiameter = -1;
     const getCollisionCircleHeight = (feature, prevHeight) => {
-        if (feature && feature.circleDiameter)
+        if (feature === null || feature === void 0 ? void 0 : feature.circleDiameter)
             return Math.max(feature.circleDiameter, prevHeight);
         return prevHeight;
     };
@@ -51927,6 +52066,7 @@ class Placement {
         }
     }
     attemptAnchorPlacement(textAnchorOffset, textBox, width, height, textBoxScale, rotateWithMap, pitchWithMap, textPixelRatio, tileID, unwrappedTileID, collisionGroup, textOverlapMode, symbolInstance, bucket, orientation, translationText, translationIcon, iconBox, getElevation, simpleProjectionMatrix) {
+        var _a, _b, _c;
         const anchor = TextAnchorEnum[textAnchorOffset.textAnchor];
         const textOffset = [textAnchorOffset.textOffset0, textAnchorOffset.textOffset1];
         const shift = calculateVariableLayoutShift(anchor, width, height, textOffset, textBoxScale);
@@ -51940,10 +52080,8 @@ class Placement {
             let prevAnchor;
             // If this label was placed in the previous placement, record the anchor position
             // to allow us to animate the transition
-            if (this.prevPlacement &&
-                this.prevPlacement.variableOffsets[symbolInstance.crossTileID] &&
-                this.prevPlacement.placements[symbolInstance.crossTileID] &&
-                this.prevPlacement.placements[symbolInstance.crossTileID].text) {
+            if (((_a = this.prevPlacement) === null || _a === void 0 ? void 0 : _a.variableOffsets[symbolInstance.crossTileID]) &&
+                ((_c = (_b = this.prevPlacement) === null || _b === void 0 ? void 0 : _b.placements[symbolInstance.crossTileID]) === null || _c === void 0 ? void 0 : _c.text)) {
                 prevAnchor = this.prevPlacement.variableOffsets[symbolInstance.crossTileID].anchor;
             }
             if (symbolInstance.crossTileID === 0)
@@ -52053,7 +52191,7 @@ class Placement {
                             else {
                                 placed = placeHorizontalFn();
                             }
-                            if (placed && placed.placeable)
+                            if (placed === null || placed === void 0 ? void 0 : placed.placeable)
                                 break;
                         }
                     }
@@ -52067,7 +52205,7 @@ class Placement {
                 if (textAnchorOffsetEnd === textAnchorOffsetStart) {
                     const placeBox = (collisionTextBox, orientation) => {
                         const placedFeature = this.collisionIndex.placeCollisionBox(collisionTextBox, textOverlapMode, textPixelRatio, tileID, unwrappedTileID, pitchWithMap, rotateWithMap, translationText, collisionGroup.predicate, getElevation, undefined, simpleProjectionMatrix);
-                        if (placedFeature && placedFeature.placeable) {
+                        if (placedFeature === null || placedFeature === void 0 ? void 0 : placedFeature.placeable) {
                             this.markUsedOrientation(bucket, orientation, symbolInstance);
                             this.placedOrientations[symbolInstance.crossTileID] = orientation;
                         }
@@ -52084,7 +52222,7 @@ class Placement {
                         return { box: null, offscreen: null };
                     };
                     placeTextForPlacementModes(placeHorizontal, placeVertical);
-                    updatePreviousOrientationIfNotPlaced(placed && placed.placeable);
+                    updatePreviousOrientationIfNotPlaced(placed === null || placed === void 0 ? void 0 : placed.placeable);
                 }
                 else {
                     // If this symbol was in the last placement, prefer placement using same anchor, if it's still available
@@ -52109,7 +52247,7 @@ class Placement {
                                 const result = this.attemptAnchorPlacement(textAnchorOffset, collisionTextBox, width, height, textBoxScale, rotateWithMap, pitchWithMap, textPixelRatio, tileID, unwrappedTileID, collisionGroup, overlapMode, symbolInstance, bucket, orientation, translationText, translationIcon, variableIconBox, getElevation);
                                 if (result) {
                                     placedBox = result.placedGlyphBoxes;
-                                    if (placedBox && placedBox.placeable) {
+                                    if (placedBox === null || placedBox === void 0 ? void 0 : placedBox.placeable) {
                                         placeText = true;
                                         shift = result.shift;
                                         return placedBox;
@@ -52142,7 +52280,7 @@ class Placement {
                     };
                     const placeVertical = () => {
                         const verticalTextBox = collisionArrays.verticalTextBox;
-                        const wasPlaced = placed && placed.placeable;
+                        const wasPlaced = placed === null || placed === void 0 ? void 0 : placed.placeable;
                         if (bucket.allowVerticalPlacement && !wasPlaced && symbolInstance.numVerticalGlyphVertices > 0 && verticalTextBox) {
                             return placeBoxForVariableAnchors(verticalTextBox, collisionArrays.verticalIconBox, WritingMode.vertical);
                         }
@@ -52153,7 +52291,7 @@ class Placement {
                         placeText = placed.placeable;
                         offscreen = placed.offscreen;
                     }
-                    const prevOrientation = updatePreviousOrientationIfNotPlaced(placed && placed.placeable);
+                    const prevOrientation = updatePreviousOrientationIfNotPlaced(placed === null || placed === void 0 ? void 0 : placed.placeable);
                     // If we didn't get placed, we still need to copy our position from the last placement for
                     // fade animations
                     if (!placeText && this.prevPlacement) {
@@ -52166,8 +52304,8 @@ class Placement {
                 }
             }
             placedGlyphBoxes = placed;
-            placeText = placedGlyphBoxes && placedGlyphBoxes.placeable;
-            offscreen = placedGlyphBoxes && placedGlyphBoxes.offscreen;
+            placeText = placedGlyphBoxes === null || placedGlyphBoxes === void 0 ? void 0 : placedGlyphBoxes.placeable;
+            offscreen = placedGlyphBoxes === null || placedGlyphBoxes === void 0 ? void 0 : placedGlyphBoxes.offscreen;
             if (symbolInstance.useRuntimeCollisionCircles && symbolInstance.centerJustifiedTextSymbolIndex >= 0) {
                 const placedSymbol = bucket.text.placedSymbolArray.get(symbolInstance.centerJustifiedTextSymbolIndex);
                 const fontSize = evaluateSizeForFeature(bucket.textSizeData, partiallyEvaluatedTextSize, placedSymbol);
@@ -52182,7 +52320,7 @@ class Placement {
                 // in this case, but for now quirks in text-anchor
                 // and text-offset may prevent that from being true.
                 placeText = textAlwaysOverlap || (placedGlyphCircles.circles.length > 0 && !placedGlyphCircles.collisionDetected);
-                offscreen = offscreen && placedGlyphCircles.offscreen;
+                offscreen && (offscreen = placedGlyphCircles.offscreen);
             }
             if (collisionArrays.iconFeatureIndex) {
                 iconFeatureIndex = collisionArrays.iconFeatureIndex;
@@ -52199,7 +52337,7 @@ class Placement {
                     placedIconBoxes = placeIconFeature(collisionArrays.iconBox);
                     placeIcon = placedIconBoxes.placeable;
                 }
-                offscreen = offscreen && placedIconBoxes.offscreen;
+                offscreen && (offscreen = placedIconBoxes.offscreen);
             }
             const iconWithoutText = textOptional ||
                 (symbolInstance.numHorizontalGlyphVertices === 0 && symbolInstance.numVerticalGlyphVertices === 0);
@@ -52212,7 +52350,7 @@ class Placement {
                 placeText = placeIcon && placeText;
             }
             else if (!iconWithoutText) {
-                placeIcon = placeIcon && placeText;
+                placeIcon && (placeIcon = placeText);
             }
             const hasTextBox = placeText && placedGlyphBoxes.placeable;
             const hasIconBox = placeIcon && placedIconBoxes.placeable;
@@ -52367,13 +52505,12 @@ class Placement {
             const prevOpacity = prevOpacities[crossTileID];
             if (prevOpacity) {
                 this.opacities[crossTileID] = new JointOpacityState(prevOpacity, increment, jointPlacement.text, jointPlacement.icon);
-                placementChanged = placementChanged ||
-                    jointPlacement.text !== prevOpacity.text.placed ||
-                    jointPlacement.icon !== prevOpacity.icon.placed;
+                placementChanged || (placementChanged = jointPlacement.text !== prevOpacity.text.placed);
+                placementChanged || (placementChanged = jointPlacement.icon !== prevOpacity.icon.placed);
             }
             else {
                 this.opacities[crossTileID] = new JointOpacityState(null, increment, jointPlacement.text, jointPlacement.icon, jointPlacement.skipFade);
-                placementChanged = placementChanged || jointPlacement.text || jointPlacement.icon;
+                placementChanged || (placementChanged = jointPlacement.text || jointPlacement.icon);
             }
         }
         // copy and update values from the previous placement that aren't in the current placement but haven't finished fading
@@ -52383,7 +52520,8 @@ class Placement {
                 const jointOpacity = new JointOpacityState(prevOpacity, increment, false, false);
                 if (!jointOpacity.isHidden()) {
                     this.opacities[crossTileID] = jointOpacity;
-                    placementChanged = placementChanged || prevOpacity.text.placed || prevOpacity.icon.placed;
+                    placementChanged || (placementChanged = prevOpacity.text.placed);
+                    placementChanged || (placementChanged = prevOpacity.icon.placed);
                 }
             }
         }
@@ -52453,7 +52591,7 @@ class Placement {
             for (let i = 0; i < numVertices / 4; i++) {
                 iconOrText.opacityVertexArray.emplaceBack(opacity);
             }
-            iconOrText.hasVisibleVertices = iconOrText.hasVisibleVertices || (opacity !== PACKED_HIDDEN_OPACITY);
+            iconOrText.hasVisibleVertices || (iconOrText.hasVisibleVertices = opacity !== PACKED_HIDDEN_OPACITY);
         };
         const boxArrays = this.collisionBoxArrays.get(bucket.bucketInstanceId);
         for (let s = 0; s < bucket.symbolInstances.length; s++) {
@@ -52488,15 +52626,16 @@ class Placement {
                 // symbol instances appropriately so that symbols from buckets that have yet to be placed
                 // offset appropriately.
                 const symbolHidden = opacityState.text.isHidden();
-                [
+                const textSymbolIndexes = [
                     symbolInstance.rightJustifiedTextSymbolIndex,
                     symbolInstance.centerJustifiedTextSymbolIndex,
                     symbolInstance.leftJustifiedTextSymbolIndex
-                ].forEach(index => {
+                ];
+                for (const index of textSymbolIndexes) {
                     if (index >= 0) {
                         bucket.text.placedSymbolArray.get(index).hidden = symbolHidden || horizontalHidden ? 1 : 0;
                     }
-                });
+                }
                 if (symbolInstance.verticalPlacedTextSymbolIndex >= 0) {
                     bucket.text.placedSymbolArray.get(symbolInstance.verticalPlacedTextSymbolIndex).hidden = symbolHidden || verticalHidden ? 1 : 0;
                 }
@@ -52526,7 +52665,7 @@ class Placement {
                         opacityState.icon.isHidden();
                 }
             }
-            const realBoxes = (boxArrays && boxArrays.has(s)) ? boxArrays.get(s) : {
+            const realBoxes = (boxArrays === null || boxArrays === void 0 ? void 0 : boxArrays.has(s)) ? boxArrays.get(s) : {
                 text: null,
                 icon: null
             };
@@ -52734,9 +52873,7 @@ class PauseablePlacement {
                 layer.layout &&
                 (!layer.minzoom || layer.minzoom <= placementZoom) &&
                 (!layer.maxzoom || layer.maxzoom > placementZoom)) {
-                if (!this._inProgressLayer) {
-                    this._inProgressLayer = new LayerPlacement(layer);
-                }
+                this._inProgressLayer || (this._inProgressLayer = new LayerPlacement(layer));
                 const pausePlacement = this._inProgressLayer.continuePlacement(layerTiles[layer.source], this.placement, this._showCollisionBoxes, layer, shouldPausePlacement);
                 if (pausePlacement) {
                     // We didn't finish placing all layers within 2ms,
@@ -52825,11 +52962,10 @@ class TileLayerIndex {
         const yWorld = (y * EXTENT$1 + symbolInstance.anchorY) * scale;
         const xOffset = localX * EXTENT$1 * roundingFactor;
         const yOffset = localY * EXTENT$1 * roundingFactor;
-        const result = {
+        return {
             x: Math.floor(xWorld - xOffset),
             y: Math.floor(yWorld - yOffset)
         };
-        return result;
     }
     findMatches(symbolInstances, newTileID, zoomCrossTileIDs) {
         const tolerance = this.tileID.canonical.z < newTileID.canonical.z ? 1 : Math.pow(2, this.tileID.canonical.z - newTileID.canonical.z);
@@ -52922,8 +53058,9 @@ class CrossTileSymbolLayerIndex {
         this.lng = lng;
     }
     addBucket(tileID, bucket, crossTileIDs) {
-        if (this.indexes[tileID.overscaledZ] &&
-            this.indexes[tileID.overscaledZ][tileID.key]) {
+        var _a;
+        var _b, _c;
+        if ((_a = this.indexes[tileID.overscaledZ]) === null || _a === void 0 ? void 0 : _a[tileID.key]) {
             if (this.indexes[tileID.overscaledZ][tileID.key].bucketInstanceId ===
                 bucket.bucketInstanceId) {
                 return false;
@@ -52941,9 +53078,7 @@ class CrossTileSymbolLayerIndex {
             const symbolInstance = bucket.symbolInstances.get(i);
             symbolInstance.crossTileID = 0;
         }
-        if (!this.usedCrossTileIDs[tileID.overscaledZ]) {
-            this.usedCrossTileIDs[tileID.overscaledZ] = {};
-        }
+        (_b = this.usedCrossTileIDs)[_c = tileID.overscaledZ] || (_b[_c] = {});
         const zoomCrossTileIDs = this.usedCrossTileIDs[tileID.overscaledZ];
         for (const zoom in this.indexes) {
             const zoomIndexes = this.indexes[zoom];
@@ -53016,10 +53151,11 @@ class CrossTileSymbolIndex {
         layerIndex.handleWrapJump(lng);
         for (const tile of tiles) {
             const symbolBucket = tile.getBucket(styleLayer);
-            if (!symbolBucket || styleLayer.id !== symbolBucket.layerIds[0])
+            if (styleLayer.id !== (symbolBucket === null || symbolBucket === void 0 ? void 0 : symbolBucket.layerIds[0]))
                 continue;
             if (!symbolBucket.bucketInstanceId) {
-                symbolBucket.bucketInstanceId = ++this.maxBucketInstanceId;
+                this.maxBucketInstanceId += 1;
+                symbolBucket.bucketInstanceId = this.maxBucketInstanceId;
             }
             if (layerIndex.addBucket(tile.tileID, symbolBucket, this.crossTileIDs)) {
                 symbolBucketsChanged = true;
@@ -53033,9 +53169,9 @@ class CrossTileSymbolIndex {
     }
     pruneUnusedLayers(usedLayers) {
         const usedLayerMap = {};
-        usedLayers.forEach((usedLayer) => {
+        for (const usedLayer of usedLayers) {
             usedLayerMap[usedLayer] = true;
-        });
+        }
         for (const layerId in this.layerIndexes) {
             if (!usedLayerMap[layerId]) {
                 delete this.layerIndexes[layerId];
@@ -53138,7 +53274,7 @@ var fillPatternFrag = '#ifdef GL_ES\nprecision highp float;\n#endif\nuniform vec
 var fillPatternVert = 'uniform vec2 u_pixel_coord_upper;uniform vec2 u_pixel_coord_lower;uniform vec3 u_scale;uniform vec2 u_fill_translate;in vec2 a_pos;out vec2 v_pos_a;out vec2 v_pos_b;\n#pragma mapbox: define lowp float opacity\n#pragma mapbox: define lowp vec4 pattern_from\n#pragma mapbox: define lowp vec4 pattern_to\n#pragma mapbox: define lowp float pixel_ratio_from\n#pragma mapbox: define lowp float pixel_ratio_to\nvoid main() {\n#pragma mapbox: initialize lowp float opacity\n#pragma mapbox: initialize mediump vec4 pattern_from\n#pragma mapbox: initialize mediump vec4 pattern_to\n#pragma mapbox: initialize lowp float pixel_ratio_from\n#pragma mapbox: initialize lowp float pixel_ratio_to\nvec2 pattern_tl_a=pattern_from.xy;vec2 pattern_br_a=pattern_from.zw;vec2 pattern_tl_b=pattern_to.xy;vec2 pattern_br_b=pattern_to.zw;float tileZoomRatio=u_scale.x;float fromScale=u_scale.y;float toScale=u_scale.z;vec2 display_size_a=(pattern_br_a-pattern_tl_a)/pixel_ratio_from;vec2 display_size_b=(pattern_br_b-pattern_tl_b)/pixel_ratio_to;gl_Position=projectTile(a_pos+u_fill_translate,a_pos);v_pos_a=get_pattern_pos(u_pixel_coord_upper,u_pixel_coord_lower,fromScale*display_size_a,tileZoomRatio,a_pos);v_pos_b=get_pattern_pos(u_pixel_coord_upper,u_pixel_coord_lower,toScale*display_size_b,tileZoomRatio,a_pos);}';
 
 // This file is generated. Edit build/generate-shaders.ts, then run `npm run codegen`.
-var fillExtrusionFrag = 'in vec4 v_color;in highp vec2 v_wall_uv;flat in highp float v_height_m;flat in lowp float v_is_side;flat in highp float v_ed_flat;flat in highp float v_face_width;flat in mediump vec3 v_wall_normal;flat in highp float v_body_hash;in float v_directional;uniform lowp vec3 u_camera_dir;uniform highp float u_is_shadow;void main() {if (u_is_shadow > 0.001) {fragColor=vec4(0.0,0.0,0.0,u_is_shadow);return;}fragColor=v_color;float body_hash=v_body_hash;\n#ifdef DEBUG_BUILDING_COLORS\nfloat h2=fract(body_hash*7.31);float h3=fract(body_hash*13.17);vec3 body_color=vec3(0.65+0.35*body_hash,0.65+0.35*h2,0.65+0.35*h3\n);\n#else\nvec3 pal[8];pal[0]=vec3(0.965,0.933,0.875);pal[1]=vec3(0.957,0.941,0.918);pal[2]=vec3(0.976,0.957,0.918);pal[3]=vec3(0.961,0.929,0.886);pal[4]=vec3(0.937,0.902,0.867);pal[5]=vec3(0.961,0.957,0.941);pal[6]=vec3(0.910,0.867,0.816);pal[7]=vec3(0.957,0.922,0.886);vec3 body_color=pal[clamp(int(floor(body_hash*8.0)),0,7)];\n#endif\nfragColor.rgb=body_color*v_directional;fragColor.a=v_color.a;if (v_is_side > 0.5 && v_height_m >=3.1) {float num_floors=max(1.0,floor(v_height_m/3.0));float floor_v=fract(v_wall_uv.y*num_floors);float band_b=0.18;float band_t=0.78;float fw_v=fwidth(v_wall_uv.y*num_floors);float floor_mask=smoothstep(band_b-fw_v,band_b+fw_v,floor_v)*smoothstep(band_t+fw_v,band_t-fw_v,floor_v);float window_width=360.0;float window_gap=8.0;float window_spacing=window_width+window_gap;float outer_pad_l=60.0;float outer_pad_r=60.0;float col_mask=0.0;float raw_u=0.0;float cell_u=0.0;float face_u=clamp(v_wall_uv.x-v_ed_flat,0.0,max(v_face_width,0.0));if (v_face_width > outer_pad_l+outer_pad_r) {float content_max=v_face_width-outer_pad_r;float fw_face=fwidth(face_u);float within_content=smoothstep(outer_pad_l-fw_face,outer_pad_l+fw_face,face_u)*smoothstep(content_max+fw_face,content_max-fw_face,face_u);raw_u=(face_u-outer_pad_l)/window_spacing;cell_u=fract(raw_u);float fw_u=fwidth(raw_u);float win_r=window_width/window_spacing;col_mask=within_content*smoothstep(0.0-fw_u,0.0+fw_u,cell_u)*smoothstep(win_r+fw_u,win_r-fw_u,cell_u);}float win_mask=floor_mask*col_mask;float detail=1.0-smoothstep(0.4,0.8,fwidth(raw_u));float floor_detail=1.0-smoothstep(0.4,0.8,fw_v);win_mask*=min(detail,floor_detail);float slab_uv=(1.0-band_t+band_b)/num_floors;float fw_top=fwidth(v_wall_uv.y);win_mask*=smoothstep(1.0-slab_uv+fw_top,1.0-slab_uv-fw_top,v_wall_uv.y);if (win_mask > 0.01) {vec2 grid_id=floor(vec2(raw_u,v_wall_uv.y*num_floors));float face_seed=v_ed_flat*0.0073+v_face_width*0.0129+v_height_m*0.0197;float hash=fract(sin(dot(grid_id,vec2(12.9898,78.233))+face_seed)*43758.5453);float hash2=fract(sin(dot(grid_id+19.37,vec2(39.3468,11.1351))+face_seed)*24634.6345);vec3 palette_a=vec3(0.57,0.82,0.95);vec3 palette_b=vec3(0.70,0.87,0.98);vec3 palette_c=vec3(0.63,0.79,0.94);vec3 palette_d=vec3(0.80,0.92,0.99);vec3 palette_base=mix(mix(palette_a,palette_b,step(0.25,hash)),mix(palette_c,palette_d,step(0.75,hash)),step(0.50,hash));vec3 window_color=clamp(palette_base+(hash2-0.5)*vec3(0.055,0.034,0.038),0.0,1.0);float local_u=clamp((cell_u*window_spacing)/window_width,0.0,1.0);float local_v=clamp((floor_v-band_b)/(band_t-band_b),0.0,1.0);float streak_axis=(1.0-local_u)*0.72+local_v*0.92;float streak_center=0.77+(hash2-0.5)*0.12;float streak_width=0.26;float streak_dist=abs(streak_axis-streak_center);float fw_streak=fwidth(streak_axis);float streak=1.0-smoothstep(streak_width-fw_streak,streak_width+0.22+fw_streak,streak_dist);float streak_gradient=0.58*local_v+0.42*(1.0-local_u);window_color*=0.90+streak_gradient*0.14;window_color=mix(window_color,vec3(0.97,0.985,1.0),streak*(0.11+hash*0.04));float facing=clamp(abs(dot(normalize(v_wall_normal),normalize(u_camera_dir))),0.0,1.0);float grazing=pow(1.0-facing,1.65);float specular=min(grazing*(0.32+hash2*0.12),0.52);window_color=mix(window_color,vec3(0.985,0.995,1.0),specular);float luminance=dot(v_color.rgb,vec3(0.299,0.587,0.114));vec3 lit_window=window_color*max(luminance*1.18,0.70);lit_window*=1.0+0.24*grazing;fragColor.rgb=mix(fragColor.rgb,lit_window,0.84*win_mask);}}if (v_is_side > 0.5) {float base_ao=smoothstep(0.0,0.10,v_wall_uv.y);fragColor.rgb*=mix(0.86,1.0,base_ao);float top_glow=smoothstep(0.92,1.0,v_wall_uv.y);fragColor.rgb*=mix(1.0,1.06,top_glow);}\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\n}';
+var fillExtrusionFrag = 'in vec4 v_color;in highp vec2 v_wall_uv;flat in highp float v_height_m;flat in lowp float v_is_side;flat in highp float v_ed_flat;flat in highp float v_face_width;flat in mediump vec3 v_wall_normal;flat in highp float v_body_hash;in float v_directional;uniform lowp vec3 u_camera_dir;uniform highp float u_is_shadow;void main() {if (u_is_shadow > 0.001) {fragColor=vec4(0.0,0.0,0.0,u_is_shadow);return;}fragColor=v_color;float body_hash=v_body_hash;\n#ifdef DEBUG_BUILDING_COLORS\nfloat h2=fract(body_hash*7.31);float h3=fract(body_hash*13.17);vec3 body_color=vec3(0.65+0.35*body_hash,0.65+0.35*h2,0.65+0.35*h3\n);\n#else\nvec3 pal[8];pal[0]=vec3(0.965,0.933,0.875);pal[1]=vec3(0.957,0.941,0.918);pal[2]=vec3(0.976,0.957,0.918);pal[3]=vec3(0.961,0.929,0.886);pal[4]=vec3(0.937,0.902,0.867);pal[5]=vec3(0.961,0.957,0.941);pal[6]=vec3(0.910,0.867,0.816);pal[7]=vec3(0.957,0.922,0.886);vec3 body_color=pal[clamp(int(floor(body_hash*8.0)),0,7)];\n#endif\nfragColor.rgb=body_color*v_directional;fragColor.a=v_color.a;if (v_is_side > 0.5 && v_height_m >=3.1) {float num_floors=max(1.0,floor(v_height_m/3.0));float floor_v=fract(v_wall_uv.y*num_floors);float band_b=0.18;float band_t=0.78;float fw_v=fwidth(v_wall_uv.y*num_floors);float floor_mask=smoothstep(band_b-fw_v,band_b+fw_v,floor_v)*smoothstep(band_t+fw_v,band_t-fw_v,floor_v);float window_width=360.0;float window_gap=8.0;float window_spacing=window_width+window_gap;float outer_pad_l=60.0;float outer_pad_r=60.0;float col_mask=0.0;float raw_u=0.0;float cell_u=0.0;float face_u=clamp(v_wall_uv.x-v_ed_flat,0.0,max(v_face_width,0.0));if (v_face_width > outer_pad_l+outer_pad_r) {float content_max=v_face_width-outer_pad_r;float fw_face=fwidth(face_u);float within_content=smoothstep(outer_pad_l-fw_face,outer_pad_l+fw_face,face_u)*smoothstep(content_max+fw_face,content_max-fw_face,face_u);raw_u=(face_u-outer_pad_l)/window_spacing;cell_u=fract(raw_u);float fw_u=fwidth(raw_u);float win_r=window_width/window_spacing;col_mask=within_content*smoothstep(0.0-fw_u,0.0+fw_u,cell_u)*smoothstep(win_r+fw_u,win_r-fw_u,cell_u);}float win_mask=floor_mask*col_mask;float detail=1.0-smoothstep(0.4,0.8,fwidth(raw_u));float floor_detail=1.0-smoothstep(0.4,0.8,fw_v);win_mask*=max(detail,floor_detail);float slab_uv=(1.0-band_t+band_b)/num_floors;float fw_top=fwidth(v_wall_uv.y);win_mask*=smoothstep(1.0-slab_uv+fw_top,1.0-slab_uv-fw_top,v_wall_uv.y);if (win_mask > 0.01) {vec2 grid_id=floor(vec2(raw_u,v_wall_uv.y*num_floors));float face_seed=v_ed_flat*0.0073+v_face_width*0.0129+v_height_m*0.0197;float hash=fract(sin(dot(grid_id,vec2(12.9898,78.233))+face_seed)*43758.5453);float hash2=fract(sin(dot(grid_id+19.37,vec2(39.3468,11.1351))+face_seed)*24634.6345);vec3 palette_a=vec3(0.57,0.82,0.95);vec3 palette_b=vec3(0.70,0.87,0.98);vec3 palette_c=vec3(0.63,0.79,0.94);vec3 palette_d=vec3(0.80,0.92,0.99);vec3 palette_base=mix(mix(palette_a,palette_b,step(0.25,hash)),mix(palette_c,palette_d,step(0.75,hash)),step(0.50,hash));vec3 window_color=clamp(palette_base+(hash2-0.5)*vec3(0.055,0.034,0.038),0.0,1.0);float local_u=clamp((cell_u*window_spacing)/window_width,0.0,1.0);float local_v=clamp((floor_v-band_b)/(band_t-band_b),0.0,1.0);float streak_axis=(1.0-local_u)*0.72+local_v*0.92;float streak_center=0.77+(hash2-0.5)*0.12;float streak_width=0.26;float streak_dist=abs(streak_axis-streak_center);float fw_streak=fwidth(streak_axis);float streak=1.0-smoothstep(streak_width-fw_streak,streak_width+0.22+fw_streak,streak_dist);float streak_gradient=0.58*local_v+0.42*(1.0-local_u);window_color*=0.90+streak_gradient*0.14;window_color=mix(window_color,vec3(0.97,0.985,1.0),streak*(0.11+hash*0.04));float facing=clamp(abs(dot(normalize(v_wall_normal),normalize(u_camera_dir))),0.0,1.0);float grazing=pow(1.0-facing,1.65);float specular=min(grazing*(0.32+hash2*0.12),0.52);window_color=mix(window_color,vec3(0.985,0.995,1.0),specular);float luminance=dot(v_color.rgb,vec3(0.299,0.587,0.114));vec3 lit_window=window_color*max(luminance*1.18,0.70);lit_window*=1.0+0.24*grazing;fragColor.rgb=mix(fragColor.rgb,lit_window,0.84*win_mask);}}if (v_is_side > 0.5) {float base_ao=smoothstep(0.0,0.10,v_wall_uv.y);fragColor.rgb*=mix(0.86,1.0,base_ao);float top_glow=smoothstep(0.92,1.0,v_wall_uv.y);fragColor.rgb*=mix(1.0,1.06,top_glow);}\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\n}';
 
 // This file is generated. Edit build/generate-shaders.ts, then run `npm run codegen`.
 var fillExtrusionVert = 'uniform vec3 u_lightcolor;uniform lowp vec3 u_lightpos;uniform lowp vec3 u_lightpos_globe;uniform lowp float u_lightintensity;uniform float u_vertical_gradient;uniform lowp float u_opacity;uniform vec2 u_fill_translate;uniform vec2 u_tile_id;uniform float u_centroid_scale;uniform highp float u_is_shadow;uniform highp float u_meters_to_tile;in vec2 a_pos;in vec4 a_normal_ed;in float a_face_width;in vec2 a_centroid;out vec4 v_color;out highp vec2 v_wall_uv;flat out highp float v_height_m;flat out lowp float v_is_side;flat out highp float v_ed_flat;flat out highp float v_face_width;flat out mediump vec3 v_wall_normal;flat out highp float v_body_hash;out float v_directional;\n#pragma mapbox: define highp float base\n#pragma mapbox: define highp float height\n#pragma mapbox: define highp vec4 color\nvoid main() {\n#pragma mapbox: initialize highp float base\n#pragma mapbox: initialize highp float height\n#pragma mapbox: initialize highp vec4 color\nvec3 normal=a_normal_ed.xyz;float edgedistance=a_normal_ed.w;\n#ifdef TERRAIN3D\nfloat height_terrain3d_offset=get_elevation(a_centroid);float base_terrain3d_offset=height_terrain3d_offset-(base > 0.0 ? 0.0 : 10.0);\n#else\nfloat height_terrain3d_offset=0.0;float base_terrain3d_offset=0.0;\n#endif\nbase=max(0.0,base)+base_terrain3d_offset;height=max(0.0,height)+height_terrain3d_offset;float t=mod(normal.x,2.0);float elevation=t > 0.0 ? height : base;vec2 posInTile=a_pos+u_fill_translate;if (u_is_shadow > 0.001) {vec2 light_xy=u_lightpos.xy;float light_xy_len=length(light_xy);float light_z=max(u_lightpos.z,0.05);vec2 light_dir=light_xy_len > 0.0 ? light_xy/light_xy_len : vec2(0.0,0.0);float shadow_angle_factor=clamp(light_xy_len/light_z,0.0,6.0);float shadow_height_m=max(height-base,0.0);float shadow_len_m=shadow_height_m*shadow_angle_factor;vec2 shadow_offset_tile=light_dir*shadow_len_m*u_meters_to_tile;float shadow_mix=t > 0.0 ? 1.0 : 0.0;vec2 shadow_xy=posInTile+shadow_offset_tile*shadow_mix;gl_Position=u_projection_matrix*vec4(shadow_xy,0.0,1.0);v_is_side=(normal.y !=0.0) ? 1.0 : 0.0;v_height_m=shadow_height_m;float height_range_s=max(height-base,0.001);v_wall_uv=vec2(edgedistance,(elevation-base)/height_range_s);v_ed_flat=0.0;v_face_width=0.0;v_wall_normal=vec3(0.0);v_body_hash=0.0;v_directional=(normal.y !=0.0)? dot(vec2(normal.x,normal.y),light_dir): 0.0;v_color=vec4(0.0);return;}\n#ifdef GLOBE\nvec3 spherePos=projectToSphere(posInTile,a_pos);gl_Position=interpolateProjectionFor3D(posInTile,spherePos,elevation);\n#else\ngl_Position=u_projection_matrix*vec4(posInTile,elevation,1.0);\n#endif\nv_is_side=(normal.y !=0.0) ? 1.0 : 0.0;v_height_m=max(0.0,height-base);float height_range=max(height-base,0.001);v_wall_uv=vec2(edgedistance,(elevation-base)/height_range);v_ed_flat=edgedistance;v_face_width=a_face_width;v_wall_normal=normal.y !=0.0 ? normalize(vec3(normal.x,normal.y,0.0)) : vec3(0.0);vec2 world_centroid=u_tile_id+(a_centroid/8192.0)*u_centroid_scale;float h=fract(sin(dot(world_centroid,vec2(127.1,311.7)))*43758.5453);h=fract(sin(h*78.233+dot(world_centroid,vec2(269.5,183.3)))*24634.6345);v_body_hash=fract(h+height*0.0197);float colorvalue=color.r*0.2126+color.g*0.7152+color.b*0.0722;v_color=vec4(0.0,0.0,0.0,1.0);vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);color+=ambientlight;vec3 normalForLighting=normal/16384.0;float directional=clamp(dot(normalForLighting,u_lightpos),0.0,1.0);\n#ifdef GLOBE\nmat3 rotMatrix=globeGetRotationMatrix(spherePos);normalForLighting=rotMatrix*normalForLighting;directional=mix(directional,clamp(dot(normalForLighting,u_lightpos_globe),0.0,1.0),u_projection_transition);\n#endif\ndirectional=mix((1.0-u_lightintensity),max((1.0-colorvalue+u_lightintensity),1.0),directional);if (normal.y !=0.0) {directional*=((1.0-u_vertical_gradient)+(u_vertical_gradient*clamp((t+base)*pow(height/150.0,0.5),mix(0.7,0.98,1.0-u_lightintensity),1.0)));}v_directional=directional;v_color.r+=clamp(color.r*directional*u_lightcolor.r,mix(0.0,0.3,1.0-u_lightcolor.r),1.0);v_color.g+=clamp(color.g*directional*u_lightcolor.g,mix(0.0,0.3,1.0-u_lightcolor.g),1.0);v_color.b+=clamp(color.b*directional*u_lightcolor.b,mix(0.0,0.3,1.0-u_lightcolor.b),1.0);v_color*=u_opacity;}';
@@ -53198,22 +53334,22 @@ var rasterFrag = 'uniform float u_fade_t;uniform float u_opacity;uniform sampler
 var rasterVert = 'uniform vec2 u_tl_parent;uniform float u_scale_parent;uniform float u_buffer_scale;uniform vec4 u_coords_top;uniform vec4 u_coords_bottom;in vec2 a_pos;out vec2 v_pos0;out vec2 v_pos1;void main() {vec2 fractionalPos=a_pos/8192.0;vec2 position=mix(mix(u_coords_top.xy,u_coords_top.zw,fractionalPos.x),mix(u_coords_bottom.xy,u_coords_bottom.zw,fractionalPos.x),fractionalPos.y);gl_Position=projectTile(position,position);v_pos0=((fractionalPos-0.5)/u_buffer_scale)+0.5;\n#ifdef GLOBE\nif (a_pos.y <-32767.5) {v_pos0.y=0.0;}if (a_pos.y > 32766.5) {v_pos0.y=1.0;}\n#endif\nv_pos1=(v_pos0*u_scale_parent)+u_tl_parent;}';
 
 // This file is generated. Edit build/generate-shaders.ts, then run `npm run codegen`.
-var symbolIconFrag = 'uniform sampler2D u_texture;in vec2 v_tex;in float v_fade_opacity;\n#pragma mapbox: define lowp float opacity\nvoid main() {\n#pragma mapbox: initialize lowp float opacity\nlowp float alpha=opacity*v_fade_opacity;fragColor=texture(u_texture,v_tex)*alpha;\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\n}';
+var symbolIconFrag = 'uniform sampler2D u_texture;in vec2 v_tex;in float v_total_opacity;void main() {fragColor=texture(u_texture,v_tex)*v_total_opacity;\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\n}';
 
 // This file is generated. Edit build/generate-shaders.ts, then run `npm run codegen`.
-var symbolIconVert = 'in vec4 a_pos_offset;in vec4 a_data;in vec4 a_pixeloffset;in vec3 a_projected_pos;in float a_fade_opacity;uniform bool u_is_size_zoom_constant;uniform bool u_is_size_feature_constant;uniform highp float u_size_t;uniform highp float u_size;uniform highp float u_camera_to_center_distance;uniform highp float u_pitch;uniform bool u_rotate_symbol;uniform highp float u_aspect_ratio;uniform float u_fade_change;uniform mat4 u_label_plane_matrix;uniform mat4 u_coord_matrix;uniform bool u_is_text;uniform bool u_pitch_with_map;uniform vec2 u_texsize;uniform bool u_is_along_line;uniform bool u_is_variable_anchor;uniform vec2 u_translation;uniform float u_pitched_scale;out vec2 v_tex;out float v_fade_opacity;\n#pragma mapbox: define lowp float opacity\nvoid main() {\n#pragma mapbox: initialize lowp float opacity\nvec2 a_pos=a_pos_offset.xy;vec2 a_offset=a_pos_offset.zw;vec2 a_tex=a_data.xy;vec2 a_size=a_data.zw;float a_size_min=floor(a_size[0]*0.5);vec2 a_pxoffset=a_pixeloffset.xy;vec2 a_minFontScale=a_pixeloffset.zw/256.0;float ele=get_elevation(a_pos);highp float segment_angle=-a_projected_pos[2];float size;if (!u_is_size_zoom_constant && !u_is_size_feature_constant) {size=mix(a_size_min,a_size[1],u_size_t)/128.0;} else if (u_is_size_zoom_constant && !u_is_size_feature_constant) {size=a_size_min/128.0;} else {size=u_size;}vec2 translated_a_pos=a_pos+u_translation;vec4 projectedPoint=projectTileWithElevation(translated_a_pos,ele);highp float camera_to_anchor_distance=projectedPoint.w;highp float distance_ratio=u_pitch_with_map ?\ncamera_to_anchor_distance/u_camera_to_center_distance :\nu_camera_to_center_distance/camera_to_anchor_distance;highp float perspective_ratio=clamp(0.5+0.5*distance_ratio,0.0,4.0);size*=perspective_ratio;float fontScale=u_is_text ? size/24.0 : size;highp float symbol_rotation=0.0;if (u_rotate_symbol) {vec4 offsetProjectedPoint=projectTileWithElevation(translated_a_pos+vec2(1,0),ele);vec2 a=projectedPoint.xy/projectedPoint.w;vec2 b=offsetProjectedPoint.xy/offsetProjectedPoint.w;symbol_rotation=atan((b.y-a.y)/u_aspect_ratio,b.x-a.x);}highp float angle_sin=sin(segment_angle+symbol_rotation);highp float angle_cos=cos(segment_angle+symbol_rotation);mat2 rotation_matrix=mat2(angle_cos,-1.0*angle_sin,angle_sin,angle_cos);vec4 projected_pos;if (u_is_along_line || u_is_variable_anchor) {projected_pos=vec4(a_projected_pos.xy,ele,1.0);} else if (u_pitch_with_map) {projected_pos=u_label_plane_matrix*vec4(a_projected_pos.xy+u_translation,ele,1.0);} else {projected_pos=u_label_plane_matrix*projectTileWithElevation(a_projected_pos.xy+u_translation,ele);}float z=float(u_pitch_with_map)*projected_pos.z/projected_pos.w;float projectionScaling=1.0;\n#ifdef GLOBE\nif(u_pitch_with_map) {float anchor_pos_tile_y=(u_coord_matrix*vec4(projected_pos.xy/projected_pos.w,z,1.0)).y;projectionScaling=mix(projectionScaling,1.0/circumferenceRatioAtTileY(anchor_pos_tile_y)*u_pitched_scale,u_projection_transition);}\n#endif\nvec4 finalPos=u_coord_matrix*vec4(projected_pos.xy/projected_pos.w+rotation_matrix*(a_offset/32.0*max(a_minFontScale,fontScale)+a_pxoffset/16.0)*projectionScaling,z,1.0);if(u_pitch_with_map) {finalPos=projectTileWithElevation(finalPos.xy,finalPos.z);}gl_Position=finalPos;v_tex=a_tex/u_texsize;vec2 fade_opacity=unpack_opacity(a_fade_opacity);float fade_change=fade_opacity[1] > 0.5 ? u_fade_change :-u_fade_change;float visibility=calculate_visibility(projectedPoint);v_fade_opacity=max(0.0,min(visibility,fade_opacity[0]+fade_change));}';
+var symbolIconVert = 'in vec4 a_pos_offset;in vec4 a_data;in vec4 a_pixeloffset;in vec3 a_projected_pos;in float a_fade_opacity;uniform bool u_is_size_zoom_constant;uniform bool u_is_size_feature_constant;uniform highp float u_size_t;uniform highp float u_size;uniform highp float u_camera_to_center_distance;uniform highp float u_pitch;uniform bool u_rotate_symbol;uniform highp float u_aspect_ratio;uniform float u_fade_change;uniform mat4 u_label_plane_matrix;uniform mat4 u_coord_matrix;uniform bool u_is_text;uniform bool u_pitch_with_map;uniform vec2 u_texsize;uniform bool u_is_along_line;uniform bool u_is_variable_anchor;uniform vec2 u_translation;uniform float u_pitched_scale;out vec2 v_tex;out float v_total_opacity;\n#pragma mapbox: define lowp float opacity\nvoid main() {\n#pragma mapbox: initialize lowp float opacity\nvec2 a_pos=a_pos_offset.xy;vec2 a_offset=a_pos_offset.zw;vec2 a_tex=a_data.xy;vec2 a_size=a_data.zw;float a_size_min=floor(a_size[0]*0.5);vec2 a_pxoffset=a_pixeloffset.xy;vec2 a_minFontScale=a_pixeloffset.zw/256.0;float ele=get_elevation(a_pos);highp float segment_angle=-a_projected_pos[2];float size;if (!u_is_size_zoom_constant && !u_is_size_feature_constant) {size=mix(a_size_min,a_size[1],u_size_t)/128.0;} else if (u_is_size_zoom_constant && !u_is_size_feature_constant) {size=a_size_min/128.0;} else {size=u_size;}vec2 translated_a_pos=a_pos+u_translation;vec4 projectedPoint=projectTileWithElevation(translated_a_pos,ele);vec2 fade_opacity=unpack_opacity(a_fade_opacity);float fade_change=fade_opacity[1] > 0.5 ? u_fade_change :-u_fade_change;float visibility=calculate_visibility(projectedPoint);v_total_opacity=opacity*max(0.0,min(visibility,fade_opacity[0]+fade_change));if (v_total_opacity < 0.1){gl_Position=vec4(-2.,-2.,-2.,1.);return;}highp float camera_to_anchor_distance=projectedPoint.w;highp float distance_ratio=u_pitch_with_map ?\ncamera_to_anchor_distance/u_camera_to_center_distance :\nu_camera_to_center_distance/camera_to_anchor_distance;highp float perspective_ratio=clamp(0.5+0.5*distance_ratio,0.0,4.0);size*=perspective_ratio;float fontScale=u_is_text ? size/24.0 : size;highp float symbol_rotation=0.0;if (u_rotate_symbol) {vec4 offsetProjectedPoint=projectTileWithElevation(translated_a_pos+vec2(1,0),ele);vec2 a=projectedPoint.xy/projectedPoint.w;vec2 b=offsetProjectedPoint.xy/offsetProjectedPoint.w;symbol_rotation=atan((b.y-a.y)/u_aspect_ratio,b.x-a.x);}highp float angle_sin=sin(segment_angle+symbol_rotation);highp float angle_cos=cos(segment_angle+symbol_rotation);mat2 rotation_matrix=mat2(angle_cos,-1.0*angle_sin,angle_sin,angle_cos);vec4 projected_pos;if (u_is_along_line || u_is_variable_anchor) {projected_pos=vec4(a_projected_pos.xy,ele,1.0);} else if (u_pitch_with_map) {projected_pos=u_label_plane_matrix*vec4(a_projected_pos.xy+u_translation,ele,1.0);} else {projected_pos=u_label_plane_matrix*projectTileWithElevation(a_projected_pos.xy+u_translation,ele);}float z=float(u_pitch_with_map)*projected_pos.z/projected_pos.w;float projectionScaling=1.0;\n#ifdef GLOBE\nif(u_pitch_with_map) {float anchor_pos_tile_y=(u_coord_matrix*vec4(projected_pos.xy/projected_pos.w,z,1.0)).y;projectionScaling=mix(projectionScaling,1.0/circumferenceRatioAtTileY(anchor_pos_tile_y)*u_pitched_scale,u_projection_transition);}\n#endif\nvec4 finalPos=u_coord_matrix*vec4(projected_pos.xy/projected_pos.w+rotation_matrix*(a_offset/32.0*max(a_minFontScale,fontScale)+a_pxoffset/16.0)*projectionScaling,z,1.0);if(u_pitch_with_map) {finalPos=projectTileWithElevation(finalPos.xy,finalPos.z);}gl_Position=finalPos;v_tex=a_tex/u_texsize;}';
 
 // This file is generated. Edit build/generate-shaders.ts, then run `npm run codegen`.
-var symbolSDFFrag = '#define SDF_PX 8.0\nuniform bool u_is_halo;uniform sampler2D u_texture;uniform highp float u_gamma_scale;uniform lowp float u_device_pixel_ratio;uniform bool u_is_text;in vec2 v_data0;in vec3 v_data1;\n#pragma mapbox: define highp vec4 fill_color\n#pragma mapbox: define highp vec4 halo_color\n#pragma mapbox: define lowp float opacity\n#pragma mapbox: define lowp float halo_width\n#pragma mapbox: define lowp float halo_blur\nvoid main() {\n#pragma mapbox: initialize highp vec4 fill_color\n#pragma mapbox: initialize highp vec4 halo_color\n#pragma mapbox: initialize lowp float opacity\n#pragma mapbox: initialize lowp float halo_width\n#pragma mapbox: initialize lowp float halo_blur\nfloat EDGE_GAMMA=0.105/u_device_pixel_ratio;vec2 tex=v_data0.xy;float gamma_scale=v_data1.x;float size=v_data1.y;float fade_opacity=v_data1[2];float fontScale=u_is_text ? size/24.0 : size;lowp vec4 color=fill_color;highp float gamma=EDGE_GAMMA/(fontScale*u_gamma_scale);lowp float inner_edge=(256.0-64.0)/256.0;if (u_is_halo) {color=halo_color;gamma=(halo_blur*1.19/SDF_PX+EDGE_GAMMA)/(fontScale*u_gamma_scale);inner_edge=inner_edge+gamma*gamma_scale;}lowp float dist=texture(u_texture,tex).a;highp float gamma_scaled=gamma*gamma_scale;highp float alpha=smoothstep(inner_edge-gamma_scaled,inner_edge+gamma_scaled,dist);if (u_is_halo) {lowp float halo_edge=(6.0-halo_width/fontScale)/SDF_PX;alpha=min(smoothstep(halo_edge-gamma_scaled,halo_edge+gamma_scaled,dist),1.0-alpha);}fragColor=color*(alpha*opacity*fade_opacity);\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\n}';
+var symbolSDFFrag = '#define SDF_PX 8.0\nuniform bool u_is_halo;uniform bool u_is_plain;uniform sampler2D u_texture;uniform highp float u_gamma_scale;uniform lowp float u_device_pixel_ratio;uniform bool u_is_text;in vec2 v_data0;in vec3 v_data1;\n#pragma mapbox: define highp vec4 fill_color\n#pragma mapbox: define highp vec4 halo_color\n#pragma mapbox: define lowp float halo_width\n#pragma mapbox: define lowp float halo_blur\nvoid main() {\n#pragma mapbox: initialize highp vec4 fill_color\n#pragma mapbox: initialize highp vec4 halo_color\n#pragma mapbox: initialize lowp float halo_width\n#pragma mapbox: initialize lowp float halo_blur\nfloat EDGE_GAMMA=0.105/u_device_pixel_ratio;vec2 tex=v_data0.xy;float gamma_scale=v_data1.x;float size=v_data1.y;float total_opacity=v_data1[2];float fontScale=u_is_text ? size/24.0 : size;highp float gamma=EDGE_GAMMA/(fontScale*u_gamma_scale);lowp float inner_edge=(256.0-64.0)/256.0;lowp float dist=texture(u_texture,tex).a;lowp vec4 color_alpha_out_text,color_alpha_out_halo;if (u_is_plain){highp float gamma_scaled=gamma*gamma_scale;highp float alpha=smoothstep(inner_edge-gamma_scaled,inner_edge+gamma_scaled,dist);color_alpha_out_text=total_opacity*alpha*fill_color;}if (u_is_halo) {float gamma_halo=(halo_blur*1.19/SDF_PX+EDGE_GAMMA)/(fontScale*u_gamma_scale);float inner_edge_halo=inner_edge+gamma_halo*gamma_scale;highp float gamma_scaled_halo=gamma_halo*gamma_scale;highp float alpha_halo=smoothstep(inner_edge_halo-gamma_scaled_halo,inner_edge_halo+gamma_scaled_halo,dist);highp float halo_edge=(6.0-halo_width/fontScale)/SDF_PX;alpha_halo= min(smoothstep(halo_edge-gamma_scaled_halo,halo_edge+gamma_scaled_halo,dist),1.0-alpha_halo);color_alpha_out_halo=total_opacity*alpha_halo*halo_color;}if (u_is_plain && u_is_halo) {fragColor=color_alpha_out_text+(1.-color_alpha_out_text.a)*color_alpha_out_halo;} else if (u_is_halo){fragColor=color_alpha_out_halo;} else {fragColor=color_alpha_out_text;}\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\n}';
 
 // This file is generated. Edit build/generate-shaders.ts, then run `npm run codegen`.
-var symbolSDFVert = 'in vec4 a_pos_offset;in vec4 a_data;in vec4 a_pixeloffset;in vec3 a_projected_pos;in float a_fade_opacity;uniform bool u_is_size_zoom_constant;uniform bool u_is_size_feature_constant;uniform highp float u_size_t;uniform highp float u_size;uniform mat4 u_label_plane_matrix;uniform mat4 u_coord_matrix;uniform bool u_is_text;uniform bool u_pitch_with_map;uniform bool u_is_along_line;uniform bool u_is_variable_anchor;uniform highp float u_pitch;uniform bool u_rotate_symbol;uniform highp float u_aspect_ratio;uniform highp float u_camera_to_center_distance;uniform float u_fade_change;uniform vec2 u_texsize;uniform vec2 u_translation;uniform float u_pitched_scale;out vec2 v_data0;out vec3 v_data1;\n#pragma mapbox: define highp vec4 fill_color\n#pragma mapbox: define highp vec4 halo_color\n#pragma mapbox: define lowp float opacity\n#pragma mapbox: define lowp float halo_width\n#pragma mapbox: define lowp float halo_blur\nvoid main() {\n#pragma mapbox: initialize highp vec4 fill_color\n#pragma mapbox: initialize highp vec4 halo_color\n#pragma mapbox: initialize lowp float opacity\n#pragma mapbox: initialize lowp float halo_width\n#pragma mapbox: initialize lowp float halo_blur\nvec2 a_pos=a_pos_offset.xy;vec2 a_offset=a_pos_offset.zw;vec2 a_tex=a_data.xy;vec2 a_size=a_data.zw;float a_size_min=floor(a_size[0]*0.5);vec2 a_pxoffset=a_pixeloffset.xy/16.0;vec2 a_minFontScale=a_pixeloffset.zw/256.0;float ele=get_elevation(a_pos);highp float segment_angle=-a_projected_pos[2];float size;if (!u_is_size_zoom_constant && !u_is_size_feature_constant) {size=mix(a_size_min,a_size[1],u_size_t)/128.0;} else if (u_is_size_zoom_constant && !u_is_size_feature_constant) {size=a_size_min/128.0;} else {size=u_size;}vec2 translated_a_pos=a_pos+u_translation;vec4 projectedPoint=projectTileWithElevation(translated_a_pos,ele);highp float camera_to_anchor_distance=projectedPoint.w;highp float distance_ratio=u_pitch_with_map ?\ncamera_to_anchor_distance/u_camera_to_center_distance :\nu_camera_to_center_distance/camera_to_anchor_distance;highp float perspective_ratio=clamp(0.5+0.5*distance_ratio,0.0,4.0);size*=perspective_ratio;float fontScale=u_is_text ? size/24.0 : size;highp float symbol_rotation=0.0;if (u_rotate_symbol) {vec4 offsetProjectedPoint=projectTileWithElevation(translated_a_pos+vec2(1,0),ele);vec2 a=projectedPoint.xy/projectedPoint.w;vec2 b=offsetProjectedPoint.xy/offsetProjectedPoint.w;symbol_rotation=atan((b.y-a.y)/u_aspect_ratio,b.x-a.x);}highp float angle_sin=sin(segment_angle+symbol_rotation);highp float angle_cos=cos(segment_angle+symbol_rotation);mat2 rotation_matrix=mat2(angle_cos,-1.0*angle_sin,angle_sin,angle_cos);vec4 projected_pos;if (u_is_along_line || u_is_variable_anchor) {projected_pos=vec4(a_projected_pos.xy,ele,1.0);} else if (u_pitch_with_map) {projected_pos=u_label_plane_matrix*vec4(a_projected_pos.xy+u_translation,ele,1.0);} else {projected_pos=u_label_plane_matrix*projectTileWithElevation(a_projected_pos.xy+u_translation,ele);}float z=float(u_pitch_with_map)*projected_pos.z/projected_pos.w;float projectionScaling=1.0;\n#ifdef GLOBE\nif(u_pitch_with_map) {float anchor_pos_tile_y=(u_coord_matrix*vec4(projected_pos.xy/projected_pos.w,z,1.0)).y;projectionScaling=mix(projectionScaling,1.0/circumferenceRatioAtTileY(anchor_pos_tile_y)*u_pitched_scale,u_projection_transition);}\n#endif\nvec4 finalPos=u_coord_matrix*vec4(projected_pos.xy/projected_pos.w+rotation_matrix*(a_offset/32.0*max(a_minFontScale,fontScale)+a_pxoffset)*projectionScaling,z,1.0);if(u_pitch_with_map) {finalPos=projectTileWithElevation(finalPos.xy,finalPos.z);}float gamma_scale=finalPos.w;gl_Position=finalPos;vec2 fade_opacity=unpack_opacity(a_fade_opacity);float visibility=calculate_visibility(projectedPoint);float fade_change=fade_opacity[1] > 0.5 ? u_fade_change :-u_fade_change;float interpolated_fade_opacity=max(0.0,min(visibility,fade_opacity[0]+fade_change));v_data0=a_tex/u_texsize;v_data1=vec3(gamma_scale,size,interpolated_fade_opacity);}';
+var symbolSDFVert = 'in vec4 a_pos_offset;in vec4 a_data;in vec4 a_pixeloffset;in vec3 a_projected_pos;in float a_fade_opacity;uniform bool u_is_size_zoom_constant;uniform bool u_is_size_feature_constant;uniform highp float u_size_t;uniform highp float u_size;uniform mat4 u_label_plane_matrix;uniform mat4 u_coord_matrix;uniform bool u_is_text;uniform bool u_pitch_with_map;uniform bool u_is_along_line;uniform bool u_is_variable_anchor;uniform highp float u_pitch;uniform bool u_rotate_symbol;uniform highp float u_aspect_ratio;uniform highp float u_camera_to_center_distance;uniform float u_fade_change;uniform vec2 u_texsize;uniform vec2 u_translation;uniform float u_pitched_scale;out vec2 v_data0;out vec3 v_data1;\n#pragma mapbox: define highp vec4 fill_color\n#pragma mapbox: define highp vec4 halo_color\n#pragma mapbox: define lowp float opacity\n#pragma mapbox: define lowp float halo_width\n#pragma mapbox: define lowp float halo_blur\nvoid main() {\n#pragma mapbox: initialize highp vec4 fill_color\n#pragma mapbox: initialize highp vec4 halo_color\n#pragma mapbox: initialize lowp float opacity\n#pragma mapbox: initialize lowp float halo_width\n#pragma mapbox: initialize lowp float halo_blur\nvec2 a_pos=a_pos_offset.xy;vec2 a_offset=a_pos_offset.zw;vec2 a_tex=a_data.xy;vec2 a_size=a_data.zw;float a_size_min=floor(a_size[0]*0.5);vec2 a_pxoffset=a_pixeloffset.xy/16.0;vec2 a_minFontScale=a_pixeloffset.zw/256.0;float ele=get_elevation(a_pos);highp float segment_angle=-a_projected_pos[2];float size;if (!u_is_size_zoom_constant && !u_is_size_feature_constant) {size=mix(a_size_min,a_size[1],u_size_t)/128.0;} else if (u_is_size_zoom_constant && !u_is_size_feature_constant) {size=a_size_min/128.0;} else {size=u_size;}vec2 translated_a_pos=a_pos+u_translation;vec4 projectedPoint=projectTileWithElevation(translated_a_pos,ele);vec2 fade_opacity=unpack_opacity(a_fade_opacity);float visibility=calculate_visibility(projectedPoint);float fade_change=fade_opacity[1] > 0.5 ? u_fade_change :-u_fade_change;float interpolated_fade_opacity=max(0.0,min(visibility,fade_opacity[0]+fade_change));float total_opacity=opacity*interpolated_fade_opacity;if (total_opacity < 0.1){gl_Position=vec4(-2.,-2.,-2.,1.);return;}highp float camera_to_anchor_distance=projectedPoint.w;highp float distance_ratio=u_pitch_with_map ?\ncamera_to_anchor_distance/u_camera_to_center_distance :\nu_camera_to_center_distance/camera_to_anchor_distance;highp float perspective_ratio=clamp(0.5+0.5*distance_ratio,0.0,4.0);size*=perspective_ratio;float fontScale=u_is_text ? size/24.0 : size;highp float symbol_rotation=0.0;if (u_rotate_symbol) {vec4 offsetProjectedPoint=projectTileWithElevation(translated_a_pos+vec2(1,0),ele);vec2 a=projectedPoint.xy/projectedPoint.w;vec2 b=offsetProjectedPoint.xy/offsetProjectedPoint.w;symbol_rotation=atan((b.y-a.y)/u_aspect_ratio,b.x-a.x);}highp float angle_sin=sin(segment_angle+symbol_rotation);highp float angle_cos=cos(segment_angle+symbol_rotation);mat2 rotation_matrix=mat2(angle_cos,-1.0*angle_sin,angle_sin,angle_cos);vec4 projected_pos;if (u_is_along_line || u_is_variable_anchor) {projected_pos=vec4(a_projected_pos.xy,ele,1.0);} else if (u_pitch_with_map) {projected_pos=u_label_plane_matrix*vec4(a_projected_pos.xy+u_translation,ele,1.0);} else {projected_pos=u_label_plane_matrix*projectTileWithElevation(a_projected_pos.xy+u_translation,ele);}float z=float(u_pitch_with_map)*projected_pos.z/projected_pos.w;float projectionScaling=1.0;\n#ifdef GLOBE\nif(u_pitch_with_map) {float anchor_pos_tile_y=(u_coord_matrix*vec4(projected_pos.xy/projected_pos.w,z,1.0)).y;projectionScaling=mix(projectionScaling,1.0/circumferenceRatioAtTileY(anchor_pos_tile_y)*u_pitched_scale,u_projection_transition);}\n#endif\nvec4 finalPos=u_coord_matrix*vec4(projected_pos.xy/projected_pos.w+rotation_matrix*(a_offset/32.0*max(a_minFontScale,fontScale)+a_pxoffset)*projectionScaling,z,1.0);if(u_pitch_with_map) {finalPos=projectTileWithElevation(finalPos.xy,finalPos.z);}float gamma_scale=finalPos.w;gl_Position=finalPos;v_data0=a_tex/u_texsize;v_data1=vec3(gamma_scale,size,total_opacity);}';
 
 // This file is generated. Edit build/generate-shaders.ts, then run `npm run codegen`.
-var symbolTextAndIconFrag = '#define SDF_PX 8.0\n#define SDF 1.0\n#define ICON 0.0\nuniform bool u_is_halo;uniform sampler2D u_texture;uniform sampler2D u_texture_icon;uniform highp float u_gamma_scale;uniform lowp float u_device_pixel_ratio;in vec4 v_data0;in vec4 v_data1;\n#pragma mapbox: define highp vec4 fill_color\n#pragma mapbox: define highp vec4 halo_color\n#pragma mapbox: define lowp float opacity\n#pragma mapbox: define lowp float halo_width\n#pragma mapbox: define lowp float halo_blur\nvoid main() {\n#pragma mapbox: initialize highp vec4 fill_color\n#pragma mapbox: initialize highp vec4 halo_color\n#pragma mapbox: initialize lowp float opacity\n#pragma mapbox: initialize lowp float halo_width\n#pragma mapbox: initialize lowp float halo_blur\nfloat fade_opacity=v_data1[2];if (v_data1.w==ICON) {vec2 tex_icon=v_data0.zw;lowp float alpha=opacity*fade_opacity;fragColor=texture(u_texture_icon,tex_icon)*alpha;\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\nreturn;}vec2 tex=v_data0.xy;float EDGE_GAMMA=0.105/u_device_pixel_ratio;float gamma_scale=v_data1.x;float size=v_data1.y;float fontScale=size/24.0;lowp vec4 color=fill_color;highp float gamma=EDGE_GAMMA/(fontScale*u_gamma_scale);lowp float buff=(256.0-64.0)/256.0;if (u_is_halo) {color=halo_color;gamma=(halo_blur*1.19/SDF_PX+EDGE_GAMMA)/(fontScale*u_gamma_scale);buff=(6.0-halo_width/fontScale)/SDF_PX;}lowp float dist=texture(u_texture,tex).a;highp float gamma_scaled=gamma*gamma_scale;highp float alpha=smoothstep(buff-gamma_scaled,buff+gamma_scaled,dist);fragColor=color*(alpha*opacity*fade_opacity);\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\n}';
+var symbolTextAndIconFrag = '#define SDF_PX 8.0\n#define SDF 1.0\n#define ICON 0.0\nuniform bool u_is_halo;uniform bool u_is_text;uniform sampler2D u_texture;uniform sampler2D u_texture_icon;uniform highp float u_gamma_scale;uniform lowp float u_device_pixel_ratio;in vec4 v_data0;in vec4 v_data1;\n#pragma mapbox: define highp vec4 fill_color\n#pragma mapbox: define highp vec4 halo_color\n#pragma mapbox: define lowp float halo_width\n#pragma mapbox: define lowp float halo_blur\nvoid main() {\n#pragma mapbox: initialize highp vec4 fill_color\n#pragma mapbox: initialize highp vec4 halo_color\n#pragma mapbox: initialize lowp float halo_width\n#pragma mapbox: initialize lowp float halo_blur\nfloat total_opacity=v_data1[2];if (v_data1.w==ICON) {vec2 tex_icon=v_data0.zw;fragColor=texture(u_texture_icon,tex_icon)*total_opacity;\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\nreturn;}vec2 tex=v_data0.xy;float EDGE_GAMMA=0.105/u_device_pixel_ratio;float gamma_scale=v_data1.x;float size=v_data1.y;float fontScale=size/24.0;highp float gamma=EDGE_GAMMA/(fontScale*u_gamma_scale);lowp float buff=(256.0-64.0)/256.0;lowp float dist=texture(u_texture,tex).a;lowp vec4 color_alpha_out,color_alpha_out_halo;if (u_is_text) {highp float gamma_scaled=gamma*gamma_scale;highp float alpha=smoothstep(buff-gamma_scaled,buff+gamma_scaled,dist);color_alpha_out=fill_color*(alpha*total_opacity);}if (u_is_halo) {highp float gamma_halo=(halo_blur*1.19/SDF_PX+EDGE_GAMMA)/(fontScale*u_gamma_scale);lowp float buff_halo=(6.0-halo_width/fontScale)/SDF_PX;highp float gamma_scaled_halo=gamma_halo*gamma_scale;highp float alpha_halo=smoothstep(buff_halo-gamma_scaled_halo,buff_halo+gamma_scaled_halo,dist);color_alpha_out_halo=halo_color*(alpha_halo*total_opacity);}if (u_is_text && u_is_halo) {fragColor=color_alpha_out+(1.-color_alpha_out.a)*color_alpha_out_halo;} else if (u_is_halo) {fragColor=color_alpha_out_halo;} else {fragColor=color_alpha_out;}\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\n}';
 
 // This file is generated. Edit build/generate-shaders.ts, then run `npm run codegen`.
-var symbolTextAndIconVert = 'in vec4 a_pos_offset;in vec4 a_data;in vec3 a_projected_pos;in float a_fade_opacity;uniform bool u_is_size_zoom_constant;uniform bool u_is_size_feature_constant;uniform highp float u_size_t;uniform highp float u_size;uniform mat4 u_label_plane_matrix;uniform mat4 u_coord_matrix;uniform bool u_is_text;uniform bool u_pitch_with_map;uniform highp float u_pitch;uniform bool u_rotate_symbol;uniform highp float u_aspect_ratio;uniform highp float u_camera_to_center_distance;uniform float u_fade_change;uniform vec2 u_texsize;uniform vec2 u_texsize_icon;uniform bool u_is_along_line;uniform bool u_is_variable_anchor;uniform vec2 u_translation;uniform float u_pitched_scale;out vec4 v_data0;out vec4 v_data1;\n#pragma mapbox: define highp vec4 fill_color\n#pragma mapbox: define highp vec4 halo_color\n#pragma mapbox: define lowp float opacity\n#pragma mapbox: define lowp float halo_width\n#pragma mapbox: define lowp float halo_blur\nvoid main() {\n#pragma mapbox: initialize highp vec4 fill_color\n#pragma mapbox: initialize highp vec4 halo_color\n#pragma mapbox: initialize lowp float opacity\n#pragma mapbox: initialize lowp float halo_width\n#pragma mapbox: initialize lowp float halo_blur\nvec2 a_pos=a_pos_offset.xy;vec2 a_offset=a_pos_offset.zw;vec2 a_tex=a_data.xy;vec2 a_size=a_data.zw;float a_size_min=floor(a_size[0]*0.5);float is_sdf=a_size[0]-2.0*a_size_min;float ele=get_elevation(a_pos);highp float segment_angle=-a_projected_pos[2];float size;if (!u_is_size_zoom_constant && !u_is_size_feature_constant) {size=mix(a_size_min,a_size[1],u_size_t)/128.0;} else if (u_is_size_zoom_constant && !u_is_size_feature_constant) {size=a_size_min/128.0;} else {size=u_size;}vec2 translated_a_pos=a_pos+u_translation;vec4 projectedPoint=projectTileWithElevation(translated_a_pos,ele);highp float camera_to_anchor_distance=projectedPoint.w;highp float distance_ratio=u_pitch_with_map ?\ncamera_to_anchor_distance/u_camera_to_center_distance :\nu_camera_to_center_distance/camera_to_anchor_distance;highp float perspective_ratio=clamp(0.5+0.5*distance_ratio,0.0,4.0);size*=perspective_ratio;float fontScale=size/24.0;highp float symbol_rotation=0.0;if (u_rotate_symbol) {vec4 offsetProjectedPoint=projectTileWithElevation(translated_a_pos+vec2(1,0),ele);vec2 a=projectedPoint.xy/projectedPoint.w;vec2 b=offsetProjectedPoint.xy/offsetProjectedPoint.w;symbol_rotation=atan((b.y-a.y)/u_aspect_ratio,b.x-a.x);}highp float angle_sin=sin(segment_angle+symbol_rotation);highp float angle_cos=cos(segment_angle+symbol_rotation);mat2 rotation_matrix=mat2(angle_cos,-1.0*angle_sin,angle_sin,angle_cos);vec4 projected_pos;if (u_is_along_line || u_is_variable_anchor) {projected_pos=vec4(a_projected_pos.xy,ele,1.0);} else if (u_pitch_with_map) {projected_pos=u_label_plane_matrix*vec4(a_projected_pos.xy+u_translation,ele,1.0);} else {projected_pos=u_label_plane_matrix*projectTileWithElevation(a_projected_pos.xy+u_translation,ele);}float z=float(u_pitch_with_map)*projected_pos.z/projected_pos.w;float projectionScaling=1.0;\n#ifdef GLOBE\nif(u_pitch_with_map && !u_is_along_line) {float anchor_pos_tile_y=(u_coord_matrix*vec4(projected_pos.xy/projected_pos.w,z,1.0)).y;projectionScaling=mix(projectionScaling,1.0/circumferenceRatioAtTileY(anchor_pos_tile_y)*u_pitched_scale,u_projection_transition);}\n#endif\nvec4 finalPos=u_coord_matrix*vec4(projected_pos.xy/projected_pos.w+rotation_matrix*(a_offset/32.0*fontScale)*projectionScaling,z,1.0);if(u_pitch_with_map) {finalPos=projectTileWithElevation(finalPos.xy,finalPos.z);}float gamma_scale=finalPos.w;gl_Position=finalPos;vec2 fade_opacity=unpack_opacity(a_fade_opacity);float visibility=calculate_visibility(projectedPoint);float fade_change=fade_opacity[1] > 0.5 ? u_fade_change :-u_fade_change;float interpolated_fade_opacity=max(0.0,min(visibility,fade_opacity[0]+fade_change));v_data0.xy=a_tex/u_texsize;v_data0.zw=a_tex/u_texsize_icon;v_data1=vec4(gamma_scale,size,interpolated_fade_opacity,is_sdf);}';
+var symbolTextAndIconVert = 'in vec4 a_pos_offset;in vec4 a_data;in vec3 a_projected_pos;in float a_fade_opacity;uniform bool u_is_size_zoom_constant;uniform bool u_is_size_feature_constant;uniform highp float u_size_t;uniform highp float u_size;uniform mat4 u_label_plane_matrix;uniform mat4 u_coord_matrix;uniform bool u_is_text;uniform bool u_pitch_with_map;uniform highp float u_pitch;uniform bool u_rotate_symbol;uniform highp float u_aspect_ratio;uniform highp float u_camera_to_center_distance;uniform float u_fade_change;uniform vec2 u_texsize;uniform vec2 u_texsize_icon;uniform bool u_is_along_line;uniform bool u_is_variable_anchor;uniform vec2 u_translation;uniform float u_pitched_scale;out vec4 v_data0;out vec4 v_data1;\n#pragma mapbox: define highp vec4 fill_color\n#pragma mapbox: define highp vec4 halo_color\n#pragma mapbox: define lowp float opacity\n#pragma mapbox: define lowp float halo_width\n#pragma mapbox: define lowp float halo_blur\nvoid main() {\n#pragma mapbox: initialize highp vec4 fill_color\n#pragma mapbox: initialize highp vec4 halo_color\n#pragma mapbox: initialize lowp float opacity\n#pragma mapbox: initialize lowp float halo_width\n#pragma mapbox: initialize lowp float halo_blur\nvec2 a_pos=a_pos_offset.xy;vec2 a_offset=a_pos_offset.zw;vec2 a_tex=a_data.xy;vec2 a_size=a_data.zw;float a_size_min=floor(a_size[0]*0.5);float is_sdf=a_size[0]-2.0*a_size_min;float ele=get_elevation(a_pos);highp float segment_angle=-a_projected_pos[2];float size;if (!u_is_size_zoom_constant && !u_is_size_feature_constant) {size=mix(a_size_min,a_size[1],u_size_t)/128.0;} else if (u_is_size_zoom_constant && !u_is_size_feature_constant) {size=a_size_min/128.0;} else {size=u_size;}vec2 translated_a_pos=a_pos+u_translation;vec4 projectedPoint=projectTileWithElevation(translated_a_pos,ele);vec2 fade_opacity=unpack_opacity(a_fade_opacity);float visibility=calculate_visibility(projectedPoint);float fade_change=fade_opacity[1] > 0.5 ? u_fade_change :-u_fade_change;float interpolated_fade_opacity=max(0.0,min(visibility,fade_opacity[0]+fade_change));float total_opacity=opacity*interpolated_fade_opacity;if (total_opacity < 0.1){gl_Position=vec4(-2.,-2.,-2.,1.);return;}highp float camera_to_anchor_distance=projectedPoint.w;highp float distance_ratio=u_pitch_with_map ?\ncamera_to_anchor_distance/u_camera_to_center_distance :\nu_camera_to_center_distance/camera_to_anchor_distance;highp float perspective_ratio=clamp(0.5+0.5*distance_ratio,0.0,4.0);size*=perspective_ratio;float fontScale=size/24.0;highp float symbol_rotation=0.0;if (u_rotate_symbol) {vec4 offsetProjectedPoint=projectTileWithElevation(translated_a_pos+vec2(1,0),ele);vec2 a=projectedPoint.xy/projectedPoint.w;vec2 b=offsetProjectedPoint.xy/offsetProjectedPoint.w;symbol_rotation=atan((b.y-a.y)/u_aspect_ratio,b.x-a.x);}highp float angle_sin=sin(segment_angle+symbol_rotation);highp float angle_cos=cos(segment_angle+symbol_rotation);mat2 rotation_matrix=mat2(angle_cos,-1.0*angle_sin,angle_sin,angle_cos);vec4 projected_pos;if (u_is_along_line || u_is_variable_anchor) {projected_pos=vec4(a_projected_pos.xy,ele,1.0);} else if (u_pitch_with_map) {projected_pos=u_label_plane_matrix*vec4(a_projected_pos.xy+u_translation,ele,1.0);} else {projected_pos=u_label_plane_matrix*projectTileWithElevation(a_projected_pos.xy+u_translation,ele);}float z=float(u_pitch_with_map)*projected_pos.z/projected_pos.w;float projectionScaling=1.0;\n#ifdef GLOBE\nif(u_pitch_with_map && !u_is_along_line) {float anchor_pos_tile_y=(u_coord_matrix*vec4(projected_pos.xy/projected_pos.w,z,1.0)).y;projectionScaling=mix(projectionScaling,1.0/circumferenceRatioAtTileY(anchor_pos_tile_y)*u_pitched_scale,u_projection_transition);}\n#endif\nvec4 finalPos=u_coord_matrix*vec4(projected_pos.xy/projected_pos.w+rotation_matrix*(a_offset/32.0*fontScale)*projectionScaling,z,1.0);if(u_pitch_with_map) {finalPos=projectTileWithElevation(finalPos.xy,finalPos.z);}float gamma_scale=finalPos.w;gl_Position=finalPos;v_data0.xy=a_tex/u_texsize;v_data0.zw=a_tex/u_texsize_icon;v_data1=vec4(gamma_scale,size,total_opacity,is_sdf);}';
 
 // This file is generated. Edit build/generate-shaders.ts, then run `npm run codegen`.
 var terrainDepthFrag = 'in float v_depth;const highp vec4 bitSh=vec4(256.*256.*256.,256.*256.,256.,1.);const highp vec4 bitMsk=vec4(0.,vec3(1./256.0));highp vec4 pack(highp float value) {highp vec4 comp=fract(value*bitSh);comp-=comp.xxyz*bitMsk;return comp;}void main() {fragColor=pack(v_depth);}';
@@ -53222,10 +53358,10 @@ var terrainDepthFrag = 'in float v_depth;const highp vec4 bitSh=vec4(256.*256.*2
 var terrainCoordsFrag = 'precision mediump float;uniform sampler2D u_texture;uniform float u_terrain_coords_id;in vec2 v_texture_pos;void main() {vec4 rgba=texture(u_texture,v_texture_pos);fragColor=vec4(rgba.r,rgba.g,rgba.b,u_terrain_coords_id);}';
 
 // This file is generated. Edit build/generate-shaders.ts, then run `npm run codegen`.
-var terrainFrag = 'uniform sampler2D u_texture;uniform vec4 u_fog_color;uniform vec4 u_horizon_color;uniform float u_fog_ground_blend;uniform float u_fog_ground_blend_opacity;uniform float u_horizon_fog_blend;uniform bool u_is_globe_mode;in vec2 v_texture_pos;in float v_fog_depth;const float gamma=2.2;vec4 gammaToLinear(vec4 color) {return pow(color,vec4(gamma));}vec4 linearToGamma(vec4 color) {return pow(color,vec4(1.0/gamma));}void main() {vec4 surface_color=texture(u_texture,vec2(v_texture_pos.x,1.0-v_texture_pos.y));if (!u_is_globe_mode && v_fog_depth > u_fog_ground_blend) {vec4 surface_color_linear=gammaToLinear(surface_color);float blend_color=smoothstep(0.0,1.0,max((v_fog_depth-u_horizon_fog_blend)/(1.0-u_horizon_fog_blend),0.0));vec4 fog_horizon_color_linear=mix(gammaToLinear(u_fog_color),gammaToLinear(u_horizon_color),blend_color);float factor_fog=max(v_fog_depth-u_fog_ground_blend,0.0)/(1.0-u_fog_ground_blend);fragColor=linearToGamma(mix(surface_color_linear,fog_horizon_color_linear,pow(factor_fog,2.0)*u_fog_ground_blend_opacity));} else {fragColor=surface_color;}}';
+var terrainFrag = 'uniform sampler2D u_texture;uniform vec4 u_fog_color;uniform vec4 u_horizon_color;uniform float u_fog_ground_blend;uniform float u_fog_ground_blend_opacity;uniform float u_horizon_fog_blend;uniform bool u_is_globe_mode;in vec2 v_texture_pos;in float v_fog_depth;const float gamma=2.2;vec4 gammaToLinear(vec4 color) {return pow(color,vec4(gamma));}vec4 linearToGamma(vec4 color) {return pow(color,vec4(1.0/gamma));}void main() {vec4 surface_color=texture(u_texture,vec2(v_texture_pos.x,1.0-v_texture_pos.y));if (!u_is_globe_mode && u_fog_ground_blend_opacity > 0.0 && v_fog_depth > u_fog_ground_blend) {vec4 surface_color_linear=gammaToLinear(surface_color);float blend_color=smoothstep(0.0,1.0,max((v_fog_depth-u_horizon_fog_blend)/(1.0-u_horizon_fog_blend),0.0));vec4 fog_horizon_color_linear=mix(gammaToLinear(u_fog_color),gammaToLinear(u_horizon_color),blend_color);float factor_fog=max(v_fog_depth-u_fog_ground_blend,0.0)/(1.0-u_fog_ground_blend);fragColor=linearToGamma(mix(surface_color_linear,fog_horizon_color_linear,pow(factor_fog,2.0)*u_fog_ground_blend_opacity));} else {fragColor=surface_color;}}';
 
 // This file is generated. Edit build/generate-shaders.ts, then run `npm run codegen`.
-var terrainVert = 'in vec3 a_pos3d;uniform mat4 u_fog_matrix;uniform float u_ele_delta;out vec2 v_texture_pos;out float v_fog_depth;void main() {float ele=get_elevation(a_pos3d.xy);float ele_delta=a_pos3d.z==1.0 ? u_ele_delta : 0.0;v_texture_pos=a_pos3d.xy/8192.0;gl_Position=projectTileFor3D(a_pos3d.xy,get_elevation(a_pos3d.xy)-ele_delta);vec4 pos=u_fog_matrix*vec4(a_pos3d.xy,ele,1.0);v_fog_depth=pos.z/pos.w*0.5+0.5;}';
+var terrainVert = 'in vec3 a_pos3d;uniform mat4 u_fog_matrix;uniform float u_ele_delta;out vec2 v_texture_pos;out float v_fog_depth;void main() {float ele=get_elevation(a_pos3d.xy);float ele_delta=a_pos3d.z==1.0 ? u_ele_delta : 0.0;v_texture_pos=a_pos3d.xy/8192.0;gl_Position=projectTileFor3D(a_pos3d.xy,ele-ele_delta);vec4 pos=u_fog_matrix*vec4(a_pos3d.xy,ele,1.0);v_fog_depth=pos.z/pos.w*0.5+0.5;}';
 
 // This file is generated. Edit build/generate-shaders.ts, then run `npm run codegen`.
 var terrainVertDepth = 'in vec3 a_pos3d;uniform float u_ele_delta;out float v_depth;void main() {float ele=get_elevation(a_pos3d.xy);float ele_delta=a_pos3d.z==1.0 ? u_ele_delta : 0.0;gl_Position=projectTileFor3D(a_pos3d.xy,ele-ele_delta);v_depth=gl_Position.z/gl_Position.w;}';
@@ -53546,7 +53682,7 @@ class EdgeInsets {
         return this;
     }
     /**
-     * Utility method that computes the new apprent center or vanishing point after applying insets.
+     * Utility method that computes the new apparent center or vanishing point after applying insets.
      * This is in pixels and with the top left being (0.0) and +y being downwards.
      *
      * @param width - the width
@@ -53916,8 +54052,9 @@ class TransformHelper {
      * @returns max bounds
      */
     getMaxBounds() {
-        if (!this._latRange || this._latRange.length !== 2 ||
-            !this._lngRange || this._lngRange.length !== 2)
+        var _a, _b;
+        if (((_a = this._latRange) === null || _a === void 0 ? void 0 : _a.length) !== 2 ||
+            ((_b = this._lngRange) === null || _b === void 0 ? void 0 : _b.length) !== 2)
             return null;
         return new LngLatBounds([this._lngRange[0], this._latRange[0]], [this._lngRange[1], this._latRange[1]]);
     }
@@ -54138,8 +54275,8 @@ class Aabb {
         // Execute separating axis test between two convex objects to find intersections
         // Each frustum plane together with 3 major axes define the separating axes
         let fullyInside = true;
-        for (let p = 0; p < frustum.planes.length; p++) {
-            const planeIntersection = this.intersectsPlane(frustum.planes[p]);
+        for (const plane of frustum.planes) {
+            const planeIntersection = this.intersectsPlane(plane);
             if (planeIntersection === 0 /* IntersectionResult.None */) {
                 return 0 /* IntersectionResult.None */;
             }
@@ -54183,7 +54320,8 @@ class Aabb {
 }
 
 class MercatorCoveringTilesDetailsProvider {
-    distanceToTile2d(pointX, pointY, _tileID, aabb) {
+    distanceToTile2d(pointX, pointY, _tileID, boundingVolume) {
+        const aabb = boundingVolume;
         const distanceX = aabb.distanceX([pointX, pointY]);
         const distanceY = aabb.distanceY([pointX, pointY]);
         return Math.hypot(distanceX, distanceY);
@@ -54335,13 +54473,12 @@ function adjustFarPlaneByHorizonPlane(frustumCoords, nearPlanePointsIndices, hor
     }
     for (let i = 0; i < 4; i++) {
         const targetLength = Math.min(maxDist, cornerRayLengths[i]);
-        const newPoint = [
+        frustumCoords[i + farPlanePointsOffset] = [
             frustumCoords[i + nearPlanePointsOffset][0] + cornerRayNormalizedDirections[i][0] * targetLength,
             frustumCoords[i + nearPlanePointsOffset][1] + cornerRayNormalizedDirections[i][1] * targetLength,
             frustumCoords[i + nearPlanePointsOffset][2] + cornerRayNormalizedDirections[i][2] * targetLength,
             1,
         ];
-        frustumCoords[i + farPlanePointsOffset] = newPoint;
     }
 }
 /**
@@ -54453,7 +54590,7 @@ class MercatorTransform {
         this._helper.setPadding(padding);
     }
     interpolatePadding(start, target, t) {
-        return this._helper.interpolatePadding(start, target, t);
+        this._helper.interpolatePadding(start, target, t);
     }
     isPaddingEqual(padding) {
         return this._helper.isPaddingEqual(padding);
@@ -54666,7 +54803,7 @@ class MercatorTransform {
             return this._helper.applyConstrain(lngLat, zoom);
         };
         this._helper = new TransformHelper({
-            calcMatrices: () => { this._calcMatrices(); },
+            calcMatrices: () => this._calcMatrices(),
             defaultConstrain: (center, zoom) => { return this.defaultConstrain(center, zoom); }
         }, options);
         this._coveringTilesDetailsProvider = new MercatorCoveringTilesDetailsProvider();
@@ -54889,7 +55026,7 @@ class MercatorTransform {
         m = new Float64Array(16);
         perspective(m, this.fovInRadians, this._helper._width / this._helper._height, this._helper._nearZ, this._helper._farZ);
         this._invProjMatrix = new Float64Array(16);
-        invert$2(this._invProjMatrix, m);
+        fastInvertProjMat4(this._invProjMatrix, m);
         // Apply center of perspective offset
         m[8] = -offset.x * 2 / this._helper._width;
         m[9] = offset.y * 2 / this._helper._height;
@@ -54988,7 +55125,7 @@ class MercatorTransform {
         const mercatorTileCoordinates = this._helper.getMercatorTileCoordinates(overscaledTileID);
         const tilePosMatrix = overscaledTileID ? this.calculatePosMatrix(overscaledTileID, aligned, true) : null;
         let mainMatrix;
-        if (overscaledTileID && overscaledTileID.terrainRttPosMatrix32f && applyTerrainMatrix) {
+        if ((overscaledTileID === null || overscaledTileID === void 0 ? void 0 : overscaledTileID.terrainRttPosMatrix32f) && applyTerrainMatrix) {
             mainMatrix = overscaledTileID.terrainRttPosMatrix32f;
         }
         else if (tilePosMatrix) {
@@ -55155,12 +55292,11 @@ function cameraForBoxAndBearing(options, padding, bounds, bearing, tr) {
     const center = unprojectFromWorldCoordinates(tr.worldSize, 
     // either world diagonal can be used (NW-SE or NE-SW)
     nwWorld.add(seWorld).div(2).sub(offsetAtFinalZoom));
-    const result = {
+    return {
         center,
         zoom,
         bearing
     };
-    return result;
 }
 
 /**
@@ -55369,17 +55505,9 @@ const projectionErrorMeasurementUniformValues = (input, outputExpected) => ({
     'u_output_expected': outputExpected,
 });
 
-const cache = new WeakMap();
 function isWebGL2(gl) {
-    var _a;
-    if (cache.has(gl)) {
-        return cache.get(gl);
-    }
-    else {
-        const value = (_a = gl.getParameter(gl.VERSION)) === null || _a === void 0 ? void 0 : _a.startsWith('WebGL 2.0');
-        cache.set(gl, value);
-        return value;
-    }
+    // this method is really faster than fetching a cache:
+    return typeof WebGL2RenderingContext !== 'undefined' && gl instanceof WebGL2RenderingContext;
 }
 
 /**
@@ -55589,8 +55717,7 @@ function createTileMeshWithBuffers(context, options) {
         arrayBuffer: tileMesh.indices,
         length: tileMesh.indices.byteLength / 2 / 3, // Three values per triangle, 16 bit
     });
-    const mesh = new Mesh(context.createVertexBuffer(vertices, posAttributes.members), context.createIndexBuffer(indices), SegmentVector.simpleSegment(0, 0, vertices.length, indices.length));
-    return mesh;
+    return new Mesh(context.createVertexBuffer(vertices, posAttributes.members), context.createIndexBuffer(indices), SegmentVector.simpleSegment(0, 0, vertices.length, indices.length));
 }
 /**
  * Creates a mesh of a quad that covers the entire tile (covering positions in range 0..EXTENT),
@@ -55607,6 +55734,7 @@ function createTileMeshWithBuffers(context, options) {
  *     extendToSouthPole: tileID.y === (1 << tileID.z) - 1,
  * }, '16bit');
  * ```
+ * @see [Add a custom layer with tiles to a globe](https://maplibre.org/maplibre-gl-js/docs/examples/add-a-custom-layer-with-tiles-to-a-globe/)
  * @param options - Specify options for tile mesh creation such as granularity or border.
  * @param forceIndicesSize - Specifies what indices type to use. The values '32bit' and '16bit' force their respective indices size. If undefined, the mesh may use either size, and will pick 16 bit indices if possible. If '16bit' is specified and the mesh exceeds 65536 vertices, an exception is thrown.
  * @returns Typed arrays of the mesh vertices and indices.
@@ -55747,9 +55875,7 @@ class VerticalPerspectiveProjection {
         }
     }
     updateGPUdependent(renderContext) {
-        if (!this._errorMeasurement) {
-            this._errorMeasurement = new ProjectionErrorMeasurement(renderContext);
-        }
+        this._errorMeasurement || (this._errorMeasurement = new ProjectionErrorMeasurement(renderContext));
         const mercatorY = mercatorYfromLat(this._errorQueryLatitudeDegrees);
         const expectedResult = 2.0 * Math.atan(Math.exp(Math.PI - (mercatorY * Math.PI * 2.0))) - Math.PI * 0.5;
         const newValue = this._errorMeasurement.updateErrorLoop(mercatorY, expectedResult);
@@ -55793,12 +55919,13 @@ class VerticalPerspectiveProjection {
         // Do nothing.
     }
     hasTransition() {
+        var _a;
         const currentTime = now();
         let dirty = false;
         // Error correction transition
-        dirty = dirty || (currentTime - this._errorMeasurementLastChangeTime) / 1000.0 < (globeConstants.errorTransitionTimeSeconds + 0.2);
+        dirty || (dirty = (currentTime - this._errorMeasurementLastChangeTime) / 1000.0 < (globeConstants.errorTransitionTimeSeconds + 0.2));
         // Error correction query in flight
-        dirty = dirty || (this._errorMeasurement && this._errorMeasurement.awaitingQuery);
+        dirty || (dirty = (_a = this._errorMeasurement) === null || _a === void 0 ? void 0 : _a.awaitingQuery);
         return dirty;
     }
     setErrorQueryLatitudeDegrees(value) {
@@ -55900,8 +56027,7 @@ class GlobeProjection extends Evented {
 
 function getGlobeCircumferencePixels(transform) {
     const radius = getGlobeRadiusPixels(transform.worldSize, transform.center.lat);
-    const circumference = 2.0 * Math.PI * radius;
-    return circumference;
+    return 2.0 * Math.PI * radius;
 }
 function globeDistanceOfLocationsPixels(transform, a, b) {
     const vecA = angularCoordinatesToSurfaceVector(a);
@@ -56640,7 +56766,7 @@ class VerticalPerspectiveTransform {
         this._helper.setPadding(padding);
     }
     interpolatePadding(start, target, t) {
-        return this._helper.interpolatePadding(start, target, t);
+        this._helper.interpolatePadding(start, target, t);
     }
     isPaddingEqual(padding) {
         return this._helper.isPaddingEqual(padding);
@@ -56788,7 +56914,7 @@ class VerticalPerspectiveTransform {
             return this._helper.applyConstrain(lngLat, zoom);
         };
         this._helper = new TransformHelper({
-            calcMatrices: () => { this._calcMatrices(); },
+            calcMatrices: () => this._calcMatrices(),
             defaultConstrain: (center, zoom) => { return this.defaultConstrain(center, zoom); }
         }, options);
         this._coveringTilesDetailsProvider = new GlobeCoveringTilesDetailsProvider();
@@ -57488,7 +57614,7 @@ class GlobeTransform {
         this._helper.setPadding(padding);
     }
     interpolatePadding(start, target, t) {
-        return this._helper.interpolatePadding(start, target, t);
+        this._helper.interpolatePadding(start, target, t);
     }
     isPaddingEqual(padding) {
         return this._helper.isPaddingEqual(padding);
@@ -57645,7 +57771,7 @@ class GlobeTransform {
             return this._helper.applyConstrain(lngLat, zoom);
         };
         this._helper = new TransformHelper({
-            calcMatrices: () => { this._calcMatrices(); },
+            calcMatrices: () => this._calcMatrices(),
             defaultConstrain: (center, zoom) => { return this.defaultConstrain(center, zoom); }
         }, options);
         this._globeness = 1; // When transform is cloned for use in symbols, `_updateAnimation` function which usually sets this value never gets called.
@@ -57970,7 +58096,7 @@ class VerticalPerspectiveCameraHelper {
             return undefined;
         }
         // Compute target zoom from the obtained scale.
-        result.zoom = clonedTr.zoom + scaleZoom(smallestNeededScale);
+        result.zoom = Math.min(clonedTr.zoom + scaleZoom(smallestNeededScale), options.maxZoom);
         return result;
     }
     /**
@@ -58191,7 +58317,7 @@ class GlobeCameraHelper {
         return this.currentHelper.handlePanInertia(pan, transform);
     }
     handleMapControlsRollPitchBearingZoom(deltas, tr) {
-        return this.currentHelper.handleMapControlsRollPitchBearingZoom(deltas, tr);
+        this.currentHelper.handleMapControlsRollPitchBearingZoom(deltas, tr);
     }
     handleMapControlsPan(deltas, tr, preZoomAroundLoc) {
         this.currentHelper.handleMapControlsPan(deltas, tr, preZoomAroundLoc);
@@ -58272,7 +58398,7 @@ function createProjectionFromName(name, transformConstrain) {
 // We're skipping validation errors with the `source.canvas` identifier in order
 // to continue to allow canvas sources to be added at runtime/updated in
 // smart setStyle (see https://github.com/mapbox/mapbox-gl-js/pull/6424):
-const emitValidationErrors = (evented, errors) => emitValidationErrors$1(evented, errors && errors.filter(error => error.identifier !== 'source.canvas'));
+const emitValidationErrors = (evented, errors) => emitValidationErrors$1(evented, errors === null || errors === void 0 ? void 0 : errors.filter(error => error.identifier !== 'source.canvas'));
 const empty = emptyStyle();
 /**
  * The Style base class
@@ -58322,7 +58448,7 @@ class Style extends Evented {
                 return;
             }
             const source = tileManager.getSource();
-            if (!source || !source.vectorLayerIds) {
+            if (!(source === null || source === void 0 ? void 0 : source.vectorLayerIds)) {
                 return;
             }
             for (const layerId in this._layers) {
@@ -58437,18 +58563,26 @@ class Style extends Evented {
             this.fire(new Event('dataloading', { dataType: 'style' }));
             options.validate = typeof options.validate === 'boolean' ?
                 options.validate : true;
-            const request = yield this.map._requestManager.transformRequest(url, "Style" /* ResourceType.Style */);
             this._loadStyleRequest = new AbortController();
             const abortController = this._loadStyleRequest;
             try {
-                const response = yield getJSON(request, this._loadStyleRequest);
-                this._loadStyleRequest = null;
+                const request = yield this.map._requestManager.transformRequest(url, "Style" /* ResourceType.Style */);
+                throwIfAborted(abortController.signal);
+                const response = yield getJSON(request, abortController);
+                if (this._loadStyleRequest === abortController) {
+                    // Clear this request only if it is still the active style load. A stale
+                    // request can finish after a newer loadURL() call has already installed
+                    // another controller, and must not clear that newer abort handle.
+                    this._loadStyleRequest = null;
+                }
                 this._load(response.data, options, previousStyle);
             }
             catch (error) {
-                this._loadStyleRequest = null;
+                if (this._loadStyleRequest === abortController) {
+                    this._loadStyleRequest = null;
+                }
                 if (error && !abortController.signal.aborted) { // ignore abort
-                    this.fire(new ErrorEvent(error));
+                    this.fire(new ErrorEvent(ensureError(error)));
                 }
             }
         });
@@ -58587,7 +58721,7 @@ class Style extends Evented {
             return;
         }
         const source = tileManager.getSource();
-        if (source.type === 'geojson' || (source.vectorLayerIds && source.vectorLayerIds.indexOf(sourceLayer) === -1)) {
+        if (source.type === 'geojson' || (source.vectorLayerIds && !source.vectorLayerIds.includes(sourceLayer))) {
             this.fire(new ErrorEvent(new Error(`Source layer "${sourceLayer}" ` +
                 `does not exist on source "${source.id}" ` +
                 `as specified by style layer "${layer.id}".`)));
@@ -58601,15 +58735,13 @@ class Style extends Evented {
         for (const id in this.tileManagers)
             if (!this.tileManagers[id].loaded())
                 return false;
-        if (!this.imageManager.isLoaded())
-            return false;
-        return true;
+        return this.imageManager.isLoaded();
     }
     /**
      * @hidden
      * take an array of string IDs, and based on this._layers, generate an array of LayerSpecification
      * @param ids - an array of string IDs, for which serialized layers will be generated. If omitted, all serialized layers will be returned
-     * @param returnClose - if true, return a clone of the layer object
+     * @param returnClone - if true, return a clone of the layer object
      * @returns generated result
      */
     _serializeByIds(ids, returnClone = false) {
@@ -58925,6 +59057,7 @@ class Style extends Evented {
         return this.imageManager.listImages();
     }
     addSource(id, source, options = {}) {
+        var _a;
         this._checkLoaded();
         if (this.tileManagers[id] !== undefined) {
             throw new Error(`Source "${id}" already exists.`);
@@ -58933,10 +59066,10 @@ class Style extends Evented {
             throw new Error(`The type property must be defined, but only the following properties were given: ${Object.keys(source).join(', ')}.`);
         }
         const builtIns = ['vector', 'raster', 'geojson', 'video', 'image'];
-        const shouldValidate = builtIns.indexOf(source.type) >= 0;
+        const shouldValidate = builtIns.includes(source.type);
         if (shouldValidate && this._validate(validateStyle.source, `sources.${id}`, source, null, options))
             return;
-        if (this.map && this.map._collectResourceTiming)
+        if ((_a = this.map) === null || _a === void 0 ? void 0 : _a._collectResourceTiming)
             source.collectResourceTiming = true;
         const tileManager = this.tileManagers[id] = new TileManager(id, source, this.dispatcher);
         tileManager.style = this;
@@ -58992,7 +59125,8 @@ class Style extends Evented {
      * @returns source
      */
     getSource(id) {
-        return this.tileManagers[id] && this.tileManagers[id].getSource();
+        var _a;
+        return (_a = this.tileManagers[id]) === null || _a === void 0 ? void 0 : _a.getSource();
     }
     /**
      * Add a layer to the map style. The layer will be inserted before the layer with
@@ -59302,7 +59436,8 @@ class Style extends Evented {
         return tileManager.getFeatureState(sourceLayer, target.id);
     }
     getTransition() {
-        return extend({ duration: 300, delay: 0 }, this.stylesheet && this.stylesheet.transition);
+        var _a;
+        return extend({ duration: 300, delay: 0 }, (_a = this.stylesheet) === null || _a === void 0 ? void 0 : _a.transition);
     }
     serialize() {
         // We return undefined before we're loaded, following the pattern of Map.getStyle() before
@@ -59332,7 +59467,7 @@ class Style extends Evented {
             sources,
             layers,
             terrain
-        }, (value) => { return value !== undefined; });
+        }, (value) => value !== undefined);
     }
     _updateLayer(layer) {
         this._updatedLayers[layer.id] = true;
@@ -59411,11 +59546,11 @@ class Style extends Evented {
         return features;
     }
     queryRenderedFeatures(queryGeometry, params, transform) {
-        if (params && params.filter) {
+        if (params === null || params === void 0 ? void 0 : params.filter) {
             this._validate(validateStyle.filter, 'queryRenderedFeatures.filter', params.filter, null, params);
         }
         const includedSources = {};
-        if (params && params.layers) {
+        if (params === null || params === void 0 ? void 0 : params.layers) {
             const isArrayOrSet = Array.isArray(params.layers) || params.layers instanceof Set;
             if (!isArrayOrSet) {
                 this.fire(new ErrorEvent(new Error('parameters.layers must be an Array or a Set of strings')));
@@ -59489,15 +59624,16 @@ class Style extends Evented {
     }
     setProjection(projection) {
         this._checkLoaded();
+        const resolvedProjection = projection !== null && projection !== void 0 ? projection : { type: 'mercator' };
         this.stylesheet.projection = projection;
         if (this.projection) {
-            if (this.projection.name === projection.type) {
+            if (this.projection.name === resolvedProjection.type) {
                 return;
             }
             this.projection.destroy();
             delete this.projection;
         }
-        this._setProjectionInternal(projection.type);
+        this._setProjectionInternal(resolvedProjection.type);
     }
     getSky() {
         var _a;
@@ -59545,7 +59681,7 @@ class Style extends Evented {
         }
     }
     _validate(validate, key, value, props, options = {}) {
-        if (options && options.validate === false) {
+        if ((options === null || options === void 0 ? void 0 : options.validate) === false) {
             return false;
         }
         return emitValidationErrors(this, validate.call(validateStyle, extend({
@@ -59617,7 +59753,7 @@ class Style extends Evented {
                     .sort((a, b) => (b.tileID.overscaledZ - a.tileID.overscaledZ) || (a.tileID.isLessThan(b.tileID) ? -1 : 1));
             }
             const layerBucketsChanged = this.crossTileSymbolIndex.addLayer(styleLayer, layerTiles[styleLayer.source], transform.center.lng);
-            symbolBucketsChanged = symbolBucketsChanged || layerBucketsChanged;
+            symbolBucketsChanged || (symbolBucketsChanged = layerBucketsChanged);
         }
         this.crossTileSymbolIndex.pruneUnusedLayers(this._order);
         // Anything that changes our "in progress" layer and tile indices requires us
@@ -59626,7 +59762,7 @@ class Style extends Evented {
         // We need to restart placement to keep layer indices in sync.
         // Also force full placement when fadeDuration === 0 to ensure that newly loaded
         // tiles will fully display symbols in their first frame
-        forceFullPlacement = forceFullPlacement || this._layerOrderChanged || fadeDuration === 0;
+        forceFullPlacement || (forceFullPlacement = this._layerOrderChanged || fadeDuration === 0);
         if (forceFullPlacement || !this.pauseablePlacement || (this.pauseablePlacement.isDone() && !this.placement.stillRecent(now(), transform.zoom))) {
             this.pauseablePlacement = new PauseablePlacement(transform, this.map.terrain, this._order, forceFullPlacement, showCollisionBoxes, fadeDuration, crossSourceCollisions, this.placement);
             this._layerOrderChanged = false;
@@ -59659,9 +59795,8 @@ class Style extends Evented {
                 this.placement.updateLayerOpacities(styleLayer, layerTiles[styleLayer.source]);
             }
         }
-        // needsRender is false when we have just finished a placement that didn't change the visibility of any symbols
-        const needsRerender = !this.pauseablePlacement.isDone() || this.placement.hasTransitions(now());
-        return needsRerender;
+        // false when we have just finished a placement that didn't change the visibility of any symbols
+        return !this.pauseablePlacement.isDone() || this.placement.hasTransitions(now());
     }
     _releaseSymbolFadeTiles() {
         for (const id in this.tileManagers) {
@@ -59900,7 +60035,7 @@ class VertexArrayObject {
                 // The buffer may have been updated. Rebind to upload data.
                 dynamicVertexBuffer.bind();
             }
-            if (indexBuffer && indexBuffer.dynamicDraw) {
+            if (indexBuffer === null || indexBuffer === void 0 ? void 0 : indexBuffer.dynamicDraw) {
                 indexBuffer.bind();
             }
             if (dynamicVertexBuffer2) {
@@ -60040,10 +60175,10 @@ const projectionObjectToUniformMap = {
 
 function getTokenizedAttributesAndUniforms(array) {
     const result = [];
-    for (let i = 0; i < array.length; i++) {
-        if (array[i] === null)
+    for (const entry of array) {
+        if (entry === null)
             continue;
-        const token = array[i].split(' ');
+        const token = entry.split(' ');
         result.push(token.pop());
     }
     return result;
@@ -60067,7 +60202,7 @@ class Program {
         const uniformList = preludeUniformsInfo.concat(projectionPreludeUniformsInfo).concat(staticUniformsInfo).concat(dynamicUniformsInfo);
         const allUniformsInfo = [];
         for (const uniform of uniformList) {
-            if (allUniformsInfo.indexOf(uniform) < 0)
+            if (!allUniformsInfo.includes(uniform))
                 allUniformsInfo.push(uniform);
         }
         const defines = configuration ? configuration.defines() : [];
@@ -60129,8 +60264,7 @@ class Program {
         }
         gl.deleteShader(vertexShader);
         gl.deleteShader(fragmentShader);
-        for (let it = 0; it < allUniformsInfo.length; it++) {
-            const uniform = allUniformsInfo[it];
+        for (const uniform of allUniformsInfo) {
             if (uniform && !uniformLocations[uniform]) {
                 const uniformLocation = gl.getUniformLocation(this.program, uniform);
                 if (uniformLocation) {
@@ -60144,6 +60278,7 @@ class Program {
         this.binderUniforms = configuration ? configuration.getUniforms(context, uniformLocations) : [];
     }
     draw(context, drawMode, depthMode, stencilMode, colorMode, cullFaceMode, uniformValues, terrain, projectionData, layerID, layoutVertexBuffer, indexBuffer, segments, currentProperties, zoom, configuration, dynamicLayoutBuffer, dynamicLayoutBuffer2, dynamicLayoutBuffer3) {
+        var _a;
         const gl = context.gl;
         if (this.failedToCreate)
             return;
@@ -60189,9 +60324,9 @@ class Program {
                 break;
         }
         for (const segment of segments.get()) {
-            const vaos = segment.vaos || (segment.vaos = {});
-            const vao = vaos[layerID] || (vaos[layerID] = new VertexArrayObject());
-            vao.bind(context, this, layoutVertexBuffer, configuration ? configuration.getPaintVertexBuffers() : [], indexBuffer, segment.vertexOffset, dynamicLayoutBuffer, dynamicLayoutBuffer2, dynamicLayoutBuffer3);
+            segment.vaos || (segment.vaos = {});
+            (_a = segment.vaos)[layerID] || (_a[layerID] = new VertexArrayObject());
+            segment.vaos[layerID].bind(context, this, layoutVertexBuffer, configuration ? configuration.getPaintVertexBuffers() : [], indexBuffer, segment.vertexOffset, dynamicLayoutBuffer, dynamicLayoutBuffer2, dynamicLayoutBuffer3);
             gl.drawElements(drawMode, segment.primitiveLength * primitiveSize, gl.UNSIGNED_SHORT, segment.primitiveOffset * primitiveSize * 2);
         }
     }
@@ -60784,6 +60919,7 @@ const symbolSDFUniforms = (context, locations) => ({
     'u_gamma_scale': new Uniform1f(context, locations.u_gamma_scale),
     'u_device_pixel_ratio': new Uniform1f(context, locations.u_device_pixel_ratio),
     'u_is_halo': new Uniform1i(context, locations.u_is_halo),
+    'u_is_plain': new Uniform1i(context, locations.u_is_plain),
     'u_translation': new Uniform2f(context, locations.u_translation),
     'u_pitched_scale': new Uniform1f(context, locations.u_pitched_scale),
 });
@@ -60842,7 +60978,8 @@ const symbolSDFUniformValues = (functionType, size, rotateInShader, pitchWithMap
     return extend(symbolIconUniformValues(functionType, size, rotateInShader, pitchWithMap, isAlongLine, isVariableAnchor, painter, labelPlaneMatrix, glCoordMatrix, translation, isText, texSize, pitchedScale), {
         'u_gamma_scale': (pitchWithMap ? Math.cos(transform.pitch * Math.PI / 180.0) * transform.cameraToCenterDistance : 1),
         'u_device_pixel_ratio': painter.pixelRatio,
-        'u_is_halo': +isHalo
+        'u_is_halo': isHalo ? 1 : 0,
+        'u_is_plain': 1
     });
 };
 const symbolTextAndIconUniformValues = (functionType, size, rotateInShader, pitchWithMap, isAlongLine, isVariableAnchor, painter, labelPlaneMatrix, glCoordMatrix, translation, texSizeSDF, texSizeIcon, pitchedScale) => {
@@ -61047,8 +61184,7 @@ class VertexBuffer {
         gl.bufferSubData(gl.ARRAY_BUFFER, 0, array.arrayBuffer);
     }
     enableAttributes(gl, program) {
-        for (let j = 0; j < this.attributes.length; j++) {
-            const member = this.attributes[j];
+        for (const member of this.attributes) {
             const attribIndex = program.attributes[member.name];
             if (attribIndex !== undefined) {
                 gl.enableVertexAttribArray(attribIndex);
@@ -61062,8 +61198,7 @@ class VertexBuffer {
      * @param vertexOffset - Index of the starting vertex of the segment
      */
     setVertexAttribPointers(gl, program, vertexOffset) {
-        for (let j = 0; j < this.attributes.length; j++) {
-            const member = this.attributes[j];
+        for (const member of this.attributes) {
             const attribIndex = program.attributes[member.name];
             if (attribIndex !== undefined) {
                 gl.vertexAttribPointer(attribIndex, member.components, gl[AttributeType[member.type]], false, this.itemSize, member.offset + (this.itemSize * (vertexOffset || 0)));
@@ -61638,7 +61773,7 @@ class Framebuffer {
 
 /**
  * @internal
- * A webgl wrapper class to allow injection, mocking and abstaction
+ * A webgl wrapper class to allow injection, mocking and abstraction
  */
 class Context {
     constructor(gl) {
@@ -61850,9 +61985,11 @@ class Context {
     }
     deleteVertexArray(x) {
         var _a;
-        if (isWebGL2(this.gl))
-            return this.gl.deleteVertexArray(x);
-        return (_a = this.gl.getExtension('OES_vertex_array_object')) === null || _a === void 0 ? void 0 : _a.deleteVertexArrayOES(x);
+        if (isWebGL2(this.gl)) {
+            this.gl.deleteVertexArray(x);
+            return;
+        }
+        (_a = this.gl.getExtension('OES_vertex_array_object')) === null || _a === void 0 ? void 0 : _a.deleteVertexArrayOES(x);
     }
     unbindVAO() {
         // Unbinding the VAO prevents other things (custom layers, new buffer creation) from
@@ -61863,6 +62000,7 @@ class Context {
 
 let quadTriangles;
 function drawCollisionDebug(painter, tileManager, layer, coords, isText) {
+    var _a, _b;
     const context = painter.context;
     const transform = painter.transform;
     const gl = context.gl;
@@ -61870,8 +62008,7 @@ function drawCollisionDebug(painter, tileManager, layer, coords, isText) {
     const tileBatches = [];
     let circleCount = 0;
     let circleOffset = 0;
-    for (let i = 0; i < coords.length; i++) {
-        const coord = coords[i];
+    for (const coord of coords) {
         const tile = tileManager.getTile(coord);
         const bucket = tile.getBucket(layer);
         if (!bucket) {
@@ -61893,7 +62030,7 @@ function drawCollisionDebug(painter, tileManager, layer, coords, isText) {
         if (!buffers) {
             continue;
         }
-        program.draw(context, gl.LINES, DepthMode.disabled, StencilMode.disabled, painter.colorModeForRenderPass(), CullFaceMode.disabled, collisionUniformValues(painter.transform), painter.style.map.terrain && painter.style.map.terrain.getTerrainData(coord), transform.getProjectionData({ overscaledTileID: coord, applyGlobeMatrix: true, applyTerrainMatrix: true }), layer.id, buffers.layoutVertexBuffer, buffers.indexBuffer, buffers.segments, null, painter.transform.zoom, null, null, buffers.collisionVertexBuffer);
+        program.draw(context, gl.LINES, DepthMode.disabled, StencilMode.disabled, painter.colorModeForRenderPass(), CullFaceMode.disabled, collisionUniformValues(painter.transform), (_a = painter.style.map.terrain) === null || _a === void 0 ? void 0 : _a.getTerrainData(coord), transform.getProjectionData({ overscaledTileID: coord, applyGlobeMatrix: true, applyTerrainMatrix: true }), layer.id, buffers.layoutVertexBuffer, buffers.indexBuffer, buffers.segments, null, painter.transform.zoom, null, null, buffers.collisionVertexBuffer);
     }
     if (!isText || !tileBatches.length) {
         return;
@@ -61927,7 +62064,7 @@ function drawCollisionDebug(painter, tileManager, layer, coords, isText) {
     // Render batches
     for (const batch of tileBatches) {
         const uniforms = collisionCircleUniformValues(painter.transform);
-        circleProgram.draw(context, gl.TRIANGLES, DepthMode.disabled, StencilMode.disabled, painter.colorModeForRenderPass(), CullFaceMode.disabled, uniforms, painter.style.map.terrain && painter.style.map.terrain.getTerrainData(batch.coord), null, layer.id, vertexBuffer, indexBuffer, SegmentVector.simpleSegment(0, batch.circleOffset * 2, batch.circleArray.length, batch.circleArray.length / 2), null, painter.transform.zoom, null, null, null);
+        circleProgram.draw(context, gl.TRIANGLES, DepthMode.disabled, StencilMode.disabled, painter.colorModeForRenderPass(), CullFaceMode.disabled, uniforms, (_b = painter.style.map.terrain) === null || _b === void 0 ? void 0 : _b.getTerrainData(batch.coord), null, layer.id, vertexBuffer, indexBuffer, SegmentVector.simpleSegment(0, batch.circleOffset * 2, batch.circleArray.length, batch.circleArray.length / 2), null, painter.transform.zoom, null, null, null);
     }
     vertexBuffer.destroy();
     indexBuffer.destroy();
@@ -61982,6 +62119,7 @@ function calculateVariableRenderShift(anchor, width, height, textOffset, textBox
     return new Point((shiftX / textBoxScale + textOffset[0]) * renderTextSize, (shiftY / textBoxScale + textOffset[1]) * renderTextSize);
 }
 function updateVariableAnchors(coords, painter, layer, tileManager, rotationAlignment, pitchAlignment, translate, translateAnchor, variableOffsets) {
+    var _a;
     const transform = painter.transform;
     const terrain = painter.style.map.terrain;
     const rotateWithMap = rotationAlignment === 'map';
@@ -61989,7 +62127,7 @@ function updateVariableAnchors(coords, painter, layer, tileManager, rotationAlig
     for (const coord of coords) {
         const tile = tileManager.getTile(coord);
         const bucket = tile.getBucket(layer);
-        if (!bucket || !bucket.text || !bucket.text.segments.get().length)
+        if (!((_a = bucket === null || bucket === void 0 ? void 0 : bucket.text) === null || _a === void 0 ? void 0 : _a.segments.get().length))
             continue;
         const sizeData = bucket.textSizeData;
         const size = evaluateSizeForZoom(sizeData, transform.zoom);
@@ -62121,6 +62259,7 @@ function getSymbolProgramName(isSDF, isText, bucket) {
     }
 }
 function drawLayerSymbols(painter, tileManager, layer, coords, isText, translate, translateAnchor, rotationAlignment, pitchAlignment, keepUpright, stencilMode, colorMode, isRenderingToTexture) {
+    var _a, _b;
     const context = painter.context;
     const gl = context.gl;
     const transform = painter.transform;
@@ -62143,7 +62282,7 @@ function drawLayerSymbols(painter, tileManager, layer, coords, isText, translate
         if (!bucket)
             continue;
         const buffers = isText ? bucket.text : bucket.icon;
-        if (!buffers || !buffers.segments.get().length || !buffers.hasVisibleVertices)
+        if (!(buffers === null || buffers === void 0 ? void 0 : buffers.segments.get().length) || !buffers.hasVisibleVertices)
             continue;
         const programConfiguration = buffers.programConfigurations.get(layer.id);
         const isSDF = isText || bucket.sdfIcons;
@@ -62151,7 +62290,7 @@ function drawLayerSymbols(painter, tileManager, layer, coords, isText, translate
         const transformed = pitchWithMap || transform.pitch !== 0;
         const program = painter.useProgram(getSymbolProgramName(isSDF, isText, bucket), programConfiguration);
         const size = evaluateSizeForZoom(sizeData, transform.zoom);
-        const terrainData = painter.style.map.terrain && painter.style.map.terrain.getTerrainData(coord);
+        const terrainData = (_a = painter.style.map.terrain) === null || _a === void 0 ? void 0 : _a.getTerrainData(coord);
         let texSize;
         let texSizeIcon = [0, 0];
         let atlasTexture;
@@ -62180,8 +62319,6 @@ function drawLayerSymbols(painter, tileManager, layer, coords, isText, translate
         // See the comment at the beginning of src/symbol/projection.ts for an overview of the symbol projection process
         const s = pixelsToTileUnits(tile, 1, painter.transform.zoom);
         const pitchedLabelPlaneMatrix = getPitchedLabelPlaneMatrix(rotateWithMap, painter.transform, s);
-        const pitchedLabelPlaneMatrixInverse = create$6();
-        invert$2(pitchedLabelPlaneMatrixInverse, pitchedLabelPlaneMatrix);
         const glCoordMatrixForShader = getGlCoordMatrix(pitchWithMap, rotateWithMap, painter.transform, s);
         const translation = translatePosition(transform, tile, translate, translateAnchor);
         const projectionData = transform.getProjectionData({ overscaledTileID: coord, applyGlobeMatrix: !isRenderingToTexture, applyTerrainMatrix: true });
@@ -62190,6 +62327,8 @@ function drawLayerSymbols(painter, tileManager, layer, coords, isText, translate
             hasVariableAnchors &&
             bucket.hasIconData();
         if (alongLine) {
+            const pitchedLabelPlaneMatrixInverse = create$6();
+            fastInvertTransformMat4(pitchedLabelPlaneMatrixInverse, pitchedLabelPlaneMatrix);
             const getElevation = painter.style.map.terrain ? (x, y) => painter.style.map.terrain.getElevation(coord, x, y) : null;
             const rotateToLine = layer.layout.get('text-rotation-alignment') === 'map';
             updateLineLabels(bucket, painter, isText, pitchedLabelPlaneMatrix, pitchedLabelPlaneMatrixInverse, pitchWithMap, keepUpright, rotateToLine, coord.toUnwrapped(), transform.width, transform.height, translation, getElevation);
@@ -62204,7 +62343,7 @@ function drawLayerSymbols(painter, tileManager, layer, coords, isText, translate
         let uniformValues;
         if (isSDF) {
             if (!bucket.iconsInText) {
-                uniformValues = symbolSDFUniformValues(sizeData.kind, size, rotateInShader, pitchWithMap, alongLine, shaderVariableAnchor, painter, uLabelPlaneMatrix, glCoordMatrixForShader, translation, isText, texSize, true, pitchedTextRescaling);
+                uniformValues = symbolSDFUniformValues(sizeData.kind, size, rotateInShader, pitchWithMap, alongLine, shaderVariableAnchor, painter, uLabelPlaneMatrix, glCoordMatrixForShader, translation, isText, texSize, hasHalo, pitchedTextRescaling);
             }
             else {
                 uniformValues = symbolTextAndIconUniformValues(sizeData.kind, size, rotateInShader, pitchWithMap, alongLine, shaderVariableAnchor, painter, uLabelPlaneMatrix, glCoordMatrixForShader, translation, texSize, texSizeIcon, pitchedTextRescaling);
@@ -62249,6 +62388,9 @@ function drawLayerSymbols(painter, tileManager, layer, coords, isText, translate
     if (sortFeaturesByKey) {
         tileRenderState.sort((a, b) => a.sortKey - b.sortKey);
     }
+    const haloWidthProperty = layer.paint.get(isText ? 'text-halo-width' : 'icon-halo-width');
+    const haloWidth = (_b = haloWidthProperty.constantOr(null)) !== null && _b !== void 0 ? _b : Infinity;
+    const isGlyphOverlap = layer.layout.get('text-letter-spacing').constantOr(0) * ONE_EM < 0 || haloWidth > 1;
     for (const segmentState of tileRenderState) {
         const state = segmentState.state;
         context.activeTexture.set(gl.TEXTURE0);
@@ -62259,15 +62401,23 @@ function drawLayerSymbols(painter, tileManager, layer, coords, isText, translate
                 state.atlasTextureIcon.bind(state.atlasInterpolationIcon, gl.CLAMP_TO_EDGE);
             }
         }
-        if (state.isSDF) {
+        const isHalo = state.isSDF && state.hasHalo;
+        if (isHalo) {
             const uniformValues = state.uniformValues;
-            if (state.hasHalo) {
-                uniformValues['u_is_halo'] = 1;
+            uniformValues['u_is_halo'] = 1;
+            if (isGlyphOverlap) {
+                // render halo in 2 pass (1 for the halo only, 1 for the text only)
+                uniformValues['u_is_plain'] = 0;
                 drawSymbolElements(state.buffers, segmentState.segments, layer, painter, state.program, depthMode, stencilMode, colorMode, uniformValues, state.projectionData, segmentState.terrainData);
+                uniformValues['u_is_halo'] = 0;
+                uniformValues['u_is_plain'] = 1;
             }
-            uniformValues['u_is_halo'] = 0;
         }
         drawSymbolElements(state.buffers, segmentState.segments, layer, painter, state.program, depthMode, stencilMode, colorMode, state.uniformValues, state.projectionData, segmentState.terrainData);
+        if (isHalo && !isGlyphOverlap) {
+            // for 1 pass halo rendering, restore the uniforms state
+            state.uniformValues['u_is_halo'] = 0;
+        }
     }
 }
 function drawSymbolElements(buffers, segments, layer, painter, program, depthMode, stencilMode, colorMode, uniformValues, projectionData, terrainData) {
@@ -62277,6 +62427,7 @@ function drawSymbolElements(buffers, segments, layer, painter, program, depthMod
 }
 
 function drawCircles(painter, tileManager, layer, coords, renderOptions) {
+    var _a;
     if (painter.renderPass !== 'translucent')
         return;
     const { isRenderingToTexture } = renderOptions;
@@ -62298,8 +62449,7 @@ function drawCircles(painter, tileManager, layer, coords, renderOptions) {
     const segmentsRenderStates = [];
     // Note: due to how the shader is written, this value only has effect when globe rendering is enabled and `circle-pitch-alignment` is set to 'map'.
     const radiusCorrectionFactor = transform.getCircleRadiusCorrection();
-    for (let i = 0; i < coords.length; i++) {
-        const coord = coords[i];
+    for (const coord of coords) {
         const tile = tileManager.getTile(coord);
         const bucket = tile.getBucket(layer);
         if (!bucket)
@@ -62311,7 +62461,7 @@ function drawCircles(painter, tileManager, layer, coords, renderOptions) {
         const program = painter.useProgram('circle', programConfiguration);
         const layoutVertexBuffer = bucket.layoutVertexBuffer;
         const indexBuffer = bucket.indexBuffer;
-        const terrainData = painter.style.map.terrain && painter.style.map.terrain.getTerrainData(coord);
+        const terrainData = (_a = painter.style.map.terrain) === null || _a === void 0 ? void 0 : _a.getTerrainData(coord);
         const uniformValues = circleUniformValues(painter, tile, layer, translateForUniforms, radiusCorrectionFactor);
         const projectionData = transform.getProjectionData({ overscaledTileID: coord, applyGlobeMatrix: !isRenderingToTexture, applyTerrainMatrix: true });
         const state = {
@@ -62394,8 +62544,7 @@ function prepareHeatmapFlat(painter, tileManager, layer, coords) {
     const colorMode = new ColorMode([gl.ONE, gl.ONE], Color.transparent, [true, true, true, true]);
     bindFramebuffer(context, painter, layer);
     context.clear({ color: Color.transparent });
-    for (let i = 0; i < coords.length; i++) {
-        const coord = coords[i];
+    for (const coord of coords) {
         // Skip tiles that have uncovered parents to avoid flickering; we don't need
         // to use complex tile masking here because the change between zoom levels is subtle,
         // so it's fine to simply render the parent until all its 4 children are loaded
@@ -62511,9 +62660,7 @@ function createHeatmapFbo(context, width, height) {
     return fbo;
 }
 function getColorRampTexture(context, layer) {
-    if (!layer.colorRampTexture) {
-        layer.colorRampTexture = new Texture(context, layer.colorRamp, context.gl.RGBA);
-    }
+    layer.colorRampTexture || (layer.colorRampTexture = new Texture(context, layer.colorRamp, context.gl.RGBA));
     return layer.colorRampTexture;
 }
 
@@ -62582,6 +62729,7 @@ function bindGradientAndDashTextures(painter, tileManager, context, gl, layer, b
     programConfiguration.updatePaintBuffers(crossfade);
 }
 function drawLine(painter, tileManager, layer, coords, renderOptions) {
+    var _a;
     if (painter.renderPass !== 'translucent')
         return;
     const { isRenderingToTexture } = renderOptions;
@@ -62623,9 +62771,9 @@ function drawLine(painter, tileManager, layer, coords, renderOptions) {
         const prevProgram = painter.context.program.get();
         const program = painter.useProgram(programId, programConfiguration);
         const programChanged = firstTile || program.program !== prevProgram;
-        const terrainData = painter.style.map.terrain && painter.style.map.terrain.getTerrainData(coord);
+        const terrainData = (_a = painter.style.map.terrain) === null || _a === void 0 ? void 0 : _a.getTerrainData(coord);
         const constantPattern = patternProperty.constantOr(null);
-        const constantDasharray = dasharrayProperty && dasharrayProperty.constantOr(null);
+        const constantDasharray = dasharrayProperty === null || dasharrayProperty === void 0 ? void 0 : dasharrayProperty.constantOr(null);
         if (constantPattern && tile.imageAtlas) {
             const atlas = tile.imageAtlas;
             const posTo = atlas.patternPositions[constantPattern.to.toString()];
@@ -62634,7 +62782,7 @@ function drawLine(painter, tileManager, layer, coords, renderOptions) {
                 programConfiguration.setConstantPatternPositions(posTo, posFrom);
         }
         else if (constantDasharray) {
-            const round = layer.layout.get('line-cap') === 'round';
+            const round = layer.layout.get('line-cap').constantOr(null) === 'round';
             const dashTo = painter.lineAtlas.getDash(constantDasharray.to, round);
             const dashFrom = painter.lineAtlas.getDash(constantDasharray.from, round);
             programConfiguration.setConstantDashPositions(dashTo, dashFrom);
@@ -62686,7 +62834,7 @@ function drawLine(painter, tileManager, layer, coords, renderOptions) {
  * @param layer - current layer being rendered
  */
 function updatePatternPositionsInProgram(programConfiguration, propertyName, constantPattern, tile, layer) {
-    if (!constantPattern || !tile || !tile.imageAtlas) {
+    if (!constantPattern || !(tile === null || tile === void 0 ? void 0 : tile.imageAtlas)) {
         return;
     }
     const patternPositions = tile.imageAtlas.patternPositions;
@@ -62741,10 +62889,11 @@ function drawFill(painter, tileManager, layer, coords, renderOptions) {
     }
 }
 function drawFillTiles(painter, tileManager, layer, coords, depthMode, colorMode, isOutline, isRenderingToTexture) {
+    var _a;
     const gl = painter.context.gl;
     const fillPropertyName = 'fill-pattern';
     const patternProperty = layer.paint.get(fillPropertyName);
-    const image = patternProperty && patternProperty.constantOr(1);
+    const image = patternProperty === null || patternProperty === void 0 ? void 0 : patternProperty.constantOr(1);
     const crossfade = layer.getCrossfadeParameters();
     let drawMode, programName, uniformValues, indexBuffer, segments;
     const transform = painter.transform;
@@ -62768,7 +62917,7 @@ function drawFillTiles(painter, tileManager, layer, coords, depthMode, colorMode
             continue;
         const programConfiguration = bucket.programConfigurations.get(layer.id);
         const program = painter.useProgram(programName, programConfiguration);
-        const terrainData = painter.style.map.terrain && painter.style.map.terrain.getTerrainData(coord);
+        const terrainData = (_a = painter.style.map.terrain) === null || _a === void 0 ? void 0 : _a.getTerrainData(coord);
         if (image) {
             painter.context.activeTexture.set(gl.TEXTURE0);
             tile.imageAtlasTexture.bind(gl.LINEAR, gl.CLAMP_TO_EDGE);
@@ -62836,6 +62985,7 @@ function drawFillExtrusion(painter, tileManager, layer, coords, renderOptions) {
     }
 }
 function drawExtrusionTiles(painter, tileManager, layer, coords, depthMode, stencilMode, colorMode, isRenderingToTexture, shadowOpacity = 0) {
+    var _a;
     const context = painter.context;
     const gl = context.gl;
     const fillPropertyName = 'fill-extrusion-pattern';
@@ -62852,7 +63002,7 @@ function drawExtrusionTiles(painter, tileManager, layer, coords, depthMode, sten
         const bucket = tile.getBucket(layer);
         if (!bucket)
             continue;
-        const terrainData = painter.style.map.terrain && painter.style.map.terrain.getTerrainData(coord);
+        const terrainData = (_a = painter.style.map.terrain) === null || _a === void 0 ? void 0 : _a.getTerrainData(coord);
         const programConfiguration = bucket.programConfigurations.get(layer.id);
         const program = painter.useProgram(image ? 'fillExtrusionPattern' : 'fillExtrusion', programConfiguration);
         if (image) {
@@ -62938,7 +63088,7 @@ function prepareHillshade(painter, tileManager, tileIDs, layer, depthMode, stenc
     for (const coord of tileIDs) {
         const tile = tileManager.getTile(coord);
         const dem = tile.dem;
-        if (!dem || !dem.data) {
+        if (!(dem === null || dem === void 0 ? void 0 : dem.data)) {
             continue;
         }
         if (!tile.needsHillshadePrepare) {
@@ -62949,7 +63099,7 @@ function prepareHillshade(painter, tileManager, tileIDs, layer, depthMode, stenc
         const pixelData = dem.getPixels();
         context.activeTexture.set(gl.TEXTURE1);
         context.pixelStoreUnpackPremultiplyAlpha.set(false);
-        tile.demTexture = tile.demTexture || painter.getTileTexture(textureStride);
+        tile.demTexture || (tile.demTexture = painter.getTileTexture(textureStride));
         if (tile.demTexture) {
             const demTexture = tile.demTexture;
             demTexture.update(pixelData, { premultiply: false });
@@ -62998,6 +63148,7 @@ function drawColorRelief(painter, tileManager, layer, tileIDs, renderOptions) {
         renderColorRelief(painter, tileManager, layer, coords, stencil, depthMode, colorMode, false, isRenderingToTexture);
     }
 }
+let textureMaxSize = 0;
 function renderColorRelief(painter, tileManager, layer, coords, stencilModes, depthMode, colorMode, useBorder, isRenderingToTexture) {
     var _a;
     const projection = painter.style.projection;
@@ -63013,7 +63164,9 @@ function renderColorRelief(painter, tileManager, layer, coords, stencilModes, de
         const tile = tileManager.getTile(coord);
         const dem = tile.dem;
         if (firstTile) {
-            const maxLength = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+            // we should avoid calling gl.getParameter at runtime (GPU stall risk)
+            textureMaxSize || (textureMaxSize = gl.getParameter(gl.MAX_TEXTURE_SIZE));
+            const maxLength = textureMaxSize;
             const { elevationTexture, colorTexture } = layer.getColorRampTextures(context, maxLength, dem.getUnpackVector());
             context.activeTexture.set(gl.TEXTURE1);
             elevationTexture.bind(gl.NEAREST, gl.CLAMP_TO_EDGE);
@@ -63022,14 +63175,14 @@ function renderColorRelief(painter, tileManager, layer, coords, stencilModes, de
             firstTile = false;
             colorRampSize = elevationTexture.size[0];
         }
-        if (!dem || !dem.data) {
+        if (!(dem === null || dem === void 0 ? void 0 : dem.data)) {
             continue;
         }
         const textureStride = dem.stride;
         const pixelData = dem.getPixels();
         context.activeTexture.set(gl.TEXTURE0);
         context.pixelStoreUnpackPremultiplyAlpha.set(false);
-        tile.demTexture = tile.demTexture || painter.getTileTexture(textureStride);
+        tile.demTexture || (tile.demTexture = painter.getTileTexture(textureStride));
         if (tile.demTexture) {
             const demTexture = tile.demTexture;
             demTexture.update(pixelData, { premultiply: false });
@@ -63094,6 +63247,7 @@ function drawRaster(painter, tileManager, layer, tileIDs, renderOptions) {
     }
 }
 function drawTiles(painter, tileManager, layer, coords, stencilModes, useBorder, allowPoles, corners, flipCullfaceMode = false, isRenderingToTexture = false) {
+    var _a;
     const minTileZ = coords[coords.length - 1].overscaledZ;
     const context = painter.context;
     const gl = context.gl;
@@ -63132,7 +63286,7 @@ function drawTiles(painter, tileManager, layer, coords, stencilModes, useBorder,
         if (tile.texture.useMipmap && context.extTextureFilterAnisotropic && painter.transform.pitch > painter.options.anisotropicFilterPitch) {
             gl.texParameterf(gl.TEXTURE_2D, context.extTextureFilterAnisotropic.TEXTURE_MAX_ANISOTROPY_EXT, context.extTextureFilterAnisotropicMax);
         }
-        const terrainData = painter.style.map.terrain && painter.style.map.terrain.getTerrainData(coord);
+        const terrainData = (_a = painter.style.map.terrain) === null || _a === void 0 ? void 0 : _a.getTerrainData(coord);
         const projectionData = transform.getProjectionData({ overscaledTileID: coord, aligned: align, applyGlobeMatrix: !isRenderingToTexture, applyTerrainMatrix: true });
         const uniformValues = rasterUniformValues(parentTopLeft, parentScaleBy, fadeValues.fadeMix, layer, corners);
         const mesh = projection.getMeshFromTileID(context, coord.canonical, useBorder, allowPoles, 'raster');
@@ -63206,6 +63360,7 @@ function getSelfFadeValues(tile, fadeDuration) {
 }
 
 function drawBackground(painter, tileManager, layer, coords, renderOptions) {
+    var _a;
     const color = layer.paint.get('background-color');
     const opacity = layer.paint.get('background-opacity');
     if (opacity === 0)
@@ -63241,7 +63396,7 @@ function drawBackground(painter, tileManager, layer, coords, renderOptions) {
         const uniformValues = image ?
             backgroundPatternUniformValues(opacity, painter, image, { tileID, tileSize }, crossfade) :
             backgroundUniformValues(opacity, color);
-        const terrainData = painter.style.map.terrain && painter.style.map.terrain.getTerrainData(tileID);
+        const terrainData = (_a = painter.style.map.terrain) === null || _a === void 0 ? void 0 : _a.getTerrainData(tileID);
         // For globe rendering, background uses tile meshes *without* borders and no stencil clipping.
         // This works assuming the tileIDs list contains only tiles of the same zoom level.
         // This seems to always be the case for background layers, but I'm leaving this comment
@@ -63297,11 +63452,12 @@ function drawDebugSSRect(painter, x, y, width, height, color) {
     gl.disable(gl.SCISSOR_TEST);
 }
 function drawDebug(painter, tileManager, coords) {
-    for (let i = 0; i < coords.length; i++) {
-        drawDebugTile(painter, tileManager, coords[i]);
+    for (const coord of coords) {
+        drawDebugTile(painter, tileManager, coord);
     }
 }
 function drawDebugTile(painter, tileManager, coord) {
+    var _a;
     const context = painter.context;
     const gl = context.gl;
     const program = painter.useProgram('debug');
@@ -63309,10 +63465,10 @@ function drawDebugTile(painter, tileManager, coord) {
     const stencilMode = StencilMode.disabled;
     const colorMode = painter.colorModeForRenderPass();
     const id = '$debug';
-    const terrainData = painter.style.map.terrain && painter.style.map.terrain.getTerrainData(coord);
+    const terrainData = (_a = painter.style.map.terrain) === null || _a === void 0 ? void 0 : _a.getTerrainData(coord);
     context.activeTexture.set(gl.TEXTURE0);
     const tileRawData = tileManager.getTileByID(coord.key).latestRawTileData;
-    const tileByteLength = (tileRawData && tileRawData.byteLength) || 0;
+    const tileByteLength = (tileRawData === null || tileRawData === void 0 ? void 0 : tileRawData.byteLength) || 0;
     const tileSizeKb = Math.floor(tileByteLength / 1024);
     const tileSize = tileManager.getTile(coord).tileSize;
     const scaleRatio = (512 / Math.min(tileSize, 512) * (coord.overscaledZ / painter.transform.zoom)) * 0.5;
@@ -63364,9 +63520,13 @@ function selectDebugSource(style, zoom) {
             selectedSource = source;
         }
     };
-    vectorSources.forEach((source) => considerSource(source));
+    for (const source of vectorSources) {
+        considerSource(source);
+    }
     if (!selectedSource) {
-        otherSources.forEach((source) => considerSource(source));
+        for (const source of otherSources) {
+            considerSource(source);
+        }
     }
     return selectedSource;
 }
@@ -63572,16 +63732,37 @@ function drawAtmosphere(painter, sky, light) {
     program.draw(context, gl.TRIANGLES, depthMode, StencilMode.disabled, ColorMode.alphaBlended, CullFaceMode.disabled, uniformValues, null, null, 'atmosphere', mesh.vertexBuffer, mesh.indexBuffer, mesh.segments);
 }
 
+const webglDrawFunctions = {
+    symbol: drawSymbols,
+    circle: drawCircles,
+    heatmap: drawHeatmap,
+    line: drawLine,
+    fill: drawFill,
+    fillExtrusion: drawFillExtrusion,
+    hillshade: drawHillshade,
+    colorRelief: drawColorRelief,
+    raster: drawRaster,
+    background: drawBackground,
+    sky: drawSky,
+    atmosphere: drawAtmosphere,
+    custom: drawCustom,
+    debug: drawDebug,
+    debugPadding: drawDebugPadding,
+    terrainDepth: drawDepth,
+    terrainCoords: drawCoords,
+};
+
 /**
  * @internal
  * Initialize a new painter object.
  */
 class Painter {
     constructor(gl, transform) {
+        this.drawFunctions = webglDrawFunctions;
         this.context = new Context(gl);
         this.transform = transform;
         this._tileTextures = {};
-        this.terrainFacilitator = { dirty: true, matrix: identity$2(new Float64Array(16)), renderTime: 0 };
+        this.terrainFacilitator = { depthDirty: true, coordsDirty: false, matrix: identity$2(new Float64Array(16)), renderTime: 0 };
         this.setup();
         // Within each layer there are multiple distinct z-planes that can be drawn to.
         // This is implemented using the WebGL depth buffer.
@@ -63683,7 +63864,7 @@ class Painter {
         this.useProgram('clippingMask', null, true).draw(context, gl.TRIANGLES, DepthMode.disabled, this.stencilClearMode, ColorMode.disabled, CullFaceMode.disabled, null, null, projectionData, '$clipping', this.viewportBuffer, this.quadTriangleIndexBuffer, this.viewportSegments);
     }
     _renderTileClippingMasks(layer, tileIDs, renderToTexture) {
-        if (this.currentStencilSource === layer.source || !layer.isTileClipped() || !tileIDs || !tileIDs.length) {
+        if (this.currentStencilSource === layer.source || !layer.isTileClipped() || !(tileIDs === null || tileIDs === void 0 ? void 0 : tileIDs.length)) {
             return;
         }
         this.currentStencilSource = layer.source;
@@ -63708,6 +63889,7 @@ class Painter {
         this._tileClippingMaskIDs = stencilRefs;
     }
     _renderTileMasks(tileStencilRefs, tileIDs, renderToTexture, useBorders) {
+        var _a;
         const context = this.context;
         const gl = context.gl;
         const projection = this.style.projection;
@@ -63716,7 +63898,7 @@ class Painter {
         // tiles are usually supplied in ascending order of z, then y, then x
         for (const tileID of tileIDs) {
             const stencilRef = tileStencilRefs[tileID.key];
-            const terrainData = this.style.map.terrain && this.style.map.terrain.getTerrainData(tileID);
+            const terrainData = (_a = this.style.map.terrain) === null || _a === void 0 ? void 0 : _a.getTerrainData(tileID);
             const mesh = projection.getMeshFromTileID(this.context, tileID.canonical, useBorders, true, 'stencil');
             const projectionData = transform.getProjectionData({ overscaledTileID: tileID, applyGlobeMatrix: !renderToTexture, applyTerrainMatrix: true });
             program.draw(context, gl.TRIANGLES, DepthMode.disabled, 
@@ -63729,6 +63911,7 @@ class Painter {
      * Does not change the color buffer or the stencil buffer.
      */
     _renderTilesDepthBuffer() {
+        var _a;
         const context = this.context;
         const gl = context.gl;
         const projection = this.style.projection;
@@ -63738,7 +63921,7 @@ class Painter {
         const tileIDs = coveringTiles(transform, { tileSize: transform.tileSize });
         // tiles are usually supplied in ascending order of z, then y, then x
         for (const tileID of tileIDs) {
-            const terrainData = this.style.map.terrain && this.style.map.terrain.getTerrainData(tileID);
+            const terrainData = (_a = this.style.map.terrain) === null || _a === void 0 ? void 0 : _a.getTerrainData(tileID);
             const mesh = projection.getMeshFromTileID(this.context, tileID.canonical, true, true, 'raster');
             const projectionData = transform.getProjectionData({ overscaledTileID: tileID, applyGlobeMatrix: true, applyTerrainMatrix: true });
             program.draw(context, gl.TRIANGLES, depthMode, StencilMode.disabled, ColorMode.disabled, CullFaceMode.backCCW, null, terrainData, projectionData, '$clipping', mesh.vertexBuffer, mesh.indexBuffer, mesh.segments);
@@ -63852,7 +64035,7 @@ class Painter {
         return this.currentLayer < this.opaquePassCutoff;
     }
     render(style, options) {
-        var _a, _b;
+        var _a, _b, _c;
         this.style = style;
         this.options = options;
         this.lineAtlas = style.lineAtlas;
@@ -63883,7 +64066,7 @@ class Painter {
                 break;
             }
         }
-        this.maybeDrawDepthAndCoords(false);
+        this.maybeDrawDepth(false);
         if (this.renderToTexture) {
             this.renderToTexture.prepareForRender(this.style, this.transform.zoom);
             // this is disabled, because render-to-texture is rendering all layers from bottom to top.
@@ -63916,7 +64099,7 @@ class Painter {
         this.clearStencil();
         // draw sky first to not overwrite symbols
         if (this.style.sky)
-            drawSky(this, this.style.sky);
+            this.drawFunctions.sky(this, this.style.sky);
         this._showOverdrawInspector = options.showOverdrawInspector;
         this.depthRangeFor3D = [0, 1 - ((style._order.length + 2) * this.numSublayers * this.depthEpsilon)];
         // Opaque pass ===============================================
@@ -63938,7 +64121,7 @@ class Painter {
         for (this.currentLayer = 0; this.currentLayer < layerIds.length; this.currentLayer++) {
             const layer = this.style._layers[layerIds[this.currentLayer]];
             const tileManager = tileManagers[layer.source];
-            if (this.renderToTexture && this.renderToTexture.renderLayer(layer, renderOptions))
+            if ((_c = this.renderToTexture) === null || _c === void 0 ? void 0 : _c.renderLayer(layer, renderOptions))
                 continue;
             if (!this.opaquePassEnabledForLayer() && !globeDepthRendered) {
                 globeDepthRendered = true;
@@ -63957,34 +64140,34 @@ class Painter {
         }
         // Render atmosphere, only for Globe projection
         if (renderOptions.isRenderingGlobe) {
-            drawAtmosphere(this, this.style.sky, this.style.light);
+            this.drawFunctions.atmosphere(this, this.style.sky, this.style.light);
         }
         if (this.options.showTileBoundaries) {
             const selectedSource = selectDebugSource(this.style, this.transform.zoom);
             if (selectedSource) {
-                drawDebug(this, selectedSource, selectedSource.getVisibleCoordinates());
+                this.drawFunctions.debug(this, selectedSource, selectedSource.getVisibleCoordinates());
             }
         }
         if (this.options.showPadding) {
-            drawDebugPadding(this);
+            this.drawFunctions.debugPadding(this);
         }
         // Set defaults for most GL values so that anyone using the state after the render
         // encounters more expected values.
         this.context.setDefault();
     }
     /**
-     * Update the depth and coords framebuffers, if the contents of those frame buffers is out of date.
-     * If requireExact is false, then the contents of those frame buffers is not updated if it is close
-     * to accurate (that is, the camera has not moved much since it was updated last).
+     * Update the depth framebuffer if the camera has moved or tiles have reloaded.
+     * Marks coords as depthDirty so they are re-rendered on next demand.
      */
-    maybeDrawDepthAndCoords(requireExact) {
-        if (!this.style || !this.style.map || !this.style.map.terrain) {
+    maybeDrawDepth(requireExact) {
+        var _a, _b;
+        if (!((_b = (_a = this.style) === null || _a === void 0 ? void 0 : _a.map) === null || _b === void 0 ? void 0 : _b.terrain)) {
             return;
         }
         const prevMatrix = this.terrainFacilitator.matrix;
         const currMatrix = this.transform.modelViewProjectionMatrix;
-        // Update coords/depth-framebuffer on camera movement, or tile reloading
-        let doUpdate = this.terrainFacilitator.dirty;
+        // Update depth-framebuffer on camera movement, or tile reloading
+        let doUpdate = this.terrainFacilitator.depthDirty;
         doUpdate || (doUpdate = requireExact ? !exactEquals$5(prevMatrix, currMatrix) : !equals$6(prevMatrix, currMatrix));
         doUpdate || (doUpdate = this.style.map.terrain.tileManager.anyTilesAfterTime(this.terrainFacilitator.renderTime));
         if (!doUpdate) {
@@ -63992,9 +64175,20 @@ class Painter {
         }
         copy$5(prevMatrix, currMatrix);
         this.terrainFacilitator.renderTime = Date.now();
-        this.terrainFacilitator.dirty = false;
-        drawDepth(this, this.style.map.terrain);
-        drawCoords(this, this.style.map.terrain);
+        this.terrainFacilitator.depthDirty = false;
+        this.terrainFacilitator.coordsDirty = true;
+        this.drawFunctions.terrainDepth(this, this.style.map.terrain);
+    }
+    /**
+     * Render the coords framebuffer if it is coordsDirty
+     */
+    maybeDrawCoords() {
+        var _a, _b;
+        if (!((_b = (_a = this.style) === null || _a === void 0 ? void 0 : _a.map) === null || _b === void 0 ? void 0 : _b.terrain) || !this.terrainFacilitator.coordsDirty) {
+            return;
+        }
+        this.terrainFacilitator.coordsDirty = false;
+        this.drawFunctions.terrainCoords(this, this.style.map.terrain);
     }
     renderLayer(painter, tileManager, layer, coords, renderOptions) {
         if (layer.isHidden(this.transform.zoom))
@@ -64002,38 +64196,39 @@ class Painter {
         if (layer.type !== 'background' && layer.type !== 'custom' && !(coords || []).length)
             return;
         this.id = layer.id;
+        const draw = this.drawFunctions;
         if (isSymbolStyleLayer(layer)) {
-            drawSymbols(painter, tileManager, layer, coords, this.style.placement.variableOffsets, renderOptions);
+            draw.symbol(painter, tileManager, layer, coords, this.style.placement.variableOffsets, renderOptions);
         }
         else if (isCircleStyleLayer(layer)) {
-            drawCircles(painter, tileManager, layer, coords, renderOptions);
+            draw.circle(painter, tileManager, layer, coords, renderOptions);
         }
         else if (isHeatmapStyleLayer(layer)) {
-            drawHeatmap(painter, tileManager, layer, coords, renderOptions);
+            draw.heatmap(painter, tileManager, layer, coords, renderOptions);
         }
         else if (isLineStyleLayer(layer)) {
-            drawLine(painter, tileManager, layer, coords, renderOptions);
+            draw.line(painter, tileManager, layer, coords, renderOptions);
         }
         else if (isFillStyleLayer(layer)) {
-            drawFill(painter, tileManager, layer, coords, renderOptions);
+            draw.fill(painter, tileManager, layer, coords, renderOptions);
         }
         else if (isFillExtrusionStyleLayer(layer)) {
-            drawFillExtrusion(painter, tileManager, layer, coords, renderOptions);
+            draw.fillExtrusion(painter, tileManager, layer, coords, renderOptions);
         }
         else if (isHillshadeStyleLayer(layer)) {
-            drawHillshade(painter, tileManager, layer, coords, renderOptions);
+            draw.hillshade(painter, tileManager, layer, coords, renderOptions);
         }
         else if (isColorReliefStyleLayer(layer)) {
-            drawColorRelief(painter, tileManager, layer, coords, renderOptions);
+            draw.colorRelief(painter, tileManager, layer, coords, renderOptions);
         }
         else if (isRasterStyleLayer(layer)) {
-            drawRaster(painter, tileManager, layer, coords, renderOptions);
+            draw.raster(painter, tileManager, layer, coords, renderOptions);
         }
         else if (isBackgroundStyleLayer(layer)) {
-            drawBackground(painter, tileManager, layer, coords, renderOptions);
+            draw.background(painter, tileManager, layer, coords, renderOptions);
         }
         else if (isCustomStyleLayer(layer)) {
-            drawCustom(painter, tileManager, layer, renderOptions);
+            draw.custom(painter, tileManager, layer, renderOptions);
         }
     }
     saveTileTexture(texture) {
@@ -64076,7 +64271,8 @@ class Painter {
      * @returns
      */
     useProgram(name, programConfiguration, forceSimpleProjection = false, defines = []) {
-        this.cache = this.cache || {};
+        var _a;
+        this.cache || (this.cache = {});
         const useTerrain = !!this.style.map.terrain;
         const projection = this.style.projection;
         const projectionPrelude = forceSimpleProjection ? shaders.projectionMercator : projection.shaderPreludeCode;
@@ -64087,9 +64283,7 @@ class Painter {
         const terrainKey = (useTerrain ? '/terrain' : '');
         const definesKey = (defines ? `/${defines.join('/')}` : '');
         const key = name + configurationKey + projectionKey + overdrawKey + terrainKey + definesKey;
-        if (!this.cache[key]) {
-            this.cache[key] = new Program(this.context, shaders[name], programConfiguration, programUniforms[name], this._showOverdrawInspector, useTerrain, projectionPrelude, projectionDefine, defines);
-        }
+        (_a = this.cache)[key] || (_a[key] = new Program(this.context, shaders[name], programConfiguration, programUniforms[name], this._showOverdrawInspector, useTerrain, projectionPrelude, projectionDefine, defines));
         return this.cache[key];
     }
     /*
@@ -64164,7 +64358,7 @@ class Painter {
         if (this.cache) {
             for (const key in this.cache) {
                 const program = this.cache[key];
-                if (program && program.program) {
+                if (program === null || program === void 0 ? void 0 : program.program) {
                     this.context.gl.deleteProgram(program.program);
                 }
             }
@@ -64192,19 +64386,17 @@ Painter.MAX_TEXTURE_POOL_SIZE_PER_BUCKET = 50;
 function throttle(fn, time) {
     let pending = false;
     let timerId = null;
-    let lastCallContext = null;
     let lastCallArgs;
     const later = () => {
         timerId = null;
         if (pending) {
-            fn.apply(lastCallContext, lastCallArgs);
+            fn(...lastCallArgs);
             timerId = setTimeout(later, time);
             pending = false;
         }
     };
     return (...args) => {
         pending = true;
-        lastCallContext = this;
         lastCallArgs = args;
         if (!timerId) {
             later();
@@ -64227,11 +64419,12 @@ class Hash {
             if (this._hashName) {
                 // Split the parameter-styled hash into parts and find the value we need
                 let keyval;
-                hash.split('&').map(part => part.split('=')).forEach(part => {
+                const parts = hash.split('&').map(part => part.split('='));
+                for (const part of parts) {
                     if (part[0] === this._hashName) {
                         keyval = part;
                     }
-                });
+                }
                 return (keyval ? keyval[1] || '' : '').split('/');
             }
             return hash.split('/');
@@ -64443,8 +64636,7 @@ class HandlerInertia {
         }
         if (deltas.zoom) {
             const result = calculateEasing(deltas.zoom, duration, defaultZoomInertiaOptions);
-            const zoom = evaluateZoomSnap(this._map.transform.zoom + result.amount, this._map.getZoomSnap(), result.amount);
-            easeOptions.zoom = zoom;
+            easeOptions.zoom = evaluateZoomSnap(this._map.transform.zoom + result.amount, this._map.getZoomSnap(), result.amount);
             extendDuration(easeOptions, result);
         }
         if (deltas.bearing) {
@@ -64491,7 +64683,6 @@ function calculateEasing(amount, inertiaDuration, inertiaOptions) {
     };
 }
 
-;
 /**
  * `MapMouseEvent` is the event type for mouse-related map events.
  *
@@ -65170,8 +65361,7 @@ class MouseMoveStateManager {
         this._correctEvent = options.checkCorrectEvent;
     }
     startMove(e) {
-        const eventButton = e.button;
-        this._eventButton = eventButton;
+        this._eventButton = e.button;
     }
     endMove(_e) {
         delete this._eventButton;
@@ -65204,8 +65394,7 @@ class OneFingerTouchMoveStateManager {
         return e.targetTouches[0].identifier === this._firstTouch;
     }
     startMove(e) {
-        const firstTouch = e.targetTouches[0].identifier;
-        this._firstTouch = firstTouch;
+        this._firstTouch = e.targetTouches[0].identifier;
     }
     endMove(_e) {
         delete this._firstTouch;
@@ -65232,10 +65421,10 @@ class MouseOrTouchMoveStateManager {
             return onTouchEvent(e);
     }
     startMove(e) {
-        this._executeRelevantHandler(e, e => this.mouseMoveStateManager.startMove(e), e => this.oneFingerTouchMoveStateManager.startMove(e));
+        this._executeRelevantHandler(e, e => { this.mouseMoveStateManager.startMove(e); }, e => { this.oneFingerTouchMoveStateManager.startMove(e); });
     }
     endMove(e) {
-        this._executeRelevantHandler(e, e => this.mouseMoveStateManager.endMove(e), e => this.oneFingerTouchMoveStateManager.endMove(e));
+        this._executeRelevantHandler(e, e => { this.mouseMoveStateManager.endMove(e); }, e => { this.oneFingerTouchMoveStateManager.endMove(e); });
     }
     isValidStartEvent(e) {
         return this._executeRelevantHandler(e, e => this.mouseMoveStateManager.isValidStartEvent(e), e => this.oneFingerTouchMoveStateManager.isValidStartEvent(e));
@@ -65523,7 +65712,8 @@ function getTouchById(mapTouches, points, identifier) {
     return undefined;
 }
 /* ZOOM */
-const ZOOM_THRESHOLD = 0.1;
+const defaultZoomRate$2 = 1;
+const defaultZoomThreshold = 0.1;
 function getZoomDelta(distance, lastDistance) {
     return Math.log(distance / lastDistance) / Math.LN2;
 }
@@ -65533,6 +65723,35 @@ function getZoomDelta(distance, lastDistance) {
  * @group Handlers
  */
 class TwoFingersTouchZoomHandler extends TwoFingersTouchHandler {
+    constructor() {
+        super();
+        this._zoomRate = defaultZoomRate$2;
+        this._zoomThreshold = defaultZoomThreshold;
+    }
+    /**
+     * Sets the zoom rate of touch gestures.
+     * @param zoomRate - 1 The rate used to scale touch movement to a zoom value. Set to `undefined` to restore the default.
+     * @example
+     * Slow down touch zoom
+     * ```ts
+     * map.touchZoomRotate.setZoomRate(0.5);
+     * ```
+     */
+    setZoomRate(zoomRate) {
+        this._zoomRate = zoomRate !== null && zoomRate !== void 0 ? zoomRate : defaultZoomRate$2;
+    }
+    /**
+     * Sets the threshold before a pinch gesture starts zooming.
+     * @param zoomThreshold - 0.1 The minimum zoom delta before the pinch gesture becomes active. Set to `undefined` to restore the default.
+     * @example
+     * Make pinch zoom less sensitive
+     * ```ts
+     * map.touchZoomRotate.setZoomThreshold(0.3);
+     * ```
+     */
+    setZoomThreshold(zoomThreshold) {
+        this._zoomThreshold = zoomThreshold !== null && zoomThreshold !== void 0 ? zoomThreshold : defaultZoomThreshold;
+    }
     reset() {
         super.reset();
         delete this._distance;
@@ -65544,11 +65763,11 @@ class TwoFingersTouchZoomHandler extends TwoFingersTouchHandler {
     _move(points, pinchAround) {
         const lastDistance = this._distance;
         this._distance = points[0].dist(points[1]);
-        if (!this._active && Math.abs(getZoomDelta(this._distance, this._startDistance)) < ZOOM_THRESHOLD)
+        if (!this._active && Math.abs(getZoomDelta(this._distance, this._startDistance)) < this._zoomThreshold)
             return;
         this._active = true;
         return {
-            zoomDelta: getZoomDelta(this._distance, lastDistance),
+            zoomDelta: getZoomDelta(this._distance, lastDistance) * this._zoomRate,
             pinchAround
         };
     }
@@ -65870,7 +66089,7 @@ function easeOut(t) {
 const wheelZoomDelta = 4.000244140625;
 // These magic numbers control the rate of zoom. Trackpad events fire at a greater
 // frequency than mouse scroll wheel, so reduce the zoom rate per wheel tick
-const defaultZoomRate = 1 / 100;
+const defaultZoomRate$1 = 1 / 100;
 const wheelZoomRate = 1 / 450;
 // upper bound on how much we scale the map in any single render frame; this
 // is used to limit zoom rate in the case of very fast scrolling
@@ -65898,7 +66117,7 @@ class ScrollZoomHandler {
         this._tr = new TransformProvider(map);
         this._triggerRenderFrame = triggerRenderFrame;
         this._delta = 0;
-        this._defaultZoomRate = defaultZoomRate;
+        this._defaultZoomRate = defaultZoomRate$1;
         this._wheelZoomRate = wheelZoomRate;
     }
     /**
@@ -66036,9 +66255,7 @@ class ScrollZoomHandler {
     _start(e) {
         if (!this._delta)
             return;
-        if (this._frameId) {
-            this._frameId = null;
-        }
+        this._needsRerender = false;
         this._active = true;
         if (!this.isZooming()) {
             this._zooming = true;
@@ -66056,15 +66273,15 @@ class ScrollZoomHandler {
         else {
             this._aroundPoint = pos;
         }
-        if (!this._frameId) {
-            this._frameId = true;
+        if (!this._needsRerender) {
+            this._needsRerender = true;
             this._triggerRenderFrame();
         }
     }
     renderFrame() {
-        if (!this._frameId)
+        if (!this._needsRerender)
             return;
-        this._frameId = null;
+        this._needsRerender = false;
         if (!this.isActive())
             return;
         const tr = this._tr.transform;
@@ -66118,9 +66335,7 @@ class ScrollZoomHandler {
             const k = easing(t);
             zoom = interpolateFactory.number(startZoom, targetZoom, k);
             if (t < 1) {
-                if (!this._frameId) {
-                    this._frameId = true;
-                }
+                this._needsRerender = true;
             }
             else {
                 finished = true;
@@ -66274,6 +66489,7 @@ class ClickZoomHandler {
     }
 }
 
+const defaultZoomRate = 1;
 /**
  * A `TapDragZoomHandler` allows the user to zoom the map at a point by double tapping. It also allows the user pan the map by dragging.
  */
@@ -66283,7 +66499,11 @@ class TapDragZoomHandler {
             numTouches: 1,
             numTaps: 1
         });
+        this._zoomRate = defaultZoomRate;
         this.reset();
+    }
+    setZoomRate(zoomRate) {
+        this._zoomRate = zoomRate !== null && zoomRate !== void 0 ? zoomRate : defaultZoomRate;
     }
     reset() {
         this._active = false;
@@ -66326,7 +66546,7 @@ class TapDragZoomHandler {
             e.preventDefault();
             this._active = true;
             return {
-                zoomDelta: dist / 128
+                zoomDelta: dist / 128 * this._zoomRate
             };
         }
     }
@@ -66558,6 +66778,31 @@ class TwoFingersTouchZoomRotateHandler {
         return this._touchZoom.isActive() || this._touchRotate.isActive() || this._tapDragZoom.isActive();
     }
     /**
+     * Sets the zoom rate of touch gestures.
+     * @param zoomRate - 1 The rate used to scale touch movement to a zoom value. Set to `undefined` to restore the default.
+     * @example
+     * Slow down touch zoom
+     * ```ts
+     * map.touchZoomRotate.setZoomRate(0.5);
+     * ```
+     */
+    setZoomRate(zoomRate) {
+        this._touchZoom.setZoomRate(zoomRate);
+        this._tapDragZoom.setZoomRate(zoomRate);
+    }
+    /**
+     * Sets the threshold before a pinch gesture starts zooming.
+     * @param zoomThreshold - 0.1 The minimum zoom delta before the pinch gesture becomes active. Set to `undefined` to restore the default.
+     * @example
+     * Make pinch zoom less sensitive
+     * ```ts
+     * map.touchZoomRotate.setZoomThreshold(0.3);
+     * ```
+     */
+    setZoomThreshold(zoomThreshold) {
+        this._touchZoom.setZoomThreshold(zoomThreshold);
+    }
+    /**
      * Disables the "pinch to rotate" interaction, leaving the "pinch to zoom"
      * interaction enabled.
      *
@@ -66606,7 +66851,7 @@ class CooperativeGesturesHandler {
         /**
          * This is the key that will allow to bypass the cooperative gesture protection
          */
-        this._bypassKey = navigator.userAgent.indexOf('Mac') !== -1 ? 'metaKey' : 'ctrlKey';
+        this._bypassKey = navigator.userAgent.includes('Mac') ? 'metaKey' : 'ctrlKey';
         this._map = map;
         this._options = options;
         this._enabled = false;
@@ -66679,7 +66924,8 @@ const isMoving = (p) => p.zoom || p.drag || p.roll || p.pitch || p.rotate;
 class RenderFrameEvent extends Event {
 }
 function hasChange(result) {
-    return (result.panDelta && result.panDelta.mag()) || result.zoomDelta || result.bearingDelta || result.pitchDelta || result.rollDelta;
+    var _a;
+    return ((_a = result.panDelta) === null || _a === void 0 ? void 0 : _a.mag()) || result.zoomDelta || result.bearingDelta || result.pitchDelta || result.rollDelta;
 }
 class HandlerManager {
     /**
@@ -66739,7 +66985,7 @@ class HandlerManager {
                             data = handler[eventName || e.type](e);
                         }
                         this.mergeHandlerResult(mergedHandlerResult, eventsInProgress, data, handlerName, inputEvent);
-                        if (data && data.needsRenderFrame) {
+                        if (data === null || data === void 0 ? void 0 : data.needsRenderFrame) {
                             this._triggerRenderFrame();
                         }
                     }
@@ -66927,7 +67173,7 @@ class HandlerManager {
         for (const name in activeHandlers) {
             if (name === myName)
                 continue;
-            if (!allowed || allowed.indexOf(name) < 0) {
+            if (!(allowed === null || allowed === void 0 ? void 0 : allowed.includes(name))) {
                 return true;
             }
         }
@@ -66997,7 +67243,8 @@ class HandlerManager {
         const tr = map._getTransformForUpdate();
         const terrain = map.terrain;
         if (!hasChange(combinedResult) && !(terrain && this._terrainMovement)) {
-            return this._fireEvents(combinedEventsInProgress, deactivatedHandlers, true);
+            this._fireEvents(combinedEventsInProgress, deactivatedHandlers, true);
+            return;
         }
         // stop any ongoing camera animations (easeTo, flyTo)
         map._stop(true);
@@ -67005,7 +67252,7 @@ class HandlerManager {
         if (pinchAround !== undefined) {
             around = pinchAround;
         }
-        around = around || map.transform.centerPoint;
+        around || (around = map.transform.centerPoint);
         if (terrain && !tr.isPointOnMapSurface(around)) {
             around = tr.centerPoint;
         }
@@ -67593,7 +67840,7 @@ class Camera extends Evented {
      */
     cameraForBounds(bounds, options) {
         bounds = LngLatBounds.convert(bounds).adjustAntiMeridian();
-        const bearing = options && options.bearing || 0;
+        const bearing = (options === null || options === void 0 ? void 0 : options.bearing) || 0;
         return this._cameraForBoxAndBearing(bounds.getNorthWest(), bounds.getSouthEast(), bearing, options);
     }
     /**
@@ -67642,7 +67889,11 @@ class Camera extends Evented {
         options.padding = padding;
         const tr = this.transform;
         const bounds = new LngLatBounds(p0, p1);
-        return this.cameraHelper.cameraForBoxAndBearing(options, padding, bounds, bearing, tr);
+        const result = this.cameraHelper.cameraForBoxAndBearing(options, padding, bounds, bearing, tr);
+        if (result && this._zoomSnap) {
+            result.zoom = evaluateZoomSnap(result.zoom, this._zoomSnap, -1);
+        }
+        return result;
     }
     /**
      * Pans and zooms the map to contain its visible area within the specified geographical bounds.
@@ -67730,6 +67981,9 @@ class Camera extends Evented {
      */
     jumpTo(options, eventData) {
         this.stop();
+        if ('zoom' in options && this._zoomSnap) {
+            options.zoom = evaluateZoomSnap(options.zoom, this._zoomSnap);
+        }
         const tr = this._getTransformForUpdate();
         let bearingChanged = false, pitchChanged = false;
         let rollChanged = false;
@@ -67880,6 +68134,9 @@ class Camera extends Evented {
             duration: 500,
             easing: defaultEasing
         }, options);
+        if ('zoom' in options && this._zoomSnap) {
+            options.zoom = evaluateZoomSnap(options.zoom, this._zoomSnap);
+        }
         if (options.animate === false || (!options.essential && browser.prefersReducedMotion)) {
             options.duration = 0;
         }
@@ -67910,11 +68167,11 @@ class Camera extends Evented {
             zoom: options.zoom,
             center: options.center,
         });
-        this._rotating = this._rotating || (startBearing !== bearing);
-        this._pitching = this._pitching || (pitch !== startPitch);
-        this._rolling = this._rolling || (roll !== startRoll);
+        this._rotating || (this._rotating = startBearing !== bearing);
+        this._pitching || (this._pitching = pitch !== startPitch);
+        this._rolling || (this._rolling = roll !== startRoll);
         this._padding = !tr.isPaddingEqual(padding);
-        this._zooming = this._zooming || easeHandler.isZooming;
+        this._zooming || (this._zooming = easeHandler.isZooming);
         this._easeId = options.easeId;
         this._prepareEase(eventData, options.noMoveStart, currently);
         if (this.terrain) {
@@ -67990,9 +68247,7 @@ class Camera extends Evented {
     _getTransformForUpdate() {
         if (!this.transformCameraUpdate && !this.terrain)
             return this.transform;
-        if (!this._requestedCameraState) {
-            this._requestedCameraState = this.transform.clone();
-        }
+        this._requestedCameraState || (this._requestedCameraState = this.transform.clone());
         return this._requestedCameraState;
     }
     /**
@@ -68160,6 +68415,9 @@ class Camera extends Evented {
             curve: 1.42,
             easing: defaultEasing
         }, options);
+        if ('zoom' in options && this._zoomSnap) {
+            options.zoom = evaluateZoomSnap(options.zoom, this._zoomSnap);
+        }
         const tr = this._getTransformForUpdate(), startBearing = tr.bearing, startPitch = tr.pitch, startRoll = tr.roll, startPadding = tr.padding;
         const bearing = 'bearing' in options ? this._normalizeBearing(options.bearing, startBearing) : startBearing;
         const pitch = 'pitch' in options ? +options.pitch : startPitch;
@@ -68363,6 +68621,7 @@ const defaultAttributionControlOptions = {
  *         compact: true
  *     }));
  * ```
+ * @see [Change the default position for attribution](https://maplibre.org/maplibre-gl-js/docs/examples/change-the-default-position-for-attribution/)
  */
 class AttributionControl {
     /**
@@ -68476,7 +68735,7 @@ class AttributionControl {
             const tileManager = tileManagers[id];
             if (tileManager.used || tileManager.usedForTerrain) {
                 const source = tileManager.getSource();
-                if (source.attribution && attributions.indexOf(source.attribution) < 0) {
+                if (source.attribution && !attributions.includes(source.attribution)) {
                     attributions.push(source.attribution);
                 }
             }
@@ -68488,7 +68747,7 @@ class AttributionControl {
         attributions.sort((a, b) => a.length - b.length);
         attributions = attributions.filter((attrib, i) => {
             for (let j = i + 1; j < attributions.length; j++) {
-                if (attributions[j].indexOf(attrib) >= 0) {
+                if (attributions[j].includes(attrib)) {
                     return false;
                 }
             }
@@ -68548,8 +68807,9 @@ class LogoControl {
     }
     /** {@inheritDoc IControl.onAdd} */
     onAdd(map) {
+        var _a;
         this._map = map;
-        this._compact = this.options && this.options.compact;
+        this._compact = (_a = this.options) === null || _a === void 0 ? void 0 : _a.compact;
         this._container = DOM.create('div', 'maplibregl-ctrl');
         const anchor = DOM.create('a', 'maplibregl-ctrl-logo');
         anchor.target = '_blank';
@@ -68617,116 +68877,6 @@ class TaskQueue {
             this._cleared = true;
         }
         this._queue = [];
-    }
-}
-
-var PerformanceMarkers;
-(function (PerformanceMarkers) {
-    PerformanceMarkers["create"] = "create";
-    PerformanceMarkers["load"] = "load";
-    PerformanceMarkers["fullLoad"] = "fullLoad";
-})(PerformanceMarkers || (PerformanceMarkers = {}));
-let lastFrameTime = null;
-let frameTimes = [];
-const minFramerateTarget = 60;
-const frameTimeTarget = 1000 / minFramerateTarget;
-const loadTimeKey = 'loadTime';
-const fullLoadTimeKey = 'fullLoadTime';
-/**
- * Monitors and reports map performance metrics
- */
-const PerformanceUtils = {
-    /**
-    * Marks point in time of the map lifecycle.
-    */
-    mark(marker) {
-        performance.mark(marker);
-    },
-    /**
-    * Records the time of a new animation frame.
-    * Used internally for FPS calculation.
-    * @param currentTimestamp - The current timestamp provided by requestAnimationFrame.
-    */
-    recordStartOfFrameAt(currentTimestamp) {
-        if (lastFrameTime != null) {
-            const frameTime = currentTimestamp - lastFrameTime;
-            frameTimes.push(frameTime);
-        }
-        lastFrameTime = currentTimestamp;
-    },
-    resetRuntimeMetrics() {
-        lastFrameTime = null;
-        frameTimes = [];
-    },
-    /**
-    * @internal
-    * Clear browser performance entries associated with this monitor
-    */
-    clearInitializationMetrics() {
-        performance.clearMeasures(loadTimeKey);
-        performance.clearMeasures(fullLoadTimeKey);
-        for (const marker in PerformanceMarkers) {
-            performance.clearMarks(PerformanceMarkers[marker]);
-        }
-    },
-    /**
-     * Clears both the runtime and initialisation metrics
-     */
-    remove() {
-        this.resetRuntimeMetrics();
-        this.clearInitializationMetrics();
-    },
-    /**
-    * Calculates and returns the current performance metrics for this monitor instance.
-    * @returns An object containing various performance metrics.
-    */
-    getPerformanceMetrics() {
-        performance.measure(loadTimeKey, PerformanceMarkers.create, PerformanceMarkers.load);
-        performance.measure(fullLoadTimeKey, PerformanceMarkers.create, PerformanceMarkers.fullLoad);
-        const loadTimeMs = performance.getEntriesByName(loadTimeKey)[0].duration;
-        const fullLoadTimeMs = performance.getEntriesByName(fullLoadTimeKey)[0].duration;
-        const totalFramesCount = frameTimes.length;
-        const avgFrameTime = frameTimes.reduce((prev, curr) => prev + curr, 0) / totalFramesCount / 1000;
-        const averageFramesPerSecond = 1 / avgFrameTime;
-        // count frames that missed our framerate target
-        const virtualDroppedFramesCount = frameTimes
-            .filter((frameTime) => frameTime > frameTimeTarget)
-            .reduce((acc, curr) => {
-            return acc + (curr - frameTimeTarget) / frameTimeTarget;
-        }, 0);
-        return {
-            loadTimeMs,
-            fullLoadTimeMs,
-            averageFramesPerSecond,
-            virtualDroppedFramesCount,
-            totalFramesCount
-        };
-    }
-};
-/**
- * @internal
- * Safe wrapper for the performance resource timing API in web workers with graceful degradation
- */
-class RequestPerformance {
-    constructor(url) {
-        this.start = `${url}#start`;
-        this.end = `${url}#end`;
-        this.measure = url;
-        performance.mark(this.start);
-    }
-    finish() {
-        performance.mark(this.end);
-        let resourceTimingData = performance.getEntriesByName(this.measure);
-        // fallback if web worker implementation of perf.getEntriesByName returns empty
-        if (resourceTimingData.length === 0) {
-            performance.measure(this.measure, this.start, this.end);
-            resourceTimingData = performance.getEntriesByName(this.measure);
-            // cleanup
-            performance.clearMarks(this.start);
-            performance.clearMarks(this.end);
-            performance.clearMeasures(this.measure);
-        }
-        return resourceTimingData;
     }
 }
 
@@ -68945,6 +69095,7 @@ class TerrainTileManager extends Evented {
      * @returns the tile
      */
     getSourceTile(tileID, searchForDEM) {
+        var _a, _b;
         const source = this.tileManager._source;
         let z = tileID.overscaledZ - this.deltaZoom;
         if (z > source.maxzoom)
@@ -68952,8 +69103,7 @@ class TerrainTileManager extends Evented {
         if (z < source.minzoom)
             return undefined;
         // cache for tileID to terrain-tileID
-        if (!this._sourceTileCache[tileID.key])
-            this._sourceTileCache[tileID.key] = tileID.scaledTo(z).key;
+        (_a = this._sourceTileCache)[_b = tileID.key] || (_a[_b] = tileID.scaledTo(z).key);
         let tile = this.findTileInCaches(this._sourceTileCache[tileID.key]);
         // during tile-loading phase look if parent tiles (with loaded dem) are available.
         if (!(tile === null || tile === void 0 ? void 0 : tile.dem) && searchForDEM) {
@@ -69149,6 +69299,7 @@ class Terrain {
      * @returns the terrain data to use in the program
      */
     getTerrainData(tileID) {
+        var _a, _b;
         // create empty DEM Objects, which will used while raster-dem tiles are loading.
         // creates an empty depth-buffer texture which is needed, during the initialization process of the 3d mesh..
         if (!this._emptyDemTexture) {
@@ -69162,7 +69313,7 @@ class Terrain {
         }
         // find covering dem tile and prepare demTexture
         const sourceTile = this.tileManager.getSourceTile(tileID, true);
-        if (sourceTile && sourceTile.dem && (!sourceTile.demTexture || sourceTile.needsTerrainPrepare)) {
+        if ((sourceTile === null || sourceTile === void 0 ? void 0 : sourceTile.dem) && (!sourceTile.demTexture || sourceTile.needsTerrainPrepare)) {
             const context = this.painter.context;
             sourceTile.demTexture = this.painter.getTileTexture(sourceTile.dem.stride);
             if (sourceTile.demTexture)
@@ -69187,17 +69338,17 @@ class Terrain {
             const dy = tileID.canonical.y - (tileID.canonical.y >> dz << dz);
             const demMatrix = fromScaling(new Float64Array(16), [1 / (EXTENT$1 << dz), 1 / (EXTENT$1 << dz), 0]);
             translate$2(demMatrix, demMatrix, [dx * EXTENT$1, dy * EXTENT$1, 0]);
-            this._demMatrixCache[tileID.key] = { matrix: demMatrix, coord: tileID };
+            this._demMatrixCache[matrixKey] = { matrix: demMatrix, coord: tileID };
         }
         // return uniform values & textures
         return {
             'u_depth': 2,
             'u_terrain': 3,
-            'u_terrain_dim': sourceTile && sourceTile.dem && sourceTile.dem.dim || 1,
-            'u_terrain_matrix': matrixKey ? this._demMatrixCache[tileID.key].matrix : this._emptyDemMatrix,
-            'u_terrain_unpack': sourceTile && sourceTile.dem && sourceTile.dem.getUnpackVector() || this._emptyDemUnpack,
+            'u_terrain_dim': ((_a = sourceTile === null || sourceTile === void 0 ? void 0 : sourceTile.dem) === null || _a === void 0 ? void 0 : _a.dim) || 1,
+            'u_terrain_matrix': matrixKey ? this._demMatrixCache[matrixKey].matrix : this._emptyDemMatrix,
+            'u_terrain_unpack': ((_b = sourceTile === null || sourceTile === void 0 ? void 0 : sourceTile.dem) === null || _b === void 0 ? void 0 : _b.getUnpackVector()) || this._emptyDemUnpack,
             'u_terrain_exaggeration': this.exaggeration,
-            texture: (sourceTile && sourceTile.demTexture || this._emptyDemTexture).texture,
+            texture: ((sourceTile === null || sourceTile === void 0 ? void 0 : sourceTile.demTexture) || this._emptyDemTexture).texture,
             depthTexture: (this._fboDepthTexture || this._emptyDepthTexture).texture,
             tile: sourceTile
         };
@@ -69241,7 +69392,7 @@ class Terrain {
      *   - 8 lower bits for y
      *   - 4 higher bits for x
      *   - 4 higher bits for y
-     *   - 8 bits for coordsIndex (1 .. 255) (= number of terraintile), is later setted in draw_terrain uniform value
+     *   - 8 bits for coordsIndex (1 .. 255) (= number of terraintile), is later set in draw_terrain uniform value
      * @returns the texture
      */
     getCoordsTexture() {
@@ -69269,7 +69420,8 @@ class Terrain {
      */
     pointCoordinate(p) {
         // First, ensure the coords framebuffer is up to date.
-        this.painter.maybeDrawDepthAndCoords(true);
+        this.painter.maybeDrawDepth(true);
+        this.painter.maybeDrawCoords();
         const rgba = new Uint8Array(4);
         const context = this.painter.context, gl = context.gl;
         const px = Math.round(p.x * this.painter.pixelRatio / devicePixelRatio);
@@ -69303,8 +69455,7 @@ class Terrain {
         gl.readPixels(p.x, this.painter.height / devicePixelRatio - p.y - 1, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, rgba);
         context.bindFramebuffer.set(null);
         // decode coordinates (encoding see terran_depth.fragment.glsl)
-        const depthValue = (rgba[0] / (256 * 256 * 256) + rgba[1] / (256 * 256) + rgba[2] / 256 + rgba[3]) / 256;
-        return depthValue;
+        return (rgba[0] / (256 * 256 * 256) + rgba[1] / (256 * 256) + rgba[2] / 256 + rgba[3]) / 256;
     }
     /**
      * create a regular mesh which will be used by all terrain-tiles
@@ -69402,7 +69553,7 @@ class Terrain {
     getMinMaxElevation(tileID) {
         const tile = this.getTerrainData(tileID).tile;
         const minMax = { minElevation: null, maxElevation: null };
-        if (tile && tile.dem) {
+        if (tile === null || tile === void 0 ? void 0 : tile.dem) {
             minMax.minElevation = tile.dem.min * this.exaggeration;
             minMax.maxElevation = tile.dem.max * this.exaggeration;
         }
@@ -69521,6 +69672,7 @@ class RenderToTexture {
     }
     prepareForRender(style, zoom) {
         var _a, _b;
+        var _c;
         this._stacks = [];
         this._prevType = null;
         this._rttTiles = [];
@@ -69535,8 +69687,7 @@ class RenderToTexture {
             for (const tileID of tileIDs) {
                 const keys = this.terrain.tileManager.getTerrainCoords(tileID, terrainTileRanges);
                 for (const key in keys) {
-                    if (!this._coordsAscending[id][key])
-                        this._coordsAscending[id][key] = [];
+                    (_c = this._coordsAscending[id])[key] || (_c[key] = []);
                     this._coordsAscending[id][key].push(keys[key]);
                 }
             }
@@ -69623,8 +69774,8 @@ class RenderToTexture {
                 painter.context.bindFramebuffer.set(obj.fbo.framebuffer);
                 painter.context.clear({ color: Color.transparent, stencil: 0 });
                 painter.currentStencilSource = undefined;
-                for (let l = 0; l < layers.length; l++) {
-                    const layer = painter.style._layers[layers[l]];
+                for (const layerId of layers) {
+                    const layer = painter.style._layers[layerId];
                     const coords = layer.source ? this._coordsAscending[layer.source][tile.tileID.key] : [tile.tileID];
                     painter.context.viewport.set([0, 0, obj.fbo.width, obj.fbo.height]);
                     painter._renderTileClippingMasks(layer, coords, true);
@@ -69778,8 +69929,7 @@ let Map$1 = class Map extends Camera {
         return ((_b = (_a = this._container) === null || _a === void 0 ? void 0 : _a.ownerDocument) === null || _b === void 0 ? void 0 : _b.defaultView) || window;
     }
     constructor(options) {
-        var _a, _b;
-        PerformanceUtils.mark(PerformanceMarkers.create);
+        var _a, _b, _c;
         const resolvedOptions = Object.assign(Object.assign(Object.assign({}, defaultOptions$4), options), { canvasContextAttributes: Object.assign(Object.assign({}, defaultOptions$4.canvasContextAttributes), options.canvasContextAttributes) });
         if (resolvedOptions.minZoom != null && resolvedOptions.maxZoom != null && resolvedOptions.minZoom > resolvedOptions.maxZoom) {
             throw new Error('maxZoom must be greater than or equal to minZoom');
@@ -69864,7 +70014,7 @@ let Map$1 = class Map extends Camera {
             if (this._lostContextStyle.style) {
                 this.setStyle(this._lostContextStyle.style, { diff: false });
             }
-            if (this._lostContextStyle.images) {
+            if (this._lostContextStyle.images && this.style) {
                 this.style.imageManager.images = this._lostContextStyle.images;
             }
             this._lostContextStyle = { style: null, images: null };
@@ -69921,19 +70071,19 @@ let Map$1 = class Map extends Camera {
         this.on('moveend', () => this._update(false));
         this.on('zoom', () => this._update(true));
         this.on('terrain', () => {
-            this.painter.terrainFacilitator.dirty = true;
+            this.painter.terrainFacilitator.depthDirty = true;
             this._update(true);
         });
-        this.once('idle', () => { this._idleTriggered = true; });
+        this.once('idle', () => this._idleTriggered = true);
         if (typeof window !== 'undefined') {
             this._ownerWindow.addEventListener('online', this._onWindowOnline, false);
             this._setupResizeObserver();
         }
         this.handlers = new HandlerManager(this, resolvedOptions);
         const hashName = (typeof resolvedOptions.hash === 'string' && resolvedOptions.hash) || undefined;
-        this._hash = resolvedOptions.hash && (new Hash(hashName)).addTo(this);
+        this._hash = resolvedOptions.hash ? (new Hash(hashName)).addTo(this) : undefined;
         // don't set position from options if set through hash
-        if (!this._hash || !this._hash._onHashChange()) {
+        if (!((_a = this._hash) === null || _a === void 0 ? void 0 : _a._onHashChange())) {
             this.jumpTo({
                 center: resolvedOptions.center,
                 elevation: resolvedOptions.elevation,
@@ -69950,7 +70100,7 @@ let Map$1 = class Map extends Camera {
         // When no style is set or it's using something other than the globe projection, we can constrain the camera.
         // When a style is set with other projections though, we can't constrain the camera until the style is loaded
         // and the correct transform is used. Otherwise, valid points in the desired projection could be rejected
-        const shouldConstrainUsingMercatorTransform = typeof resolvedOptions.style === 'string' || !(((_b = (_a = resolvedOptions.style) === null || _a === void 0 ? void 0 : _a.projection) === null || _b === void 0 ? void 0 : _b.type) === 'globe');
+        const shouldConstrainUsingMercatorTransform = typeof resolvedOptions.style === 'string' || !(((_c = (_b = resolvedOptions.style) === null || _b === void 0 ? void 0 : _b.projection) === null || _c === void 0 ? void 0 : _c.type) === 'globe');
         this.resize(null, shouldConstrainUsingMercatorTransform);
         this._localIdeographFontFamily = resolvedOptions.localIdeographFontFamily;
         this._validateStyle = resolvedOptions.validateStyle;
@@ -70011,7 +70161,7 @@ let Map$1 = class Map extends Camera {
     /**
      * Adds an {@link IControl} to the map, calling `control.onAdd(this)`.
      *
-     * An {@link ErrorEvent} will be fired if the image parameter is invalid.
+     * An {@link ErrorEvent} will be fired if the control is invalid.
      *
      * @param control - The {@link IControl} to add.
      * @param position - position on the map to which the control will be added.
@@ -70032,13 +70182,13 @@ let Map$1 = class Map extends Camera {
                 position = 'top-right';
             }
         }
-        if (!control || !control.onAdd) {
+        if (!(control === null || control === void 0 ? void 0 : control.onAdd)) {
             return this.fire(new ErrorEvent(new Error('Invalid argument to map.addControl(). Argument must be a control with onAdd and onRemove methods.')));
         }
         const controlElement = control.onAdd(this);
         this._controls.push(control);
         const positionContainer = this._controlPositions[position];
-        if (position.indexOf('bottom') !== -1) {
+        if (position.includes('bottom')) {
             positionContainer.insertBefore(controlElement, positionContainer.firstChild);
         }
         else {
@@ -70049,7 +70199,7 @@ let Map$1 = class Map extends Camera {
     /**
      * Removes the control from the map.
      *
-     * An {@link ErrorEvent} will be fired if the image parameter is invalid.
+     * An {@link ErrorEvent} will be fired if the control is invalid.
      *
      * @param control - The {@link IControl} to remove.
      * @example
@@ -70063,7 +70213,7 @@ let Map$1 = class Map extends Camera {
      * ```
      */
     removeControl(control) {
-        if (!control || !control.onRemove) {
+        if (!(control === null || control === void 0 ? void 0 : control.onRemove)) {
             return this.fire(new ErrorEvent(new Error('Invalid argument to map.removeControl(). Argument must be a control with onAdd and onRemove methods.')));
         }
         const ci = this._controls.indexOf(control);
@@ -70088,7 +70238,7 @@ let Map$1 = class Map extends Camera {
      * ```
      */
     hasControl(control) {
-        return this._controls.indexOf(control) > -1;
+        return this._controls.includes(control);
     }
     /**
     * Returns an array of `OverscaledTileID` objects that cover the current viewport for a given tile size.
@@ -70658,12 +70808,14 @@ let Map$1 = class Map extends Camera {
         }
     }
     _saveDelegatedListener(type, delegatedListener) {
-        this._delegatedListeners = this._delegatedListeners || {};
-        this._delegatedListeners[type] = this._delegatedListeners[type] || [];
+        var _a;
+        this._delegatedListeners || (this._delegatedListeners = {});
+        (_a = this._delegatedListeners)[type] || (_a[type] = []);
         this._delegatedListeners[type].push(delegatedListener);
     }
     _removeDelegatedListener(type, layerIds, listener) {
-        if (!this._delegatedListeners || !this._delegatedListeners[type]) {
+        var _a;
+        if (!((_a = this._delegatedListeners) === null || _a === void 0 ? void 0 : _a[type])) {
             return;
         }
         const listeners = this._delegatedListeners[type];
@@ -70810,7 +70962,7 @@ let Map$1 = class Map extends Camera {
         let queryGeometry;
         const isGeometry = geometryOrOptions instanceof Point || Array.isArray(geometryOrOptions);
         const geometry = isGeometry ? geometryOrOptions : [[0, 0], [this.transform.width, this.transform.height]];
-        options = options || (isGeometry ? {} : geometryOrOptions) || {};
+        options || (options = (isGeometry ? {} : geometryOrOptions) || {});
         if (geometry instanceof Point || typeof geometry[0] === 'number') {
             queryGeometry = [Point.convert(geometry)];
         }
@@ -70938,7 +71090,9 @@ let Map$1 = class Map extends Camera {
         return str;
     }
     _updateStyle(style, options) {
-        var _a, _b;
+        var _a, _b, _c;
+        (_a = this._diffStyleRequest) === null || _a === void 0 ? void 0 : _a.abort();
+        this._diffStyleRequest = null;
         // transformStyle relies on having previous style serialized, if it is not loaded yet, delay _updateStyle until previous style is loaded
         if (options.transformStyle && this.style && !this.style._loaded) {
             this.style.once('style.load', () => this._updateStyle(style, options));
@@ -70951,7 +71105,11 @@ let Map$1 = class Map extends Camera {
             this.style._remove(!style);
         }
         if (!style) {
-            (_b = (_a = this.style) === null || _a === void 0 ? void 0 : _a.projection) === null || _b === void 0 ? void 0 : _b.destroy();
+            if (this._frameRequest) {
+                this._frameRequest.abort();
+                this._frameRequest = null;
+            }
+            (_c = (_b = this.style) === null || _b === void 0 ? void 0 : _b.projection) === null || _c === void 0 ? void 0 : _c.destroy();
             delete this.style;
             return this;
         }
@@ -70976,20 +71134,31 @@ let Map$1 = class Map extends Camera {
     }
     _diffStyle(style, options) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            (_a = this._diffStyleRequest) === null || _a === void 0 ? void 0 : _a.abort();
             if (typeof style === 'string') {
                 const url = style;
-                const request = yield this._requestManager.transformRequest(url, "Style" /* ResourceType.Style */);
+                this._diffStyleRequest = new AbortController();
+                const abortController = this._diffStyleRequest;
                 try {
-                    const response = yield getJSON(request, new AbortController());
+                    const request = yield this._requestManager.transformRequest(url, "Style" /* ResourceType.Style */);
+                    if (abortController.signal.aborted) {
+                        this._diffStyleRequest = null;
+                        return;
+                    }
+                    const response = yield getJSON(request, abortController);
+                    this._diffStyleRequest = null;
                     this._updateDiff(response.data, options);
                 }
                 catch (error) {
-                    if (error) {
-                        this.fire(new ErrorEvent(error));
+                    this._diffStyleRequest = null;
+                    if (!isAbortError(error)) {
+                        this.fire(new ErrorEvent(ensureError(error)));
                     }
                 }
             }
             else if (typeof style === 'object') {
+                this._diffStyleRequest = null;
                 this._updateDiff(style, options);
             }
         });
@@ -71001,7 +71170,7 @@ let Map$1 = class Map extends Camera {
             }
         }
         catch (e) {
-            warnOnce(`Unable to perform style diff: ${e.message || e.error || e}.  Rebuilding the style from scratch.`);
+            warnOnce(`Unable to perform style diff: ${ensureError(e).message}.  Rebuilding the style from scratch.`);
             this._updateStyle(style, options);
         }
     }
@@ -71046,8 +71215,10 @@ let Map$1 = class Map extends Camera {
      * ```
      */
     isStyleLoaded() {
-        if (!this.style)
-            return warnOnce('There is no style added to the map.');
+        if (!this.style) {
+            warnOnce('There is no style added to the map.');
+            return;
+        }
         return this.style.loaded();
     }
     /**
@@ -71096,7 +71267,7 @@ let Map$1 = class Map extends Camera {
      * Returns a Boolean indicating whether the source is loaded. Returns `true` if the source with
      * the given ID in the map's style has no outstanding network requests, otherwise `false`.
      *
-     * A {@link ErrorEvent} event will be fired if there is no source wit the specified ID.
+     * A {@link ErrorEvent} event will be fired if there is no source with the specified ID.
      *
      * @param id - The ID of the source to be checked.
      * @returns A Boolean indicating whether the source is loaded.
@@ -71106,7 +71277,8 @@ let Map$1 = class Map extends Camera {
      * ```
      */
     isSourceLoaded(id) {
-        const tileManager = this.style && this.style.tileManagers[id];
+        var _a;
+        const tileManager = (_a = this.style) === null || _a === void 0 ? void 0 : _a.tileManagers[id];
         if (tileManager === undefined) {
             this.fire(new ErrorEvent(new Error(`There is no tile manager with ID '${id}'`)));
             return;
@@ -71213,7 +71385,8 @@ let Map$1 = class Map extends Camera {
      * ```
      */
     areTilesLoaded() {
-        const tileManagers = this.style && this.style.tileManagers;
+        var _a;
+        const tileManagers = (_a = this.style) === null || _a === void 0 ? void 0 : _a.tileManagers;
         for (const tileManager of Object.values(tileManagers)) {
             if (!tileManager.areTilesLoaded()) {
                 return false;
@@ -71446,7 +71619,7 @@ let Map$1 = class Map extends Camera {
      * in the style's original sprite and any images
      * that have been added at runtime using {@link Map.addImage}.
      *
-     * An {@link ErrorEvent} will be fired if the image parameter is invalid.
+     * An {@link ErrorEvent} will be fired if the image ID is missing.
      *
      * @param id - The ID of the image.
      *
@@ -71620,7 +71793,7 @@ let Map$1 = class Map extends Camera {
     /**
      * Removes the layer with the given ID from the map's style.
      *
-     * An {@link ErrorEvent} will be fired if the image parameter is invalid.
+     * An {@link ErrorEvent} will be fired if no such layer exists.
      *
      * @param id - The ID of the layer to remove
      *
@@ -72158,9 +72331,9 @@ let Map$1 = class Map extends Camera {
         this._resizeCanvas(dimensions[0], dimensions[1], clampedPixelRatio);
         const controlContainer = this._controlContainer = DOM.create('div', 'maplibregl-control-container', container);
         const positions = this._controlPositions = {};
-        ['top-left', 'top-right', 'bottom-left', 'bottom-right'].forEach((positionName) => {
+        for (const positionName of ['top-left', 'top-right', 'bottom-left', 'bottom-right']) {
             positions[positionName] = DOM.create('div', `maplibregl-ctrl-${positionName} `, controlContainer);
-        });
+        }
         this._container.addEventListener('scroll', this._onMapScroll, false);
     }
     _resizeCanvas(width, height, pixelRatio) {
@@ -72229,9 +72402,10 @@ let Map$1 = class Map extends Camera {
      * well as its sources
      */
     _update(updateStyle) {
-        if (!this.style || !this.style._loaded)
+        var _a;
+        if (!((_a = this.style) === null || _a === void 0 ? void 0 : _a._loaded))
             return this;
-        this._styleDirty = this._styleDirty || updateStyle;
+        this._styleDirty || (this._styleDirty = updateStyle);
         this._sourcesDirty = true;
         this.triggerRepaint();
         return this;
@@ -72262,7 +72436,7 @@ let Map$1 = class Map extends Camera {
      * @param paintStartTimeStamp - The time when the animation frame began executing.
      */
     _render(paintStartTimeStamp) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         const fadeDuration = this._idleTriggered ? this._fadeDuration : 0;
         const isGlobeRendering = ((_a = this.style.projection) === null || _a === void 0 ? void 0 : _a.transitionState) > 0;
         // A custom layer may have used the context asynchronously. Mark the state as dirty.
@@ -72318,7 +72492,7 @@ let Map$1 = class Map extends Camera {
                 this.transform.setElevation(0);
             }
         }
-        this._placementDirty = this.style && this.style._updatePlacement(this.transform, this.showCollisionBoxes, fadeDuration, this._crossSourceCollisions, globeRenderingChanged);
+        this._placementDirty = (_f = this.style) === null || _f === void 0 ? void 0 : _f._updatePlacement(this.transform, this.showCollisionBoxes, fadeDuration, this._crossSourceCollisions, globeRenderingChanged);
         // Actually draw
         this.painter.render(this.style, {
             showTileBoundaries: this.showTileBoundaries,
@@ -72333,7 +72507,6 @@ let Map$1 = class Map extends Camera {
         this.fire(new Event('render'));
         if (this.loaded() && !this._loaded) {
             this._loaded = true;
-            PerformanceUtils.mark(PerformanceMarkers.load);
             this.fire(new Event('load'));
         }
         if (this.style && (this.style.hasTransitions() || crossFading)) {
@@ -72359,7 +72532,6 @@ let Map$1 = class Map extends Camera {
         }
         if (this._loaded && !this._fullyLoaded && !somethingDirty) {
             this._fullyLoaded = true;
-            PerformanceUtils.mark(PerformanceMarkers.fullLoad);
         }
         return this;
     }
@@ -72391,7 +72563,7 @@ let Map$1 = class Map extends Camera {
      * methods on the map.
      */
     remove() {
-        var _a;
+        var _a, _b;
         if (this._hash)
             this._hash.remove();
         for (const control of this._controls)
@@ -72402,6 +72574,7 @@ let Map$1 = class Map extends Camera {
             this._frameRequest = null;
         }
         this._renderTaskQueue.clear();
+        (_a = this._diffStyleRequest) === null || _a === void 0 ? void 0 : _a.abort();
         this.painter.destroy();
         this.handlers.destroy();
         delete this.handlers;
@@ -72410,7 +72583,7 @@ let Map$1 = class Map extends Camera {
             this._ownerWindow.removeEventListener('online', this._onWindowOnline, false);
         }
         ImageRequest.removeThrottleControl(this._imageQueueHandle);
-        (_a = this._resizeObserver) === null || _a === void 0 ? void 0 : _a.disconnect();
+        (_b = this._resizeObserver) === null || _b === void 0 ? void 0 : _b.disconnect();
         const extension = this.painter.context.gl.getExtension('WEBGL_lose_context');
         if (extension === null || extension === void 0 ? void 0 : extension.loseContext)
             extension.loseContext();
@@ -72420,7 +72593,6 @@ let Map$1 = class Map extends Camera {
         this._controlContainer.remove();
         this._container.removeEventListener('scroll', this._onMapScroll, false);
         this._container.classList.remove('maplibregl-map');
-        PerformanceUtils.remove();
         this._removed = true;
         this.fire(new Event('remove'));
     }
@@ -72439,7 +72611,6 @@ let Map$1 = class Map extends Camera {
         if (this.style && !this._frameRequest) {
             this._frameRequest = new AbortController();
             browser.frame(this._frameRequest, (paintStartTimeStamp) => {
-                PerformanceUtils.recordStartOfFrameAt(paintStartTimeStamp);
                 this._frameRequest = null;
                 try {
                     this._render(paintStartTimeStamp);
@@ -72914,8 +73085,11 @@ function applyAnchorClass(element, anchor, prefix) {
  *   }).setLngLat([30.5, 50.5])
  *   .addTo(map);
  * ```
+ * @see [Add a default marker](https://maplibre.org/maplibre-gl-js/docs/examples/add-a-default-marker/)
  * @see [Add custom icons with Markers](https://maplibre.org/maplibre-gl-js/docs/examples/add-custom-icons-with-markers/)
  * @see [Create a draggable Marker](https://maplibre.org/maplibre-gl-js/docs/examples/create-a-draggable-marker/)
+ * @see [Animate a marker](https://maplibre.org/maplibre-gl-js/docs/examples/animate-a-marker/)
+ * @see [Attach a popup to a marker instance](https://maplibre.org/maplibre-gl-js/docs/examples/attach-a-popup-to-a-marker-instance/)
  *
  * ## Events
  *
@@ -72926,6 +73100,20 @@ function applyAnchorClass(element, anchor, prefix) {
  * **Event** `dragend` of type {@link Event} will be fired when the marker is finished being dragged.
  *
  * **Event** `click` of type {@link Event} will be fired when the marker is clicked.
+ *
+ * ## CSS Classes
+ *
+ * **CSS class** `maplibregl-marker-covered` is toggled on the marker element when the marker
+ * is hidden behind 3D terrain or on the back of a globe.
+ * Use this class to apply custom styles to covered markers.
+ *
+ * @example
+ * ```css
+ * .maplibregl-marker-covered {
+ *     pointer-events: none;
+ *     cursor: default;
+ * }
+ * ```
  */
 class Marker extends Evented {
     /**
@@ -72983,7 +73171,7 @@ class Marker extends Evented {
             }
             this._element.style.transform = `${anchorTranslate[this._anchor]} translate(${this._pos.x}px, ${this._pos.y}px) ${pitch} ${rotation}`;
             browser.frameAsync(new AbortController(), this._map._ownerWindow).then(() => {
-                this._updateOpacity(e && e.type === 'moveend');
+                this._updateOpacity((e === null || e === void 0 ? void 0 : e.type) === 'moveend');
             }).catch(() => { });
         };
         this._onMove = (e) => {
@@ -73039,19 +73227,19 @@ class Marker extends Evented {
                 this._map.once('touchend', this._onUp);
             }
         };
-        this._anchor = options && options.anchor || 'center';
-        this._color = options && options.color || '#3FB1CE';
-        this._scale = options && options.scale || 1;
-        this._draggable = options && options.draggable || false;
-        this._clickTolerance = options && options.clickTolerance || 0;
-        this._subpixelPositioning = options && options.subpixelPositioning || false;
+        this._anchor = (options === null || options === void 0 ? void 0 : options.anchor) || 'center';
+        this._color = (options === null || options === void 0 ? void 0 : options.color) || '#3FB1CE';
+        this._scale = (options === null || options === void 0 ? void 0 : options.scale) || 1;
+        this._draggable = (options === null || options === void 0 ? void 0 : options.draggable) || false;
+        this._clickTolerance = (options === null || options === void 0 ? void 0 : options.clickTolerance) || 0;
+        this._subpixelPositioning = (options === null || options === void 0 ? void 0 : options.subpixelPositioning) || false;
         this._isDragging = false;
         this._state = 'inactive';
-        this._rotation = options && options.rotation || 0;
-        this._rotationAlignment = options && options.rotationAlignment || 'auto';
-        this._pitchAlignment = options && options.pitchAlignment && options.pitchAlignment !== 'auto' ? options.pitchAlignment : this._rotationAlignment;
+        this._rotation = (options === null || options === void 0 ? void 0 : options.rotation) || 0;
+        this._rotationAlignment = (options === null || options === void 0 ? void 0 : options.rotationAlignment) || 'auto';
+        this._pitchAlignment = (options === null || options === void 0 ? void 0 : options.pitchAlignment) && options.pitchAlignment !== 'auto' ? options.pitchAlignment : this._rotationAlignment;
         this.setOpacity(options === null || options === void 0 ? void 0 : options.opacity, options === null || options === void 0 ? void 0 : options.opacityWhenCovered);
-        if (!options || !options.element) {
+        if (!(options === null || options === void 0 ? void 0 : options.element)) {
             this._defaultMarker = true;
             this._element = DOM.create('div');
             // create default map marker SVG
@@ -73136,11 +73324,11 @@ class Marker extends Evented {
             // the y value of the center of the shadow ellipse relative to the svg top left is "shadow transform translate-y (29.0) + ellipse cy (5.80029008)"
             // offset to the svg center "height (41 / 2)" gives (29.0 + 5.80029008) - (41 / 2) and rounded for an integer pixel offset gives 14
             // negative is used to move the marker up from the center so the tip is at the Marker lngLat
-            this._offset = Point.convert(options && options.offset || [0, -14]);
+            this._offset = Point.convert((options === null || options === void 0 ? void 0 : options.offset) || [0, -14]);
         }
         else {
             this._element = options.element;
-            this._offset = Point.convert(options && options.offset || [0, 0]);
+            this._offset = Point.convert((options === null || options === void 0 ? void 0 : options.offset) || [0, 0]);
         }
         this._element.classList.add('maplibregl-marker');
         this._element.addEventListener('dragstart', (e) => {
@@ -73151,7 +73339,7 @@ class Marker extends Evented {
             e.preventDefault();
         });
         applyAnchorClass(this._element, this._anchor, 'marker');
-        if (options && options.className) {
+        if (options === null || options === void 0 ? void 0 : options.className) {
             for (const name of options.className.split(' ')) {
                 this._element.classList.add(name);
             }
@@ -73386,6 +73574,7 @@ class Marker extends Evented {
             const targetOpacity = occluded ? this._opacityWhenCovered : this._opacity;
             if (this._element.style.opacity !== targetOpacity) {
                 this._element.style.opacity = targetOpacity;
+                this._element.classList.toggle('maplibregl-marker-covered', occluded);
             }
             return;
         }
@@ -73409,6 +73598,7 @@ class Marker extends Evented {
         const forgiveness = .006;
         if (markerDistance - terrainDistance < forgiveness) {
             this._element.style.opacity = this._opacity;
+            this._element.classList.remove('maplibregl-marker-covered');
             return;
         }
         // If the base is obscured, use the offset to check if the marker's center is obscured.
@@ -73421,6 +73611,7 @@ class Marker extends Evented {
         if (((_b = this._popup) === null || _b === void 0 ? void 0 : _b.isOpen()) && centerIsInvisible)
             this._popup.remove();
         this._element.style.opacity = centerIsInvisible ? this._opacityWhenCovered : this._opacity;
+        this._element.classList.toggle('maplibregl-marker-covered', centerIsInvisible);
     }
     /**
      * Get the marker's offset.
@@ -73570,10 +73761,10 @@ class Marker extends Evented {
             this._opacityWhenCovered = '0.2';
         }
         if (opacity !== undefined) {
-            this._opacity = opacity;
+            this._opacity = String(opacity);
         }
         if (opacityWhenCovered !== undefined) {
-            this._opacityWhenCovered = opacityWhenCovered;
+            this._opacityWhenCovered = String(opacityWhenCovered);
         }
         if (this._map) {
             this._updateOpacity(true);
@@ -73936,7 +74127,7 @@ class GeolocateControl extends Evented {
             if (!this._map) {
                 return;
             }
-            this._container.addEventListener('contextmenu', (e) => e.preventDefault());
+            this._container.addEventListener('contextmenu', (e) => { e.preventDefault(); });
             this._geolocateButton = DOM.create('button', 'maplibregl-ctrl-geolocate', this._container);
             DOM.create('span', 'maplibregl-ctrl-icon', this._geolocateButton).setAttribute('aria-hidden', 'true');
             this._geolocateButton.type = 'button';
@@ -74259,7 +74450,7 @@ function updateScale(map, container, options) {
     // Using spherical law of cosines approximation, the real distance is
     // found between the two coordinates.
     // Minimum maxWidth is calculated for the scale box.
-    const optWidth = options && options.maxWidth || 100;
+    const optWidth = (options === null || options === void 0 ? void 0 : options.maxWidth) || 100;
     const y = map._container.clientHeight / 2;
     const x = map._container.clientWidth / 2;
     const left = map.unproject([x - optWidth / 2, y]);
@@ -74270,7 +74461,7 @@ function updateScale(map, container, options) {
     // The real distance corresponding to 100px scale length is rounded off to
     // near pretty number and the scale length for the same is found out.
     // Default unit of the scale is based on User's locale.
-    if (options && options.unit === 'imperial') {
+    if ((options === null || options === void 0 ? void 0 : options.unit) === 'imperial') {
         const maxFeet = 3.2808 * maxMeters;
         if (maxFeet > 5280) {
             const maxMiles = maxFeet / 5280;
@@ -74280,7 +74471,7 @@ function updateScale(map, container, options) {
             setScale(container, maxWidth, maxFeet, map._getUIString('ScaleControl.Feet'));
         }
     }
-    else if (options && options.unit === 'nautical') {
+    else if ((options === null || options === void 0 ? void 0 : options.unit) === 'nautical') {
         const maxNauticals = maxMeters / 1852;
         setScale(container, maxWidth, maxNauticals, map._getUIString('ScaleControl.NauticalMiles'));
     }
@@ -74325,7 +74516,7 @@ function getRoundNum(num) {
  * ```ts
  * map.addControl(new FullscreenControl({container: document.querySelector('body')}));
  * ```
- * @see [View a fullscreen map](https://maplibre.org/maplibre-gl-js/docs/examples/fullscreen/)
+ * @see [View a fullscreen map](https://maplibre.org/maplibre-gl-js/docs/examples/view-a-fullscreen-map/)
  *
  * ## Events
  *
@@ -74362,7 +74553,7 @@ class FullscreenControl extends Evented {
         };
         this._fullscreen = false;
         this._pseudo = (_a = options.pseudo) !== null && _a !== void 0 ? _a : false;
-        if (options && options.container) {
+        if (options === null || options === void 0 ? void 0 : options.container) {
             if (options.container instanceof HTMLElement) {
                 this._container = options.container;
             }
@@ -74386,8 +74577,7 @@ class FullscreenControl extends Evented {
     /** {@inheritDoc IControl.onAdd} */
     onAdd(map) {
         this._map = map;
-        if (!this._container)
-            this._container = this._map.getContainer();
+        this._container || (this._container = this._map.getContainer());
         this._controlContainer = DOM.create('div', 'maplibregl-ctrl maplibregl-ctrl-group');
         this._setupUI();
         return this._controlContainer;
@@ -74483,6 +74673,10 @@ class FullscreenControl extends Evented {
  *         source: "terrain"
  *     }));
  * ```
+ * @see [3D Terrain](https://maplibre.org/maplibre-gl-js/docs/examples/3d-terrain/)
+ * @see [Create a Heatmap layer on a globe with terrain elevation](https://maplibre.org/maplibre-gl-js/docs/examples/create-a-heatmap-layer-on-a-globe-with-terrain-elevation/)
+ * @see [Display a hybrid satellite map with terrain elevation](https://maplibre.org/maplibre-gl-js/docs/examples/display-a-hybrid-satellite-map-with-terrain-elevation/)
+ * @see [Sky, Fog, Terrain](https://maplibre.org/maplibre-gl-js/docs/examples/sky-fog-terrain/)
  */
 class TerrainControl {
     /**
@@ -74544,6 +74738,7 @@ class TerrainControl {
  * ```
  *
  * @see [Display a globe with a fill extrusion layer](https://maplibre.org/maplibre-gl-js/docs/examples/display-a-globe-with-a-fill-extrusion-layer/)
+ * @see [Sky, Fog, Terrain](https://maplibre.org/maplibre-gl-js/docs/examples/sky-fog-terrain/)
  */
 class GlobeControl {
     constructor() {
@@ -74665,6 +74860,7 @@ const focusQuerySelector = [
  * @see [Display a popup on hover](https://maplibre.org/maplibre-gl-js/docs/examples/display-a-popup-on-hover/)
  * @see [Display a popup on click](https://maplibre.org/maplibre-gl-js/docs/examples/display-a-popup-on-click/)
  * @see [Attach a popup to a marker instance](https://maplibre.org/maplibre-gl-js/docs/examples/attach-a-popup-to-a-marker-instance/)
+ * @see [Show polygon information on click](https://maplibre.org/maplibre-gl-js/docs/examples/show-polygon-information-on-click/)
  *
  * ## Events
  *
@@ -74714,6 +74910,8 @@ class Popup extends Evented {
                 this._map.off('move', this._onClose);
                 this._map.off('click', this._onClose);
                 this._map.off('remove', this.remove);
+                this._map.off('terrain', this._update);
+                this._map.off('projectiontransition', this._update);
                 this._map.off('mousemove', this._update);
                 this._map.off('mouseup', this._update);
                 this._map.off('drag', this._update);
@@ -74828,6 +75026,8 @@ class Popup extends Evented {
             this._map.on('move', this._onClose);
         }
         this._map.on('remove', this.remove);
+        this._map.on('terrain', this._update);
+        this._map.on('projectiontransition', this._update);
         this._update();
         this._focusFirstElement();
         if (this._trackPointer) {
@@ -75212,7 +75412,8 @@ const version = packageJSON.version;
  * ```ts
  * setRTLTextPlugin('https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js', false);
  * ```
- * @see [Add support for right-to-left scripts](https://maplibre.org/maplibre-gl-js/docs/examples/mapbox-gl-rtl-text/)
+ * @see [Add support for right-to-left scripts](https://maplibre.org/maplibre-gl-js/docs/examples/add-support-for-right-to-left-scripts/)
+ * @see [Display and style rich text labels](https://maplibre.org/maplibre-gl-js/docs/examples/display-and-style-rich-text-labels/)
  */
 function setRTLTextPlugin(pluginURL, lazy) {
     return rtlMainThreadPluginFactory().setRTLTextPlugin(pluginURL, lazy);
@@ -75370,6 +75571,7 @@ exports.addSourceType = addSourceType;
 exports.clearPrewarmedResources = clearPrewarmedResources;
 exports.config = config;
 exports.createTileMesh = createTileMesh;
+exports.getGlobalDispatcher = getGlobalDispatcher;
 exports.getMaxParallelImageRequests = getMaxParallelImageRequests;
 exports.getRTLTextPluginStatus = getRTLTextPluginStatus;
 exports.getVersion = getVersion;

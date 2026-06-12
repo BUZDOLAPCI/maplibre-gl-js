@@ -1,6 +1,6 @@
 /**
  * MapLibre GL JS
- * @license 3-Clause BSD. Full text of license: https://github.com/maplibre/maplibre-gl-js/blob/v5.21.1/LICENSE.txt
+ * @license 3-Clause BSD. Full text of license: https://github.com/maplibre/maplibre-gl-js/blob/v5.24.0/LICENSE.txt
  */
 var maplibregl = (function () {
 'use strict';
@@ -867,11 +867,9 @@ var UnitBezier$1 = /*@__PURE__*/getDefaultExportFromCjs$1(unitbezierExports$1);
 
 let supportsOffscreenCanvas;
 function offscreenCanvasSupported() {
-    if (supportsOffscreenCanvas == null) {
-        supportsOffscreenCanvas = typeof OffscreenCanvas !== 'undefined' &&
-            new OffscreenCanvas(1, 1).getContext('2d') &&
-            typeof createImageBitmap === 'function';
-    }
+    supportsOffscreenCanvas !== null && supportsOffscreenCanvas !== void 0 ? supportsOffscreenCanvas : (supportsOffscreenCanvas = typeof OffscreenCanvas !== 'undefined' &&
+        new OffscreenCanvas(1, 1).getContext('2d') &&
+        typeof createImageBitmap === 'function');
     return supportsOffscreenCanvas;
 }
 
@@ -8693,6 +8691,16 @@ function pixelsToTileUnits(tile, pixelValue, z) {
 }
 
 /**
+ * Ensures that a value is an `Error` instance.
+ * If the value is already an `Error`, it is returned as-is.
+ * Otherwise, a new `Error` is created from its string representation.
+ */
+function ensureError(e) {
+    if (e instanceof Error)
+        return e;
+    return new Error(typeof e === 'string' ? e : String(e));
+}
+/**
  * Returns a new 64 bit float vec4 of zeroes.
  */
 function createVec4f64() { return new Float64Array(4); }
@@ -9072,8 +9080,7 @@ function extend(dest, ...sources) {
  */
 function pick(src, properties) {
     const result = {};
-    for (let i = 0; i < properties.length; i++) {
-        const k = properties[i];
+    for (const k of properties) {
         if (k in src) {
             result[k] = src[k];
         }
@@ -9200,8 +9207,8 @@ function clone(input) {
  * Check if two arrays have at least one common element.
  */
 function arraysIntersect(a, b) {
-    for (let l = 0; l < a.length; l++) {
-        if (b.indexOf(a[l]) >= 0)
+    for (const element of a) {
+        if (b.includes(element))
             return true;
     }
     return false;
@@ -9374,7 +9381,7 @@ const arrayBufferToImageBitmap = (data) => __awaiter(void 0, void 0, void 0, fun
         return createImageBitmap(blob);
     }
     catch (e) {
-        throw new Error(`Could not load image because of ${e.message}. Please make sure to use a supported image type such as PNG or JPEG. Note that SVGs are not supported.`);
+        throw new Error(`Could not load image because of ${ensureError(e).message}. Please make sure to use a supported image type such as PNG or JPEG. Note that SVGs are not supported.`);
     }
 });
 const transparentPngUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQYV2NgAAIAAAUAAarVyFEAAAAASUVORK5CYII=';
@@ -9398,7 +9405,7 @@ const arrayBufferToImage = (data) => {
             // but don't free the image immediately because it might be uploaded in the next frame
             // https://github.com/mapbox/mapbox-gl-js/issues/10226
             img.onload = null;
-            window.requestAnimationFrame(() => { img.src = transparentPngUrl; });
+            window.requestAnimationFrame(() => img.src = transparentPngUrl);
         };
         img.onerror = () => reject(new Error('Could not load image. Please make sure to use a supported image type such as PNG or JPEG. Note that SVGs are not supported.'));
         const blob = new Blob([new Uint8Array(data)], { type: 'image/png' });
@@ -9761,8 +9768,7 @@ class TransferableGridIndex {
         if (cell !== null) {
             const keys = this.keys;
             const bboxes = this.bboxes;
-            for (let u = 0; u < cell.length; u++) {
-                const uid = cell[u];
+            for (const uid of cell) {
                 if (seenUids[uid] === undefined) {
                     const offset = uid * 4;
                     if (intersectionTest ?
@@ -9808,8 +9814,8 @@ class TransferableGridIndex {
         const cells = this.cells;
         const metadataLength = NUM_PARAMS + this.cells.length + 1 + 1;
         let totalCellLength = 0;
-        for (let i = 0; i < this.cells.length; i++) {
-            totalCellLength += this.cells[i].length;
+        for (const cell of this.cells) {
+            totalCellLength += cell.length;
         }
         const array = new Int32Array(metadataLength + totalCellLength + this.keys.length + this.bboxes.length);
         array[0] = this.extent;
@@ -10442,10 +10448,11 @@ var layout_line = {
 		expression: {
 			interpolated: false,
 			parameters: [
-				"zoom"
+				"zoom",
+				"feature"
 			]
 		},
-		"property-type": "data-constant"
+		"property-type": "data-driven"
 	},
 	"line-join": {
 		type: "enum",
@@ -10478,10 +10485,11 @@ var layout_line = {
 		expression: {
 			interpolated: true,
 			parameters: [
-				"zoom"
+				"zoom",
+				"feature"
 			]
 		},
-		"property-type": "data-constant"
+		"property-type": "data-driven"
 	},
 	"line-round-limit": {
 		type: "number",
@@ -10494,10 +10502,11 @@ var layout_line = {
 		expression: {
 			interpolated: true,
 			parameters: [
-				"zoom"
+				"zoom",
+				"feature"
 			]
 		},
-		"property-type": "data-constant"
+		"property-type": "data-driven"
 	},
 	"line-sort-key": {
 		type: "number",
@@ -18478,7 +18487,7 @@ CompoundExpression.register(expressions$1, {
     join: [
         StringType,
         [array(StringType), StringType],
-        (ctx, [arr, delim]) => arr.value.join(delim.evaluate(ctx))
+        (ctx, [arr, delim]) => arr.evaluate(ctx).join(delim.evaluate(ctx))
     ],
     'resolved-locale': [
         StringType,
@@ -22000,7 +22009,18 @@ class AbortError extends Error {
  * @returns - true if the error is an abort error
  */
 function isAbortError(error) {
-    return error.name === ABORT_ERROR;
+    return error instanceof Error && error.name === ABORT_ERROR;
+}
+/**
+ * Throws an AbortError if the provided abort signal has already been aborted.
+ *
+ * @param signal - The abort signal to check.
+ * @throws AbortError If the signal is aborted.
+ */
+function throwIfAborted(signal) {
+    if (signal.aborted) {
+        throw new AbortError(signal.reason);
+    }
 }
 
 const config = {
@@ -22040,6 +22060,10 @@ function getProtocol(url) {
  *      throw new Error('someErrorMessage');
  * });
  * ```
+ * @see [Add a COG raster source](https://maplibre.org/maplibre-gl-js/docs/examples/add-a-cog-raster-source/)
+ * @see [Add Contour Lines](https://maplibre.org/maplibre-gl-js/docs/examples/add-contour-lines/)
+ * @see [PMTiles source and protocol](https://maplibre.org/maplibre-gl-js/docs/examples/pmtiles-source-and-protocol/)
+ * @see [Use addProtocol to Transform Feature Properties](https://maplibre.org/maplibre-gl-js/docs/examples/use-addprotocol-to-transform-feature-properties/)
  */
 function addProtocol(customProtocol, loadFn) {
     config.REGISTERED_PROTOCOLS[customProtocol] = loadFn;
@@ -22085,9 +22109,12 @@ class AJAXError extends Error {
  * to the string(!) "null" (Firefox), or "file://" (Chrome, Safari, Edge),
  * and we will set an empty referrer. Otherwise, we're using the document's URL.
  */
-const getReferrer = () => isWorker(self) ?
-    self.worker && self.worker.referrer :
-    (window.location.protocol === 'blob:' ? window.parent : window).location.href;
+const getReferrer = () => {
+    var _a;
+    return isWorker(self) ?
+        (_a = self.worker) === null || _a === void 0 ? void 0 : _a.referrer :
+        (window.location.protocol === 'blob:' ? window.parent : window).location.href;
+};
 /**
  * Determines whether a URL is a file:// URL. This is obviously the case if it begins
  * with file://. Relative URLs are also file:// URLs iff the original document was loaded
@@ -22095,7 +22122,7 @@ const getReferrer = () => isWorker(self) ?
  * @param url - The URL to check
  * @returns `true` if the URL is a file:// URL, `false` otherwise
  */
-const isFileURL = url => /^file:/.test(url) || (/^file:/.test(getReferrer()) && !/^\w+:/.test(url));
+const isFileURL = url => { var _a; return url.startsWith('file:') || (((_a = getReferrer()) === null || _a === void 0 ? void 0 : _a.startsWith('file:')) && !/^\w+:/.test(url)); };
 function makeFetchRequest(requestParameters, abortController) {
     return __awaiter(this, void 0, void 0, function* () {
         const request = new Request(requestParameters.url, {
@@ -22124,7 +22151,7 @@ function makeFetchRequest(requestParameters, abortController) {
             // When the error is due to CORS policy, DNS issue or malformed URL, the fetch call does not resolve but throws a generic TypeError instead.
             // It is preferable to throw an AJAXError so that the Map event "error" can catch it and still have
             // access to the faulty url. In such case, we provide the arbitrary HTTP error code of `0`.
-            throw new AJAXError(0, e.message, requestParameters.url, new Blob());
+            throw new AJAXError(0, ensureError(e).message, requestParameters.url, new Blob());
         }
         if (!response.ok) {
             const body = yield response.blob();
@@ -22141,7 +22168,7 @@ function makeFetchRequest(requestParameters, abortController) {
             parsePromise = response.text();
         }
         const result = yield parsePromise;
-        abortController.signal.throwIfAborted();
+        throwIfAborted(abortController.signal);
         return { data: result, cacheControl: response.headers.get('Cache-Control'), expires: response.headers.get('Expires'), etag: response.headers.get('ETag') };
     });
 }
@@ -22206,24 +22233,32 @@ function makeXMLHttpRequest(requestParameters, abortController) {
  * @returns a promise resolving to the response, including cache control and expiry data
  */
 const makeRequest = function (requestParameters, abortController) {
-    if (/:\/\//.test(requestParameters.url) && !(/^https?:|^file:/.test(requestParameters.url))) {
-        const protocolLoadFn = getProtocol(requestParameters.url);
-        if (protocolLoadFn) {
-            return protocolLoadFn(requestParameters, abortController);
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a, _b;
+        if (requestParameters.url.includes('://') && !(/^https?:|^file:/.test(requestParameters.url))) {
+            const protocolLoadFn = getProtocol(requestParameters.url);
+            if (protocolLoadFn) {
+                const response = yield protocolLoadFn(requestParameters, abortController);
+                if (!response.data && requestParameters.type === 'arrayBuffer') {
+                    // A successful array buffer request should always return data even if empty
+                    return extend(response, { data: new ArrayBuffer(0) });
+                }
+                return response;
+            }
+            if (isWorker(self) && ((_a = self.worker) === null || _a === void 0 ? void 0 : _a.actor)) {
+                return self.worker.actor.sendAsync({ type: "GR" /* MessageType.getResource */, data: requestParameters, targetMapId: GLOBAL_DISPATCHER_ID }, abortController);
+            }
         }
-        if (isWorker(self) && self.worker && self.worker.actor) {
-            return self.worker.actor.sendAsync({ type: "GR" /* MessageType.getResource */, data: requestParameters, targetMapId: GLOBAL_DISPATCHER_ID }, abortController);
+        if (!isFileURL(requestParameters.url)) {
+            if (fetch && Request && AbortController && Object.hasOwn(Request.prototype, 'signal')) {
+                return makeFetchRequest(requestParameters, abortController);
+            }
+            if (isWorker(self) && ((_b = self.worker) === null || _b === void 0 ? void 0 : _b.actor)) {
+                return self.worker.actor.sendAsync({ type: "GR" /* MessageType.getResource */, data: requestParameters, mustQueue: true, targetMapId: GLOBAL_DISPATCHER_ID }, abortController);
+            }
         }
-    }
-    if (!isFileURL(requestParameters.url)) {
-        if (fetch && Request && AbortController && Object.prototype.hasOwnProperty.call(Request.prototype, 'signal')) {
-            return makeFetchRequest(requestParameters, abortController);
-        }
-        if (isWorker(self) && self.worker && self.worker.actor) {
-            return self.worker.actor.sendAsync({ type: "GR" /* MessageType.getResource */, data: requestParameters, mustQueue: true, targetMapId: GLOBAL_DISPATCHER_ID }, abortController);
-        }
-    }
-    return makeXMLHttpRequest(requestParameters, abortController);
+        return makeXMLHttpRequest(requestParameters, abortController);
+    });
 };
 const getJSON = (requestParameters, abortController) => {
     return makeRequest(extend(requestParameters, { type: 'json' }), abortController);
@@ -22237,8 +22272,8 @@ function sameOrigin(inComingUrl) {
     // also check data URL
     if (!inComingUrl ||
         inComingUrl.indexOf('://') <= 0 || // relative URL
-        inComingUrl.indexOf('data:image/') === 0 || // data image URL
-        inComingUrl.indexOf('blob:') === 0) { // blob
+        inComingUrl.startsWith('data:image/') || // data image URL
+        inComingUrl.startsWith('blob:')) { // blob
         return true;
     }
     const urlObj = new URL(inComingUrl);
@@ -22300,8 +22335,9 @@ for (const name in expressions$1) {
     register(`Expression_${name}`, expressions$1[name]);
 }
 function isArrayBuffer(value) {
+    var _a;
     return value && typeof ArrayBuffer !== 'undefined' &&
-        (value instanceof ArrayBuffer || (value.constructor && value.constructor.name === 'ArrayBuffer'));
+        (value instanceof ArrayBuffer || (((_a = value.constructor) === null || _a === void 0 ? void 0 : _a.name) === 'ArrayBuffer'));
 }
 function getClassRegistryKey(input) {
     const klass = input.constructor;
@@ -22312,10 +22348,7 @@ function isRegistered(input) {
         return false;
     }
     const classRegistryKey = getClassRegistryKey(input);
-    if (classRegistryKey && classRegistryKey !== 'Object') {
-        return true;
-    }
-    return false;
+    return classRegistryKey && classRegistryKey !== 'Object';
 }
 function isSerializeHandledByBuiltin(input) {
     return (!isRegistered(input) && (input === null ||
@@ -22355,9 +22388,8 @@ function serialize(input, transferables) {
             }
         }
         if (ArrayBuffer.isView(input)) {
-            const view = input;
             if (transferables) {
-                transferables.push(view.buffer);
+                transferables.push(input.buffer);
             }
         }
         if (input instanceof ImageData) {
@@ -22397,10 +22429,10 @@ function serialize(input, transferables) {
         for (const key in input) {
             if (!input.hasOwnProperty(key))
                 continue;
-            if (registry[classRegistryKey].omit.indexOf(key) >= 0)
+            if (registry[classRegistryKey].omit.includes(key))
                 continue;
             const property = input[key];
-            properties[key] = registry[classRegistryKey].shallow.indexOf(key) >= 0 ?
+            properties[key] = registry[classRegistryKey].shallow.includes(key) ?
                 property :
                 serialize(property, transferables);
         }
@@ -22409,7 +22441,7 @@ function serialize(input, transferables) {
         }
     }
     else {
-        if (transferables && properties === transferables[transferables.length - 1]) {
+        if (properties === (transferables === null || transferables === void 0 ? void 0 : transferables[transferables.length - 1])) {
             throw new Error('statically serialized object won\'t survive transfer of $name property');
         }
     }
@@ -22447,7 +22479,7 @@ function deserialize(input) {
         if (key === '$name')
             continue;
         const value = input[key];
-        result[key] = registry[classRegistryKey].shallow.indexOf(key) >= 0 ? value : deserialize(value);
+        result[key] = registry[classRegistryKey].shallow.includes(key) ? value : deserialize(value);
     }
     return result;
 }
@@ -22625,7 +22657,7 @@ class Actor {
                     return;
                 }
                 if (task.error) {
-                    resolveReject.reject(deserialize(task.error));
+                    resolveReject.reject(ensureError(deserialize(task.error)));
                 }
                 else {
                     resolveReject.resolve(deserialize(task.data));
@@ -22644,7 +22676,7 @@ class Actor {
                 this.completeTask(id, null, data);
             }
             catch (err) {
-                this.completeTask(id, err);
+                this.completeTask(id, ensureError(err));
             }
         });
     }
@@ -22668,14 +22700,15 @@ class Actor {
 }
 
 function _addEventListener(type, listener, listenerList) {
-    const listenerExists = listenerList[type] && listenerList[type].indexOf(listener) !== -1;
+    var _a;
+    const listenerExists = (_a = listenerList[type]) === null || _a === void 0 ? void 0 : _a.includes(listener);
     if (!listenerExists) {
-        listenerList[type] = listenerList[type] || [];
+        listenerList[type] || (listenerList[type] = []);
         listenerList[type].push(listener);
     }
 }
 function _removeEventListener(type, listener, listenerList) {
-    if (listenerList && listenerList[type]) {
+    if (listenerList === null || listenerList === void 0 ? void 0 : listenerList[type]) {
         const index = listenerList[type].indexOf(listener);
         if (index !== -1) {
             listenerList[type].splice(index, 1);
@@ -22714,7 +22747,7 @@ class Evented {
      * extended with `target` and `type` properties.
      */
     on(type, listener) {
-        this._listeners = this._listeners || {};
+        this._listeners || (this._listeners = {});
         _addEventListener(type, listener, this._listeners);
         return {
             unsubscribe: () => {
@@ -22746,11 +22779,12 @@ class Evented {
         if (!listener) {
             return new Promise((resolve) => this.once(type, resolve));
         }
-        this._oneTimeListeners = this._oneTimeListeners || {};
+        this._oneTimeListeners || (this._oneTimeListeners = {});
         _addEventListener(type, listener, this._oneTimeListeners);
         return this;
     }
     fire(event, properties) {
+        var _a, _b;
         // Compatibility with (type: string, properties: Object) signature from previous versions.
         // See https://github.com/mapbox/mapbox-gl-js/issues/6522,
         //     https://github.com/mapbox/mapbox-gl-draw/issues/766
@@ -22761,11 +22795,11 @@ class Evented {
         if (this.listens(type)) {
             event.target = this;
             // make sure adding or removing listeners inside other listeners won't cause an infinite loop
-            const listeners = this._listeners && this._listeners[type] ? this._listeners[type].slice() : [];
+            const listeners = ((_a = this._listeners) === null || _a === void 0 ? void 0 : _a[type]) ? this._listeners[type].slice() : [];
             for (const listener of listeners) {
                 listener.call(this, event);
             }
-            const oneTimeListeners = this._oneTimeListeners && this._oneTimeListeners[type] ? this._oneTimeListeners[type].slice() : [];
+            const oneTimeListeners = ((_b = this._oneTimeListeners) === null || _b === void 0 ? void 0 : _b[type]) ? this._oneTimeListeners[type].slice() : [];
             for (const listener of oneTimeListeners) {
                 _removeEventListener(type, listener, this._oneTimeListeners);
                 listener.call(this, event);
@@ -22790,9 +22824,10 @@ class Evented {
      * @returns `true` if there is at least one registered listener for specified event type, `false` otherwise
      */
     listens(type) {
-        return ((this._listeners && this._listeners[type] && this._listeners[type].length > 0) ||
-            (this._oneTimeListeners && this._oneTimeListeners[type] && this._oneTimeListeners[type].length > 0) ||
-            (this._eventedParent && this._eventedParent.listens(type)));
+        var _a, _b, _c, _d, _e;
+        return ((((_b = (_a = this._listeners) === null || _a === void 0 ? void 0 : _a[type]) === null || _b === void 0 ? void 0 : _b.length) > 0) ||
+            (((_d = (_c = this._oneTimeListeners) === null || _c === void 0 ? void 0 : _c[type]) === null || _d === void 0 ? void 0 : _d.length) > 0) ||
+            ((_e = this._eventedParent) === null || _e === void 0 ? void 0 : _e.listens(type)));
     }
     /**
      * Bubble all events fired by this instance of Evented to this parent instance of Evented.
@@ -22814,7 +22849,7 @@ const validatePaintProperty = validateStyle.paintProperty;
 const validateLayoutProperty = validateStyle.layoutProperty;
 function emitValidationErrors(emitter, errors) {
     let hasErrors = false;
-    if (errors && errors.length) {
+    if (errors === null || errors === void 0 ? void 0 : errors.length) {
         for (const error of errors) {
             emitter.fire(new ErrorEvent(new Error(error.message)));
             hasErrors = true;
@@ -23031,10 +23066,7 @@ function charInSupportedScript(char, canRenderRTL) {
     if (!canRenderRTL && charInRTLScript(char)) {
         return false;
     }
-    if (codePointRequiresComplexTextShaping(char)) {
-        return false;
-    }
-    return true;
+    return !codePointRequiresComplexTextShaping(char);
 }
 function stringContainsRTLText(chars) {
     for (const char of chars) {
@@ -23243,14 +23275,17 @@ class TransitionablePropertyValue {
 class Transitionable {
     constructor(properties, globalState) {
         this._properties = properties;
-        this._values = Object.create(properties.defaultTransitionablePropertyValues);
+        this._values = (Object.create(properties.defaultTransitionablePropertyValues));
         this._globalState = globalState;
+    }
+    hasProperty(name) {
+        return name in this._properties.defaultTransitionablePropertyValues;
     }
     getValue(name) {
         return clone(this._values[name].value.value);
     }
     setValue(name, value) {
-        if (!Object.prototype.hasOwnProperty.call(this._values, name)) {
+        if (!Object.hasOwn(this._values, name)) {
             this._values[name] = new TransitionablePropertyValue(this._values[name].property, this._globalState);
         }
         // Note that we do not _remove_ an own property in the case where a value is being reset
@@ -23261,7 +23296,7 @@ class Transitionable {
         return clone(this._values[name].transition);
     }
     setTransition(name, value) {
-        if (!Object.prototype.hasOwnProperty.call(this._values, name)) {
+        if (!Object.hasOwn(this._values, name)) {
             this._values[name] = new TransitionablePropertyValue(this._values[name].property, this._globalState);
         }
         this._values[name].transition = clone(value) || undefined;
@@ -23353,7 +23388,7 @@ class TransitioningPropertyValue {
 class Transitioning {
     constructor(properties) {
         this._properties = properties;
-        this._values = Object.create(properties.defaultTransitioningPropertyValues);
+        this._values = (Object.create(properties.defaultTransitioningPropertyValues));
     }
     possiblyEvaluate(parameters, canonical, availableImages) {
         const result = new PossiblyEvaluated(this._properties);
@@ -23384,11 +23419,14 @@ class Transitioning {
 class Layout {
     constructor(properties, globalState) {
         this._properties = properties;
-        this._values = Object.create(properties.defaultPropertyValues);
+        this._values = (Object.create(properties.defaultPropertyValues));
         this._globalState = globalState;
     }
     hasValue(name) {
         return this._values[name].value !== undefined;
+    }
+    hasProperty(name) {
+        return name in this._properties.defaultPropertyValues;
     }
     getValue(name) {
         return clone(this._values[name].value);
@@ -23665,6 +23703,8 @@ register('CrossFadedDataDrivenProperty', CrossFadedDataDrivenProperty);
 register('CrossFadedProperty', CrossFadedProperty);
 register('ColorRampProperty', ColorRampProperty);
 
+const ERROR_PAINT_NOT_LAYOUT = ' is a PAINT property not a LAYOUT property. Use get/setPaintProperty instead?';
+const ERROR_LAYOUT_NOT_PAINT = ' is a LAYOUT property not a PAINT property. Use get/setLayoutProperty instead?';
 /**
  * A base class for style layers
  */
@@ -23712,8 +23752,15 @@ class StyleLayer extends Evented {
         return this._crossfadeParameters;
     }
     getLayoutProperty(name) {
+        var _a;
         if (name === 'visibility') {
             return this.visibility;
+        }
+        if ((_a = this._transitionablePaint) === null || _a === void 0 ? void 0 : _a.hasProperty(name)) {
+            throw new Error(name + ERROR_PAINT_NOT_LAYOUT);
+        }
+        if (!this._unevaluatedLayout) {
+            throw new Error(`Cannot get layout property "${name}" on layer type "${this.type}" which has no layout properties.`);
         }
         return this._unevaluatedLayout.getValue(name);
     }
@@ -23768,35 +23815,45 @@ class StyleLayer extends Evented {
         return this._visibilityExpression.getGlobalStateRefs();
     }
     setLayoutProperty(name, value, options = {}) {
-        if (value !== null && value !== undefined) {
-            const key = `layers.${this.id}.layout.${name}`;
-            if (this._validate(validateLayoutProperty, key, name, value, options)) {
-                return;
-            }
-        }
+        var _a;
         if (name === 'visibility') {
             this.visibility = value;
             this._visibilityExpression.setValue(value);
             this.recalculateVisibility();
             return;
         }
+        if ((_a = this._transitionablePaint) === null || _a === void 0 ? void 0 : _a.hasProperty(name)) {
+            this.fire(new ErrorEvent(new Error(name + ERROR_PAINT_NOT_LAYOUT)));
+            return;
+        }
+        if (value !== null && value !== undefined && this._validate(validateLayoutProperty, `layers.${this.id}.layout.${name}`, name, value, options))
+            return;
         this._unevaluatedLayout.setValue(name, value);
     }
     getPaintProperty(name) {
+        var _a, _b;
         if (name.endsWith(TRANSITION_SUFFIX)) {
-            return this._transitionablePaint.getTransition(name.slice(0, -TRANSITION_SUFFIX.length));
+            const baseName = name.slice(0, -TRANSITION_SUFFIX.length);
+            if (baseName === 'visibility' || ((_a = this._unevaluatedLayout) === null || _a === void 0 ? void 0 : _a.hasProperty(baseName))) {
+                throw new Error(name + ERROR_LAYOUT_NOT_PAINT);
+            }
+            return this._transitionablePaint.getTransition(baseName);
         }
         else {
+            if (name === 'visibility' || ((_b = this._unevaluatedLayout) === null || _b === void 0 ? void 0 : _b.hasProperty(name))) {
+                throw new Error(name + ERROR_LAYOUT_NOT_PAINT);
+            }
             return this._transitionablePaint.getValue(name);
         }
     }
     setPaintProperty(name, value, options = {}) {
-        if (value !== null && value !== undefined) {
-            const key = `layers.${this.id}.paint.${name}`;
-            if (this._validate(validatePaintProperty, key, name, value, options)) {
-                return false;
-            }
+        var _a;
+        if (name === 'visibility' || ((_a = this._unevaluatedLayout) === null || _a === void 0 ? void 0 : _a.hasProperty(name))) {
+            this.fire(new ErrorEvent(new Error(name + ERROR_LAYOUT_NOT_PAINT)));
+            return false;
         }
+        if (value !== null && value !== undefined && this._validate(validatePaintProperty, `layers.${this.id}.paint.${name}`, name, value, options))
+            return false;
         if (name.endsWith(TRANSITION_SUFFIX)) {
             this._transitionablePaint.setTransition(name.slice(0, -TRANSITION_SUFFIX.length), value || undefined);
             return false;
@@ -23850,6 +23907,7 @@ class StyleLayer extends Evented {
         this.paint = this._transitioningPaint.possiblyEvaluate(parameters, undefined, availableImages);
     }
     serialize() {
+        var _a, _b;
         const output = {
             'id': this.id,
             'type': this.type,
@@ -23859,11 +23917,11 @@ class StyleLayer extends Evented {
             'minzoom': this.minzoom,
             'maxzoom': this.maxzoom,
             'filter': this.filter,
-            'layout': this._unevaluatedLayout && this._unevaluatedLayout.serialize(),
-            'paint': this._transitionablePaint && this._transitionablePaint.serialize()
+            'layout': (_a = this._unevaluatedLayout) === null || _a === void 0 ? void 0 : _a.serialize(),
+            'paint': (_b = this._transitionablePaint) === null || _b === void 0 ? void 0 : _b.serialize()
         };
         if (this.visibility) {
-            output.layout = output.layout || {};
+            output.layout || (output.layout = {});
             output.layout.visibility = this.visibility;
         }
         return filterObject(output, (value, key) => {
@@ -23873,7 +23931,7 @@ class StyleLayer extends Evented {
         });
     }
     _validate(validate, key, name, value, options = {}) {
-        if (options && options.validate === false) {
+        if ((options === null || options === void 0 ? void 0 : options.validate) === false) {
             return false;
         }
         return emitValidationErrors(this, validate.call(validateStyle, {
@@ -25663,9 +25721,9 @@ class SourceExpressionBinder {
         }
     }
     upload(context) {
-        var _a;
+        var _a, _b;
         if ((_a = this.paintVertexArray) === null || _a === void 0 ? void 0 : _a.arrayBuffer.byteLength) {
-            if (this.paintVertexBuffer && this.paintVertexBuffer.buffer) {
+            if ((_b = this.paintVertexBuffer) === null || _b === void 0 ? void 0 : _b.buffer) {
                 this.paintVertexBuffer.updateData(this.paintVertexArray);
             }
             else {
@@ -25723,9 +25781,9 @@ class CompositeExpressionBinder {
         }
     }
     upload(context) {
-        var _a;
+        var _a, _b;
         if ((_a = this.paintVertexArray) === null || _a === void 0 ? void 0 : _a.arrayBuffer.byteLength) {
-            if (this.paintVertexBuffer && this.paintVertexBuffer.buffer) {
+            if ((_b = this.paintVertexBuffer) === null || _b === void 0 ? void 0 : _b.buffer) {
                 this.paintVertexBuffer.updateData(this.paintVertexArray);
             }
             else {
@@ -25803,7 +25861,8 @@ class CrossFadedPatternBinder extends CrossFadedBinder {
         return options.imagePositions;
     }
     getPositionIds(feature) {
-        return feature.patterns && feature.patterns[this.layerId];
+        var _a;
+        return (_a = feature.patterns) === null || _a === void 0 ? void 0 : _a[this.layerId];
     }
     getVertexAttributes() {
         return patternAttributes.members;
@@ -25817,7 +25876,8 @@ class CrossFadedDasharrayBinder extends CrossFadedBinder {
         return options.dashPositions;
     }
     getPositionIds(feature) {
-        return feature.dashes && feature.dashes[this.layerId];
+        var _a;
+        return (_a = feature.dashes) === null || _a === void 0 ? void 0 : _a[this.layerId];
     }
     getVertexAttributes() {
         return dashAttributes.members;
@@ -25947,8 +26007,8 @@ class ProgramConfiguration {
         for (const property in this.binders) {
             const binder = this.binders[property];
             if (binder instanceof SourceExpressionBinder || binder instanceof CompositeExpressionBinder) {
-                for (let i = 0; i < binder.paintVertexAttributes.length; i++) {
-                    result.push(binder.paintVertexAttributes[i].name);
+                for (const attribute of binder.paintVertexAttributes) {
+                    result.push(attribute.name);
                 }
             }
             else if (binder instanceof CrossFadedBinder) {
@@ -26122,7 +26182,7 @@ function layoutType(property, type, binderType) {
         }
     };
     const layoutException = getLayoutException(property);
-    return layoutException && layoutException[binderType] || defaultLayouts[type][binderType];
+    return (layoutException === null || layoutException === void 0 ? void 0 : layoutException[binderType]) || defaultLayouts[type][binderType];
 }
 register('ConstantBinder', ConstantBinder);
 register('CrossFadedConstantBinder', CrossFadedConstantBinder);
@@ -26148,10 +26208,8 @@ const MIN = -MAX - 1;
 function loadGeometry(feature) {
     const scale = EXTENT$1 / feature.extent;
     const geometry = feature.loadGeometry();
-    for (let r = 0; r < geometry.length; r++) {
-        const ring = geometry[r];
-        for (let p = 0; p < ring.length; p++) {
-            const point = ring[p];
+    for (const ring of geometry) {
+        for (const point of ring) {
             // round here because mapbox-gl-native uses integers to represent
             // points and we need to do the same to avoid rendering differences.
             const x = Math.round(point.x * scale);
@@ -26221,7 +26279,7 @@ class CircleBucket {
             circleSortKey = circleStyle.layout.get('circle-sort-key');
             sortFeaturesByKey = !circleSortKey.isConstant();
             // Circles that are "printed" onto the map surface should be tessellated to follow the globe's curvature.
-            subdivide = subdivide || circleStyle.paint.get('circle-pitch-alignment') === 'map';
+            subdivide || (subdivide = circleStyle.paint.get('circle-pitch-alignment') === 'map');
         }
         const granularity = subdivide ? options.subdivisionGranularity.circle : 1;
         for (const { feature, id, index, sourceLayerIndex } of features) {
@@ -26339,52 +26397,46 @@ class CircleBucket {
 register('CircleBucket', CircleBucket, { omit: ['layers'] });
 
 function polygonIntersectsPolygon(polygonA, polygonB) {
-    for (let i = 0; i < polygonA.length; i++) {
-        if (polygonContainsPoint(polygonB, polygonA[i]))
+    for (const point of polygonA) {
+        if (polygonContainsPoint(polygonB, point))
             return true;
     }
-    for (let i = 0; i < polygonB.length; i++) {
-        if (polygonContainsPoint(polygonA, polygonB[i]))
+    for (const point of polygonB) {
+        if (polygonContainsPoint(polygonA, point))
             return true;
     }
-    if (lineIntersectsLine(polygonA, polygonB))
-        return true;
-    return false;
+    return lineIntersectsLine(polygonA, polygonB);
 }
 function polygonIntersectsBufferedPoint(polygon, point, radius) {
     if (polygonContainsPoint(polygon, point))
         return true;
-    if (pointIntersectsBufferedLine(point, polygon, radius))
-        return true;
-    return false;
+    return pointIntersectsBufferedLine(point, polygon, radius);
 }
 function polygonIntersectsMultiPolygon(polygon, multiPolygon) {
     if (polygon.length === 1) {
         return multiPolygonContainsPoint(multiPolygon, polygon[0]);
     }
-    for (let m = 0; m < multiPolygon.length; m++) {
-        const ring = multiPolygon[m];
-        for (let n = 0; n < ring.length; n++) {
-            if (polygonContainsPoint(polygon, ring[n]))
+    for (const ring of multiPolygon) {
+        for (const point of ring) {
+            if (polygonContainsPoint(polygon, point))
                 return true;
         }
     }
-    for (let i = 0; i < polygon.length; i++) {
-        if (multiPolygonContainsPoint(multiPolygon, polygon[i]))
+    for (const point of polygon) {
+        if (multiPolygonContainsPoint(multiPolygon, point))
             return true;
     }
-    for (let k = 0; k < multiPolygon.length; k++) {
-        if (lineIntersectsLine(polygon, multiPolygon[k]))
+    for (const ring of multiPolygon) {
+        if (lineIntersectsLine(polygon, ring))
             return true;
     }
     return false;
 }
 function polygonIntersectsBufferedMultiLine(polygon, multiLine, radius) {
-    for (let i = 0; i < multiLine.length; i++) {
-        const line = multiLine[i];
+    for (const line of multiLine) {
         if (polygon.length >= 3) {
-            for (let k = 0; k < line.length; k++) {
-                if (polygonContainsPoint(polygon, line[k]))
+            for (const point of line) {
+                if (polygonContainsPoint(polygon, point))
                     return true;
             }
         }
@@ -26398,13 +26450,13 @@ function lineIntersectsBufferedLine(lineA, lineB, radius) {
         if (lineIntersectsLine(lineA, lineB))
             return true;
         // Check whether any point in either line is within radius of the other line
-        for (let j = 0; j < lineB.length; j++) {
-            if (pointIntersectsBufferedLine(lineB[j], lineA, radius))
+        for (const point of lineB) {
+            if (pointIntersectsBufferedLine(point, lineA, radius))
                 return true;
         }
     }
-    for (let k = 0; k < lineA.length; k++) {
-        if (pointIntersectsBufferedLine(lineA[k], lineB, radius))
+    for (const point of lineA) {
+        if (pointIntersectsBufferedLine(point, lineB, radius))
             return true;
     }
     return false;
@@ -26456,8 +26508,8 @@ function distToSegmentSquared(p, v, w) {
 // point in polygon ray casting algorithm
 function multiPolygonContainsPoint(rings, p) {
     let c = false, ring, p1, p2;
-    for (let k = 0; k < rings.length; k++) {
-        ring = rings[k];
+    for (const currentRing of rings) {
+        ring = currentRing;
         for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
             p1 = ring[i];
             p2 = ring[j];
@@ -26554,8 +26606,7 @@ function translate(queryGeometry, translate, translateAnchor, bearing, pixelsToT
         pt._rotate(-bearing);
     }
     const translated = [];
-    for (let i = 0; i < queryGeometry.length; i++) {
-        const point = queryGeometry[i];
+    for (const point of queryGeometry) {
         translated.push(point.sub(pt));
     }
     return translated;
@@ -26576,8 +26627,8 @@ function _stripDuplicates(ring) {
 }
 function offsetLine(rings, offset) {
     const newRings = [];
-    for (let ringIndex = 0; ringIndex < rings.length; ringIndex++) {
-        const ring = _stripDuplicates(rings[ringIndex]);
+    for (const rawRing of rings) {
+        const ring = _stripDuplicates(rawRing);
         const newRing = [];
         for (let index = 0; index < ring.length; index++) {
             const point = ring[index];
@@ -26633,8 +26684,7 @@ function projectPoint(tilePoint, transform, unwrappedTileID, getElevation) {
     // Convert `tilePoint` from tile coordinates to clip coordinates.
     const clipPoint = transform.projectTileCoordinates(tilePoint.x, tilePoint.y, unwrappedTileID, getElevation).point;
     // Convert `clipPoint` from clip coordinates into pixel/screen coordinates.
-    const pixelPoint = new Point((clipPoint.x * 0.5 + 0.5) * transform.width, (-clipPoint.y * 0.5 + 0.5) * transform.height);
-    return pixelPoint;
+    return new Point((clipPoint.x * 0.5 + 0.5) * transform.width, (-clipPoint.y * 0.5 + 0.5) * transform.height);
 }
 function projectQueryGeometry$1(queryGeometry, transform, unwrappedTileID, getElevation) {
     return queryGeometry.map((p) => {
@@ -27010,15 +27060,16 @@ class Texture {
         this.update(image, options);
     }
     update(image, options, position) {
+        var _a;
         const { width, height } = image;
-        const resize = (!this.size || this.size[0] !== width || this.size[1] !== height) && !position;
+        const resize = (((_a = this.size) === null || _a === void 0 ? void 0 : _a[0]) !== width || this.size[1] !== height) && !position;
         const { context } = this;
         const { gl } = context;
-        this.useMipmap = Boolean(options && options.useMipmap);
+        this.useMipmap = Boolean(options === null || options === void 0 ? void 0 : options.useMipmap);
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
         context.pixelStoreUnpackFlipY.set(false);
         context.pixelStoreUnpack.set(1);
-        const wantPremultiply = this.format === gl.RGBA && (!options || options.premultiply !== false);
+        const wantPremultiply = this.format === gl.RGBA && ((options === null || options === void 0 ? void 0 : options.premultiply) !== false);
         if (resize) {
             this.size = [width, height];
             if (hasDataProperty(image)) {
@@ -27359,9 +27410,9 @@ function addPatternDependencies(type, layers, patternFeature, parameters, option
             let min = patternPropertyValue.evaluate({ zoom: zoom - 1 }, patternFeature, {}, options.availableImages);
             let mid = patternPropertyValue.evaluate({ zoom }, patternFeature, {}, options.availableImages);
             let max = patternPropertyValue.evaluate({ zoom: zoom + 1 }, patternFeature, {}, options.availableImages);
-            min = min && min.name ? min.name : min;
-            mid = mid && mid.name ? mid.name : mid;
-            max = max && max.name ? max.name : max;
+            min = (min === null || min === void 0 ? void 0 : min.name) ? min.name : min;
+            mid = (mid === null || mid === void 0 ? void 0 : mid.name) ? mid.name : mid;
+            max = (max === null || max === void 0 ? void 0 : max.name) ? max.name : max;
             // add to patternDependencies
             patterns[min] = true;
             patterns[mid] = true;
@@ -28212,7 +28263,7 @@ class Subdivider {
     }
     /**
      * Takes a triangle and a cell row index, returns a subdivided vertex ring of the intersection of the triangle and the cell row.
-     * @param cellRow - Index of the cell row. A cell row of index `i` covert range from `i * granularityCellSize` to `(i + 1) * granularityCellSize`.
+     * @param cellRow - Index of the cell row. A cell row of index `i` convert range from `i * granularityCellSize` to `(i + 1) * granularityCellSize`.
      * @param triangleVertices - An array of 6 elements, contains flattened positions of the triangle's vertices: `[v0x, v0y, v1x, v1y, v2x, v2y]`.
      * @param triangleIndices - An array of 3 elements, contains the original indices of the triangle's vertices: `[index0, index1, index2]`.
      * @returns The resulting ring of vertex indices and the index (to the returned ring array) of the leftmost vertex in the ring.
@@ -28250,7 +28301,7 @@ class Subdivider {
                 // Skip this edge
                 // But make sure to add its endpoint vertex if needed.
                 if (bY >= cellRowYTop && bY <= cellRowYBottom) {
-                    // The edge endpoint is withing this row, add it to the ring
+                    // The edge endpoint is within this row, add it to the ring
                     ring.push(triangleIndices[(edgeIndex + 1) % 3]);
                 }
                 continue;
@@ -28617,9 +28668,9 @@ class Subdivider {
      */
     _convertIndices(vertices, oldIndices) {
         const newIndices = [];
-        for (let i = 0; i < oldIndices.length; i++) {
-            const x = vertices[oldIndices[i] * 2];
-            const y = vertices[oldIndices[i] * 2 + 1];
+        for (const oldIndex of oldIndices) {
+            const x = vertices[oldIndex * 2];
+            const y = vertices[oldIndex * 2 + 1];
             newIndices.push(this._vertexToIndex(x, y));
         }
         return newIndices;
@@ -28629,8 +28680,7 @@ class Subdivider {
      */
     _pointArrayToIndices(array) {
         const indices = [];
-        for (let i = 0; i < array.length; i++) {
-            const p = array[i];
+        for (const p of array) {
             indices.push(this._vertexToIndex(p.x, p.y));
         }
         return indices;
@@ -28803,9 +28853,9 @@ function flatten(polygon) {
         if (ring !== polygon[0]) {
             holeIndices.push(flattened.length / 2);
         }
-        for (let i = 0; i < ring.length; i++) {
-            flattened.push(ring[i].x);
-            flattened.push(ring[i].y);
+        for (const vertex of ring) {
+            flattened.push(vertex.x);
+            flattened.push(vertex.y);
         }
     }
     return {
@@ -28899,10 +28949,8 @@ function scanlineTriangulateVertexRing(vertexBuffer, ring, finalIndices) {
         }
         else {
             // Pick the candidate that is more "right" of the last edge's line
-            const ex = lastEdgeBx - lastEdgeAx;
-            const ey = lastEdgeBy - lastEdgeAy;
-            const nx = ey;
-            const ny = -ex;
+            const nx = lastEdgeBy - lastEdgeAy;
+            const ny = -(lastEdgeBx - lastEdgeAx);
             const sign = (lastEdgeAy < lastEdgeBy) ? 1 : -1;
             // dot( (candidateA <-- lastEdgeA), normal )
             const aRight = ((candidateAx - lastEdgeAx) * nx + (candidateAy - lastEdgeAy) * ny) * sign;
@@ -28990,8 +29038,7 @@ function fillLargeMeshArrays(addVertex, segmentsTriangles, vertexArray, triangle
             addVertex(flattened[i], flattened[i + 1]);
         }
         if (hasLines) {
-            for (let listIndex = 0; listIndex < lineList.length; listIndex++) {
-                const lineIndices = lineList[listIndex];
+            for (const lineIndices of lineList) {
                 for (let i = 1; i < lineIndices.length; i += 2) {
                     lineIndexArray.emplaceBack(lineIndicesStart + lineIndices[i - 1], lineIndicesStart + lineIndices[i]);
                 }
@@ -29091,9 +29138,8 @@ function fillSegmentsLines(segmentsLines, vertexArray, lineIndexArray, flattened
     let currentSegmentCutoff = 0;
     let segment = segmentsLines.getOrCreateLatestSegment(vertexArray, lineIndexArray);
     let baseVertex = segment.vertexLength;
-    for (let lineListIndex = 0; lineListIndex < lineList.length; lineListIndex++) {
-        const currentLine = lineList[lineListIndex];
-        for (let lineVertex = 1; lineVertex < lineList[lineListIndex].length; lineVertex += 2) {
+    for (const currentLine of lineList) {
+        for (let lineVertex = 1; lineVertex < currentLine.length; lineVertex += 2) {
             const i0 = currentLine[lineVertex - 1];
             const i1 = currentLine[lineVertex];
             let i0needsVertexCopy = actualVertexIndices[i0] < currentSegmentCutoff;
@@ -30481,26 +30527,34 @@ function createFeature(id, type, geom, tags) {
     switch (data.type) {
         case 'Point':
         case 'MultiPoint':
-        case 'LineString':
             calcLineBBox(feature, data.geom);
+            break;
+        case 'LineString':
+            calcLineBBox(feature, data.geom.points);
             break;
         case 'Polygon':
             // the outer ring (ie [0]) contains all inner rings
-            calcLineBBox(feature, data.geom[0]);
+            calcLineBBox(feature, data.geom[0].points);
             break;
         case 'MultiLineString':
             for (const line of data.geom) {
-                calcLineBBox(feature, line);
+                calcLineBBox(feature, line.points);
             }
             break;
         case 'MultiPolygon':
             for (const polygon of data.geom) {
                 // the outer ring (ie [0]) contains all inner rings
-                calcLineBBox(feature, polygon[0]);
+                calcLineBBox(feature, polygon[0].points);
             }
             break;
     }
     return feature;
+}
+function optimizeLineMemory(line) {
+    const lineImmutable = line;
+    if (line.points.length > 64) {
+        lineImmutable.points = new Float64Array(line.points);
+    }
 }
 function calcLineBBox(feature, geom) {
     for (let i = 0; i < geom.length; i += 3) {
@@ -30599,7 +30653,7 @@ function convertMultiPointFeature(features, id, geom, properties) {
     features.push(createFeature(id, 'MultiPoint', out, properties));
 }
 function convertLineStringFeature(features, id, geom, tolerance, properties) {
-    const out = [];
+    const out = { points: [] };
     convertLine(geom.coordinates, out, tolerance, false);
     features.push(createFeature(id, 'LineString', out, properties));
 }
@@ -30607,7 +30661,7 @@ function convertMultiLineStringFeature(features, id, geom, tolerance, options, p
     if (options.lineMetrics) {
         // explode into linestrings to be able to track metrics
         for (const line of geom.coordinates) {
-            const out = [];
+            const out = { points: [] };
             convertLine(line, out, tolerance, false);
             features.push(createFeature(id, 'LineString', out, properties));
         }
@@ -30638,7 +30692,7 @@ function convertLine(ring, out, tolerance, isPolygon) {
     for (let j = 0; j < ring.length; j++) {
         const x = projectX(ring[j][0]);
         const y = projectY(ring[j][1]);
-        out.push(x, y, 0);
+        out.points.push(x, y, 0);
         if (j > 0) {
             if (isPolygon) {
                 size += (x0 * y - x * y0) / 2; // area
@@ -30650,18 +30704,19 @@ function convertLine(ring, out, tolerance, isPolygon) {
         x0 = x;
         y0 = y;
     }
-    const last = out.length - 3;
-    out[2] = 1;
+    const last = out.points.length - 3;
+    out.points[2] = 1;
     if (tolerance > 0)
-        simplify(out, 0, last, tolerance);
-    out[last + 2] = 1;
+        simplify(out.points, 0, last, tolerance);
+    out.points[last + 2] = 1;
+    optimizeLineMemory(out);
     out.size = Math.abs(size);
     out.start = 0;
     out.end = out.size;
 }
 function convertLines(rings, out, tolerance, isPolygon) {
     for (let i = 0; i < rings.length; i++) {
-        const geom = [];
+        const geom = { points: [] };
         convertLine(rings[i], geom, tolerance, isPolygon);
         out.push(geom);
     }
@@ -30717,21 +30772,25 @@ function geometryToGeoJSON(feature) {
                 coordinates: unprojectPoint(geometry[0], geometry[1])
             };
         case 'MultiPoint':
-        case 'LineString':
             return {
                 type: type,
                 coordinates: unprojectPoints(geometry)
+            };
+        case 'LineString':
+            return {
+                type: type,
+                coordinates: unprojectPoints(geometry.points)
             };
         case 'MultiLineString':
         case 'Polygon':
             return {
                 type: type,
-                coordinates: geometry.map(ring => unprojectPoints(ring))
+                coordinates: geometry.map(ring => unprojectPoints(ring.points))
             };
         case 'MultiPolygon':
             return {
                 type: type,
-                coordinates: geometry.map(polygon => polygon.map(ring => unprojectPoints(ring)))
+                coordinates: geometry.map(polygon => polygon.map(ring => unprojectPoints(ring.points)))
             };
     }
 }
@@ -30896,12 +30955,12 @@ function clipLine$1(geom, newGeom, start, end, axis, isPolygon, trackMetrics) {
     const intersect = axis === AxisType.X ? intersectX : intersectY;
     let len = geom.start;
     let segLen, t;
-    for (let i = 0; i < geom.length - 3; i += 3) {
-        const ax = geom[i];
-        const ay = geom[i + 1];
-        const az = geom[i + 2];
-        const bx = geom[i + 3];
-        const by = geom[i + 4];
+    for (let i = 0; i < geom.points.length - 3; i += 3) {
+        const ax = geom.points[i];
+        const ay = geom.points[i + 1];
+        const az = geom.points[i + 2];
+        const bx = geom.points[i + 3];
+        const by = geom.points[i + 4];
         const a = axis === AxisType.X ? ax : ay;
         const b = axis === AxisType.X ? bx : by;
         let exited = false;
@@ -30924,7 +30983,7 @@ function clipLine$1(geom, newGeom, start, end, axis, isPolygon, trackMetrics) {
             }
         }
         else {
-            addPoint(slice, ax, ay, az);
+            addPoint(slice.points, ax, ay, az);
         }
         if (b < start && a >= start) {
             // <--|---  | or <--|-----|--- (line exits the clip region on the left)
@@ -30946,29 +31005,31 @@ function clipLine$1(geom, newGeom, start, end, axis, isPolygon, trackMetrics) {
             len += segLen;
     }
     // add the last point
-    let last = geom.length - 3;
-    const ax = geom[last];
-    const ay = geom[last + 1];
-    const az = geom[last + 2];
+    let last = geom.points.length - 3;
+    const ax = geom.points[last];
+    const ay = geom.points[last + 1];
+    const az = geom.points[last + 2];
     const a = axis === AxisType.X ? ax : ay;
     if (a >= start && a <= end)
-        addPoint(slice, ax, ay, az);
+        addPoint(slice.points, ax, ay, az);
     // close the polygon if its endpoints are not the same after clipping
-    last = slice.length - 3;
-    if (isPolygon && last >= 3 && (slice[last] !== slice[0] || slice[last + 1] !== slice[1])) {
-        addPoint(slice, slice[0], slice[1], slice[2]);
+    last = slice.points.length - 3;
+    if (isPolygon && last >= 3 && (slice.points[last] !== slice.points[0] || slice.points[last + 1] !== slice.points[1])) {
+        addPoint(slice.points, slice.points[0], slice.points[1], slice.points[2]);
     }
     // add the final slice
-    if (slice.length) {
+    if (slice.points.length) {
+        optimizeLineMemory(slice);
         newGeom.push(slice);
     }
 }
 function newSlice(line) {
-    const slice = [];
-    slice.size = line.size;
-    slice.start = line.start;
-    slice.end = line.end;
-    return slice;
+    return {
+        points: [],
+        size: line.size,
+        start: line.start,
+        end: line.end
+    };
 }
 function clipLines$1(geom, newGeom, start, end, axis, isPolygon) {
     for (const line of geom) {
@@ -30980,12 +31041,12 @@ function addPoint(out, x, y, z) {
 }
 function intersectX(out, ax, ay, bx, by, x) {
     const t = (x - ax) / (bx - ax);
-    addPoint(out, x, ay + (by - ay) * t, 1);
+    addPoint(out.points, x, ay + (by - ay) * t, 1);
     return t;
 }
 function intersectY(out, ax, ay, bx, by, y) {
     const t = (y - ay) / (by - ay);
-    addPoint(out, ax + (bx - ax) * t, y, 1);
+    addPoint(out.points, ax + (bx - ax) * t, y, 1);
     return t;
 }
 
@@ -31008,9 +31069,13 @@ function shiftFeatureCoords(features, offset) {
     for (const feature of features) {
         switch (feature.type) {
             case 'Point':
-            case 'MultiPoint':
+            case 'MultiPoint': {
+                const newGeometry = shiftPointCoords(feature.geometry, offset);
+                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
+                continue;
+            }
             case 'LineString': {
-                const newGeometry = shiftCoords(feature.geometry, offset);
+                const newGeometry = shiftLineCoords(feature.geometry, offset);
                 newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
                 continue;
             }
@@ -31018,7 +31083,7 @@ function shiftFeatureCoords(features, offset) {
             case 'Polygon': {
                 const newGeometry = [];
                 for (const line of feature.geometry) {
-                    newGeometry.push(shiftCoords(line, offset));
+                    newGeometry.push(shiftLineCoords(line, offset));
                 }
                 newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
                 continue;
@@ -31028,7 +31093,7 @@ function shiftFeatureCoords(features, offset) {
                 for (const polygon of feature.geometry) {
                     const newPolygon = [];
                     for (const line of polygon) {
-                        newPolygon.push(shiftCoords(line, offset));
+                        newPolygon.push(shiftLineCoords(line, offset));
                     }
                     newGeometry.push(newPolygon);
                 }
@@ -31039,17 +31104,27 @@ function shiftFeatureCoords(features, offset) {
     }
     return newFeatures;
 }
-function shiftCoords(points, offset) {
-    const newPoints = [];
-    newPoints.size = points.size;
-    if (points.start !== undefined) {
-        newPoints.start = points.start;
-        newPoints.end = points.end;
+function shiftPointCoords(coords, offset) {
+    const newCoords = [];
+    for (let i = 0; i < coords.length; i += 3) {
+        newCoords.push(coords[i] + offset, coords[i + 1], coords[i + 2]);
     }
-    for (let i = 0; i < points.length; i += 3) {
-        newPoints.push(points[i] + offset, points[i + 1], points[i + 2]);
+    return newCoords;
+}
+function shiftLineCoords(line, offset) {
+    const newLine = {
+        points: [],
+        size: line.size
+    };
+    if (line.start !== undefined) {
+        newLine.start = line.start;
+        newLine.end = line.end;
     }
-    return newPoints;
+    for (let i = 0; i < line.points.length; i += 3) {
+        newLine.points.push(line.points[i] + offset, line.points[i + 1], line.points[i + 2]);
+    }
+    optimizeLineMemory(newLine);
+    return newLine;
 }
 
 /**
@@ -31061,7 +31136,7 @@ function shiftCoords(points, offset) {
  */
 function applySourceDiff(source, dataDiff, options) {
     // convert diff to sets/maps for o(1) lookups
-    const diff = diffToHashed(dataDiff);
+    const diff = diffToHashed(dataDiff, options);
     // collection for features that will be affected by this update and used to invalidate tiles
     let affected = [];
     if (diff.removeAll) {
@@ -31090,26 +31165,25 @@ function applySourceDiff(source, dataDiff, options) {
     }
     if (diff.update.size) {
         // Features can be duplicated across the antimeridian (wrap) in a single tile, so must update all instances with the same id
-        for (const [id, update] of diff.update) {
-            const oldFeatures = [];
-            const keepFeatures = [];
-            for (const feature of source) {
-                if (feature.id === id) {
-                    oldFeatures.push(feature);
-                }
-                else {
-                    keepFeatures.push(feature);
-                }
+        const oldFeaturesMap = new Map();
+        const keepFeatures = [];
+        for (const feature of source) {
+            if (diff.update.has(feature.id)) {
+                oldFeaturesMap.set(feature.id, [...(oldFeaturesMap.get(feature.id) || []), feature]);
             }
-            if (!oldFeatures.length)
+            else {
+                keepFeatures.push(feature);
+            }
+        }
+        for (const [id, update] of diff.update) {
+            const oldFeatures = oldFeaturesMap.get(id);
+            if (!oldFeatures || oldFeatures.length === 0)
                 continue;
             const updatedFeatures = getUpdatedFeatures(oldFeatures, update, options);
-            if (!updatedFeatures.length)
-                continue;
             affected.push(...oldFeatures, ...updatedFeatures);
             keepFeatures.push(...updatedFeatures);
-            source = keepFeatures;
         }
+        source = keepFeatures;
     }
     return { affected, source };
 }
@@ -31147,7 +31221,7 @@ function getUpdatedFeatures(vtFeatures, update, options) {
         }
         return updated;
     }
-    return [];
+    return vtFeatures;
 }
 /**
  * helper to apply property updates from a diff update object to a properties object
@@ -31172,7 +31246,7 @@ function applyPropertyUpdates(tags, update) {
 /**
  * Convert a GeoJSON Source Diff to an idempotent hashed representation using Sets and Maps
  */
-function diffToHashed(diff) {
+function diffToHashed(diff, options) {
     if (!diff)
         return {
             remove: new Set(),
@@ -31182,7 +31256,7 @@ function diffToHashed(diff) {
     const hashed = {
         removeAll: diff.removeAll,
         remove: new Set(diff.remove || []),
-        add: new Map(diff.add?.map(feature => [feature.id, feature])),
+        add: new Map(diff.add?.map(feature => [options.promoteId ? feature.properties[options.promoteId] : feature.id, feature])),
         update: new Map(diff.update?.map(update => [update.id, update]))
     };
     return hashed;
@@ -31760,14 +31834,14 @@ function addMultiPolygonTileFeature(tile, feature, tolerance) {
 function addLine(result, geom, tile, tolerance, isPolygon, isOuter) {
     const sqTolerance = tolerance * tolerance;
     if (tolerance > 0 && (geom.size < (isPolygon ? sqTolerance : tolerance))) {
-        tile.numPoints += geom.length / 3;
+        tile.numPoints += geom.points.length / 3;
         return;
     }
     const ring = [];
-    for (let i = 0; i < geom.length; i += 3) {
-        if (tolerance === 0 || geom[i + 2] > sqTolerance) {
+    for (let i = 0; i < geom.points.length; i += 3) {
+        if (tolerance === 0 || geom.points[i + 2] > sqTolerance) {
             tile.numSimplified++;
-            ring.push(geom[i], geom[i + 1]);
+            ring.push(geom.points[i], geom.points[i + 1]);
         }
         tile.numPoints++;
     }
@@ -31857,10 +31931,9 @@ function transformPoint(x, y, extent, z2, tx, ty) {
 class TileIndex {
     constructor(options) {
         this.options = options;
+        this.total = 0;
         /** @internal */
         this.stats = {};
-        /** @internal */
-        this.total = 0;
         this.tiles = {};
         this.tileCoords = [];
         this.stats = {};
@@ -32135,30 +32208,6 @@ const defaultOptions = {
  * Main class for creating and managing a vector tile index from GeoJSON data.
  */
 class GeoJSONVT {
-    /**
-     * @internal
-     * This is for the tests
-     */
-    get tiles() {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return this.tileIndex?.tiles ?? {};
-    }
-    /**
-     * @internal
-     * This is for the tests
-     */
-    get stats() {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return this.tileIndex.stats;
-    }
-    /**
-    * @internal
-    * This is for the tests
-    */
-    get total() {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return this.tileIndex.total;
-    }
     constructor(data, options) {
         options = this.options = Object.assign({}, defaultOptions, options);
         const debug = options.debug;
@@ -32396,9 +32445,9 @@ class LineBucket {
         this.patternFeatures = [];
         this.lineClipsArray = [];
         this.gradients = {};
-        this.layers.forEach(layer => {
+        for (const layer of this.layers) {
             this.gradients[layer.id] = {};
-        });
+        }
         this.layoutVertexArray = new LineLayoutArray();
         this.layoutVertexArray2 = new LineExtLayoutArray();
         this.indexArray = new TriangleIndexArray();
@@ -32497,7 +32546,7 @@ class LineBucket {
         this.segments.destroy();
     }
     lineFeatureClips(feature) {
-        if (!!feature.properties && Object.prototype.hasOwnProperty.call(feature.properties, GEOJSONVT_CLIP_START) && Object.prototype.hasOwnProperty.call(feature.properties, GEOJSONVT_CLIP_END)) {
+        if (!!feature.properties && Object.hasOwn(feature.properties, GEOJSONVT_CLIP_START) && Object.hasOwn(feature.properties, GEOJSONVT_CLIP_END)) {
             const start = +feature.properties[GEOJSONVT_CLIP_START];
             const end = +feature.properties[GEOJSONVT_CLIP_END];
             return { start, end };
@@ -32506,9 +32555,9 @@ class LineBucket {
     addFeature(feature, geometry, index, canonical, imagePositions, dashPositions, subdivisionGranularity) {
         const layout = this.layers[0].layout;
         const join = layout.get('line-join').evaluate(feature, {});
-        const cap = layout.get('line-cap');
-        const miterLimit = layout.get('line-miter-limit');
-        const roundLimit = layout.get('line-round-limit');
+        const cap = layout.get('line-cap').evaluate(feature, {});
+        const miterLimit = layout.get('line-miter-limit').evaluate(feature, {});
+        const roundLimit = layout.get('line-round-limit').evaluate(feature, {});
         this.lineClips = this.lineFeatureClips(feature);
         for (const line of geometry) {
             this.addLine(line, feature, join, cap, miterLimit, roundLimit, canonical, subdivisionGranularity);
@@ -32580,7 +32629,7 @@ class LineBucket {
             nextNormal = nextVertex ? nextVertex.sub(currentVertex)._unit()._perp() : prevNormal;
             // If we still don't have a previous normal, this is the beginning of a
             // non-closed line, so we're doing a straight "join".
-            prevNormal = prevNormal || nextNormal;
+            prevNormal || (prevNormal = nextNormal);
             // Determine the normal of the join extrusion. It is the angle bisector
             // of the segments between the previous line and the next line.
             // In the case of 180° angles, the prev and next normals cancel each other out:
@@ -32819,7 +32868,7 @@ class LineBucket {
             if (!dasharrayProperty || dasharrayProperty.value.kind === 'constant') {
                 continue;
             }
-            const round = layer.layout.get('line-cap') === 'round';
+            const round = layer.layout.get('line-cap').evaluate(bucketFeature, {}) === 'round';
             const min = {
                 dasharray: dasharrayProperty.value.evaluate({ zoom: zoom - 1 }, bucketFeature, {}),
                 round
@@ -32848,10 +32897,10 @@ register('LineBucket', LineBucket, { omit: ['layers', 'patternFeatures'] });
 /* eslint-disable */
 let layout$1;
 const getLayout$1 = () => layout$1 = layout$1 || new Properties({
-    "line-cap": new DataConstantProperty(v8Spec["layout_line"]["line-cap"]),
+    "line-cap": new DataDrivenProperty(v8Spec["layout_line"]["line-cap"]),
     "line-join": new DataDrivenProperty(v8Spec["layout_line"]["line-join"]),
-    "line-miter-limit": new DataConstantProperty(v8Spec["layout_line"]["line-miter-limit"]),
-    "line-round-limit": new DataConstantProperty(v8Spec["layout_line"]["line-round-limit"]),
+    "line-miter-limit": new DataDrivenProperty(v8Spec["layout_line"]["line-miter-limit"]),
+    "line-round-limit": new DataDrivenProperty(v8Spec["layout_line"]["line-round-limit"]),
     "line-sort-key": new DataDrivenProperty(v8Spec["layout_line"]["line-sort-key"]),
 });
 let paint$3;
@@ -33069,9 +33118,9 @@ function transformTextInternal(text, layer, feature) {
     return text;
 }
 function transformText(text, layer, feature) {
-    text.sections.forEach(section => {
+    for (const section of text.sections) {
         section.text = transformTextInternal(section.text, layer, feature);
-    });
+    }
     return text;
 }
 
@@ -33284,7 +33333,7 @@ const breakableBefore = {
 function getGlyphAdvance(codePoint, section, glyphMap, imagePositions, spacing, layoutTextSize) {
     if ('fontStack' in section) {
         const positions = glyphMap[section.fontStack];
-        const glyph = positions && positions[codePoint];
+        const glyph = positions === null || positions === void 0 ? void 0 : positions[codePoint];
         if (!glyph)
             return 0;
         return glyph.metrics.advance * section.scale + spacing;
@@ -33367,8 +33416,7 @@ class TaggedString {
     }
     static fromFeature(text, defaultFontStack) {
         const result = new TaggedString();
-        for (let i = 0; i < text.sections.length; i++) {
-            const section = text.sections[i];
+        for (const section of text.sections) {
             if (!section.image) {
                 result.addTextSection(section, defaultFontStack);
             }
@@ -34756,11 +34804,11 @@ function getVerticalAlignFactor(verticalAlign) {
     }
 }
 function getRectAndMetrics(glyphPosition, glyphMap, section, codePoint) {
-    if (glyphPosition && glyphPosition.rect) {
+    if (glyphPosition === null || glyphPosition === void 0 ? void 0 : glyphPosition.rect) {
         return glyphPosition;
     }
     const glyphs = glyphMap[section.fontStack];
-    const glyph = glyphs && glyphs[codePoint];
+    const glyph = glyphs === null || glyphs === void 0 ? void 0 : glyphs[codePoint];
     if (!glyph)
         return null;
     const metrics = glyph.metrics;
@@ -34874,7 +34922,7 @@ function shapeLines(shaping, glyphMap, glyphPositions, imagePositions, lines, li
 }
 function shapeTextSection(section, codePoint, vertical, lineShapingSize, glyphMap, glyphPositions) {
     const positions = glyphPositions[section.fontStack];
-    const glyphPosition = positions && positions[codePoint];
+    const glyphPosition = positions === null || positions === void 0 ? void 0 : positions[codePoint];
     const rectAndMetrics = getRectAndMetrics(glyphPosition, glyphMap, section, codePoint);
     if (rectAndMetrics === null)
         return null;
@@ -35074,7 +35122,7 @@ function getSizeData(tileZoom, value) {
         const maxZoom = zoomStops[upper];
         // We'd like to be able to use CameraExpression or CompositeExpression in these
         // return types rather than ExpressionSpecification, but the former are not
-        // transferrable across Web Worker boundaries.
+        // transferable across Web Worker boundaries.
         if (expression.kind === 'composite') {
             return { kind: 'composite', minZoom, maxZoom, interpolationType };
         }
@@ -35303,8 +35351,8 @@ class SymbolBucket {
         this.sourceID = options.sourceID;
     }
     createArrays() {
-        this.text = new SymbolBuffers(new ProgramConfigurationSet(this.layers, this.zoom, property => /^text/.test(property)));
-        this.icon = new SymbolBuffers(new ProgramConfigurationSet(this.layers, this.zoom, property => /^icon/.test(property)));
+        this.text = new SymbolBuffers(new ProgramConfigurationSet(this.layers, this.zoom, property => property.startsWith('text')));
+        this.icon = new SymbolBuffers(new ProgramConfigurationSet(this.layers, this.zoom, property => property.startsWith('icon')));
         this.glyphOffsetArray = new GlyphOffsetArray();
         this.lineVertexArray = new SymbolLineVertexArray();
         this.symbolInstances = new SymbolInstanceArray();
@@ -35322,6 +35370,7 @@ class SymbolBucket {
         }
     }
     populate(features, options, canonical) {
+        var _a;
         const layer = this.layers[0];
         const layout = layer.layout;
         const textFont = layout.get('text-font');
@@ -35361,10 +35410,10 @@ class SymbolBucket {
                 const resolvedTokens = layer.getValueAndResolveTokens('text-field', evaluationFeature, canonical, availableImages);
                 const formattedText = Formatted.factory(resolvedTokens);
                 // on this instance: if hasRTLText is already true, all future calls to containsRTLText can be skipped.
-                const bucketHasRTLText = this.hasRTLText = (this.hasRTLText || containsRTLText(formattedText));
-                if (!bucketHasRTLText || // non-rtl text so can proceed safely
+                this.hasRTLText || (this.hasRTLText = containsRTLText(formattedText));
+                if (!this.hasRTLText || // non-rtl text so can proceed safely
                     rtlWorkerPlugin.getRTLTextPluginStatus() === 'unavailable' || // We don't intend to lazy-load the rtl text plugin, so proceed with incorrect shaping
-                    bucketHasRTLText && rtlWorkerPlugin.isParsed() // Use the rtlText plugin to shape text
+                    this.hasRTLText && rtlWorkerPlugin.isParsed() // Use the rtlText plugin to shape text
                 ) {
                     text = transformText(formattedText, layer, evaluationFeature);
                 }
@@ -35406,13 +35455,13 @@ class SymbolBucket {
             if (text) {
                 const fontStack = textFont.evaluate(evaluationFeature, {}, canonical).join(',');
                 const textAlongLine = layout.get('text-rotation-alignment') !== 'viewport' && layout.get('symbol-placement') !== 'point';
-                this.allowVerticalPlacement = this.writingModes && this.writingModes.indexOf(WritingMode.vertical) >= 0;
+                this.allowVerticalPlacement = (_a = this.writingModes) === null || _a === void 0 ? void 0 : _a.includes(WritingMode.vertical);
                 for (const section of text.sections) {
                     if (!section.image) {
                         const doesAllowVerticalWritingMode = allowsVerticalWritingMode(text.toString());
                         const sectionFont = section.fontStack || fontStack;
-                        const sectionStack = stacks[sectionFont] = stacks[sectionFont] || {};
-                        this.calculateGlyphDependencies(section.text, sectionStack, textAlongLine, this.allowVerticalPlacement, doesAllowVerticalWritingMode);
+                        stacks[sectionFont] || (stacks[sectionFont] = {});
+                        this.calculateGlyphDependencies(section.text, stacks[sectionFont], textAlongLine, this.allowVerticalPlacement, doesAllowVerticalWritingMode);
                     }
                     else {
                         // Add section image to the list of dependencies.
@@ -35422,7 +35471,7 @@ class SymbolBucket {
             }
         }
         if (layout.get('symbol-placement') === 'line') {
-            // Merge adjacent lines with the same text to improve labelling.
+            // Merge adjacent lines with the same text to improve labeling.
             // It's better to place labels on one long line than on many short segments.
             this.features = mergeLines(this.features);
         }
@@ -35522,7 +35571,7 @@ class SymbolBucket {
             segment.primitiveLength += 2;
             this.glyphOffsetArray.emplaceBack(glyphOffset[0]);
             if (i === quads.length - 1 || sectionIndex !== quads[i + 1].sectionIndex) {
-                arrays.programConfigurations.populatePaintArrays(layoutVertexArray.length, feature, feature.index, { imagePositions: {}, canonical, formattedSection: sections && sections[sectionIndex] });
+                arrays.programConfigurations.populatePaintArrays(layoutVertexArray.length, feature, feature.index, { imagePositions: {}, canonical, formattedSection: sections === null || sections === void 0 ? void 0 : sections[sectionIndex] });
             }
         }
         arrays.placedSymbolArray.emplaceBack(labelAnchor.x, labelAnchor.y, glyphOffsetArrayStart, this.glyphOffsetArray.length - glyphOffsetArrayStart, vertexStartIndex, lineStartIndex, lineLength, labelAnchor.segment, sizeVertex ? sizeVertex[0] : 0, sizeVertex ? sizeVertex[1] : 0, lineOffset[0], lineOffset[1], writingMode, 
@@ -35669,7 +35718,7 @@ class SymbolBucket {
     }
     addToSortKeyRanges(symbolInstanceIndex, sortKey) {
         const last = this.sortKeyRanges[this.sortKeyRanges.length - 1];
-        if (last && last.sortKey === sortKey) {
+        if ((last === null || last === void 0 ? void 0 : last.sortKey) === sortKey) {
             last.symbolInstanceEnd = symbolInstanceIndex + 1;
         }
         else {
@@ -35701,18 +35750,20 @@ class SymbolBucket {
         for (const i of this.symbolInstanceIndexes) {
             const symbolInstance = this.symbolInstances.get(i);
             this.featureSortOrder.push(symbolInstance.featureIndex);
-            [
+            const textIndices = [
                 symbolInstance.rightJustifiedTextSymbolIndex,
                 symbolInstance.centerJustifiedTextSymbolIndex,
                 symbolInstance.leftJustifiedTextSymbolIndex
-            ].forEach((index, i, array) => {
+            ];
+            for (let i = 0; i < textIndices.length; i++) {
+                const index = textIndices[i];
                 // Only add a given index the first time it shows up,
                 // to avoid duplicate opacity entries when multiple justifications
                 // share the same glyphs.
-                if (index >= 0 && array.indexOf(index) === i) {
+                if (index >= 0 && textIndices.indexOf(index) === i) {
                     this.addIndicesForPlacedSymbol(this.text, index);
                 }
-            });
+            }
             if (symbolInstance.verticalPlacedTextSymbolIndex >= 0) {
                 this.addIndicesForPlacedSymbol(this.text, symbolInstance.verticalPlacedTextSymbolIndex);
             }
@@ -35834,7 +35885,7 @@ class FormatSectionOverride {
     evaluate(ctx) {
         if (ctx.formattedSection) {
             const overrides = this.defaultValue.property.overrides;
-            if (overrides && overrides.hasOverride(ctx.formattedSection)) {
+            if (overrides === null || overrides === void 0 ? void 0 : overrides.hasOverride(ctx.formattedSection)) {
                 return overrides.getOverride(ctx.formattedSection);
             }
         }
@@ -35895,7 +35946,7 @@ class SymbolStyleLayer extends StyleLayer {
                 // remove duplicates, preserving order
                 const deduped = [];
                 for (const m of writingModes) {
-                    if (deduped.indexOf(m) < 0)
+                    if (!deduped.includes(m))
                         deduped.push(m);
                 }
                 this.layout._values['text-writing-mode'] = deduped;
@@ -35952,8 +36003,9 @@ class SymbolStyleLayer extends StyleLayer {
         const property = properties$2.paint.properties[propertyName];
         let hasOverrides = false;
         const checkSections = (sections) => {
+            var _a;
             for (const section of sections) {
-                if (property.overrides && property.overrides.hasOverride(section)) {
+                if ((_a = property.overrides) === null || _a === void 0 ? void 0 : _a.hasOverride(section)) {
                     hasOverrides = true;
                     return;
                 }
@@ -35988,7 +36040,7 @@ class SymbolStyleLayer extends StyleLayer {
 function getIconPadding(layout, feature, canonical, pixelRatio = 1) {
     // Support text-padding in addition to icon-padding? Unclear how to apply asymmetric text-padding to the radius for collision circles.
     const result = layout.get('icon-padding').evaluate(feature, {}, canonical);
-    const values = result && result.values;
+    const values = result === null || result === void 0 ? void 0 : result.values;
     return [
         values[0] * pixelRatio,
         values[1] * pixelRatio,
@@ -41256,11 +41308,9 @@ class FeatureIndex {
         const key = this.featureIndexArray.length;
         this.featureIndexArray.emplaceBack(featureIndex, sourceLayerIndex, bucketIndex);
         const grid = is3D ? this.grid3D : this.grid;
-        for (let r = 0; r < geometry.length; r++) {
-            const ring = geometry[r];
+        for (const ring of geometry) {
             const bbox = [Infinity, Infinity, -Infinity, -Infinity];
-            for (let i = 0; i < ring.length; i++) {
-                const p = ring[i];
+            for (const p of ring) {
                 bbox[0] = Math.min(bbox[0], p.x);
                 bbox[1] = Math.min(bbox[1], p.y);
                 bbox[2] = Math.max(bbox[2], p.x);
@@ -41303,8 +41353,7 @@ class FeatureIndex {
         matching.sort(topDownFeatureComparator);
         const result = {};
         let previousIndex;
-        for (let k = 0; k < matching.length; k++) {
-            const index = matching[k];
+        for (const index of matching) {
             // don't check the same feature more than once
             if (index === previousIndex)
                 continue;
@@ -41312,9 +41361,7 @@ class FeatureIndex {
             const match = this.featureIndexArray.get(index);
             let featureGeometry = null;
             this.loadMatchingFeature(result, match.bucketIndex, match.sourceLayerIndex, match.featureIndex, filter, params.layers, params.availableImages, styleLayers, serializedLayers, sourceFeatureState, (feature, styleLayer, featureState) => {
-                if (!featureGeometry) {
-                    featureGeometry = loadGeometry(feature);
-                }
+                featureGeometry || (featureGeometry = loadGeometry(feature));
                 return styleLayer.queryIntersectsFeature({
                     queryGeometry,
                     feature,
@@ -41348,8 +41395,7 @@ class FeatureIndex {
             return;
         }
         const id = this.getId(feature, sourceLayerName);
-        for (let l = 0; l < layerIDs.length; l++) {
-            const layerID = layerIDs[l];
+        for (const layerID of layerIDs) {
             if (filterLayerIDs && !filterLayerIDs.has(layerID)) {
                 continue;
             }
@@ -41418,7 +41464,7 @@ register('FeatureIndex', FeatureIndex, { omit: ['rawTileData', 'sourceLayerCoder
 function evaluateProperties(serializedProperties, styleLayerProperties, feature, featureState, availableImages) {
     return mapObject(serializedProperties, (property, key) => {
         const prop = styleLayerProperties instanceof PossiblyEvaluated ? styleLayerProperties.get(key) : null;
-        return prop && prop.evaluate ? prop.evaluate(feature, featureState, availableImages) : prop;
+        return (prop === null || prop === void 0 ? void 0 : prop.evaluate) ? prop.evaluate(feature, featureState, availableImages) : prop;
     });
 }
 function topDownFeatureComparator(a, b) {
@@ -41460,14 +41506,10 @@ class StyleLayerIndex {
             }
             const sourceId = layer.source || '';
             let sourceGroup = this.familiesBySource[sourceId];
-            if (!sourceGroup) {
-                sourceGroup = this.familiesBySource[sourceId] = {};
-            }
+            sourceGroup || (sourceGroup = this.familiesBySource[sourceId] = {});
             const sourceLayerId = layer.sourceLayer || GEOJSON_TILE_LAYER_NAME;
             let sourceLayerFamilies = sourceGroup[sourceLayerId];
-            if (!sourceLayerFamilies) {
-                sourceLayerFamilies = sourceGroup[sourceLayerId] = [];
-            }
+            sourceLayerFamilies || (sourceLayerFamilies = sourceGroup[sourceLayerId] = []);
             sourceLayerFamilies.push(layers);
         }
     }
@@ -41662,8 +41704,7 @@ function resample(line, offset, spacing, angleWindowSize, maxAngle, labelLength,
  */
 function clipLine(lines, x1, y1, x2, y2) {
     const clippedLines = [];
-    for (let l = 0; l < lines.length; l++) {
-        const line = lines[l];
+    for (const line of lines) {
         let clippedLine;
         for (let i = 0; i < line.length - 1; i++) {
             let p0 = line[i];
@@ -42247,10 +42288,9 @@ class TinyQueue {
  *
  * @param polygonRings - first item in array is the outer ring followed optionally by the list of holes, should be an element of the result of util/classify_rings
  * @param precision - Specified in input coordinate units. If 0 returns after first run, if `> 0` repeatedly narrows the search space until the radius of the area searched for the best pole is less than precision
- * @param debug - Print some statistics to the console during execution
  * @returns Pole of Inaccessibility.
  */
-function findPoleOfInaccessibility(polygonRings, precision = 1, debug = false) {
+function findPoleOfInaccessibility(polygonRings, precision = 1) {
     const bounds = Bounds.fromPoints(polygonRings[0]);
     const cellSize = Math.min(bounds.width(), bounds.height());
     let h = cellSize / 2;
@@ -42266,16 +42306,14 @@ function findPoleOfInaccessibility(polygonRings, precision = 1, debug = false) {
         }
     }
     // take centroid as the first best guess
-    let bestCell = getCentroidCell(polygonRings);
-    let numProbes = cellQueue.length;
+    const centroidCell = getCentroidCell(polygonRings);
+    let bestCell = centroidCell;
     while (cellQueue.length) {
         // pick the most promising cell from the queue
         const cell = cellQueue.pop();
         // update the best cell if we found a better one
         if (cell.d > bestCell.d || !bestCell.d) {
             bestCell = cell;
-            if (debug)
-                console.log('found best %d after %d probes', Math.round(1e4 * cell.d) / 1e4, numProbes);
         }
         // do not drill down further if there's no chance of a better solution
         if (cell.max - bestCell.d <= precision)
@@ -42286,29 +42324,34 @@ function findPoleOfInaccessibility(polygonRings, precision = 1, debug = false) {
         cellQueue.push(new Cell(cell.p.x + h, cell.p.y - h, h, polygonRings));
         cellQueue.push(new Cell(cell.p.x - h, cell.p.y + h, h, polygonRings));
         cellQueue.push(new Cell(cell.p.x + h, cell.p.y + h, h, polygonRings));
-        numProbes += 4;
     }
-    if (debug) {
-        console.log(`num probes: ${numProbes}`);
-        console.log(`best distance: ${bestCell.d}`);
+    // For convex or nearly-convex polygons, the centroid provides visually
+    // better label placement than the mathematical POI.
+    // Coordinate rounding (e.g. in geojson-vt) can break polygon symmetry and cause the POI to
+    // drift far from center even though its distance-to-edge is only marginally better.
+    // Prefer the centroid when it is inside the polygon
+    // and its distance is within `precision` of the best found.
+    if (centroidCell.d > 0 && bestCell.d - centroidCell.d <= precision) {
+        return centroidCell.p;
     }
     return bestCell.p;
 }
 function compareMax(a, b) {
     return b.max - a.max;
 }
-function Cell(x, y, h, polygon) {
-    this.p = new Point(x, y);
-    this.h = h; // half the cell size
-    this.d = pointToPolygonDist(this.p, polygon); // distance from cell center to polygon
-    this.max = this.d + this.h * Math.SQRT2; // max distance to polygon within a cell
+class Cell {
+    constructor(x, y, h, polygon) {
+        this.p = new Point(x, y);
+        this.h = h; // half the cell size
+        this.d = pointToPolygonDist(this.p, polygon); // distance from cell center to polygon
+        this.max = this.d + this.h * Math.SQRT2; // max distance to polygon within a cell
+    }
 }
 // signed distance from point to polygon outline (negative if point is outside)
 function pointToPolygonDist(p, polygon) {
     let inside = false;
     let minDistSq = Infinity;
-    for (let k = 0; k < polygon.length; k++) {
-        const ring = polygon[k];
+    for (const ring of polygon) {
         for (let i = 0, len = ring.length, j = len - 1; i < len; j = i++) {
             const a = ring[i];
             const b = ring[j];
@@ -42477,6 +42520,7 @@ function getTextVariableAnchorOffset(layer, feature, canonical) {
 
 function performSymbolLayout(args) {
     var _a;
+    var _b;
     args.bucket.createArrays();
     const tileSize = 512 * args.bucket.overscaling;
     args.bucket.tilePixelRatio = EXTENT$1 / tileSize;
@@ -42606,7 +42650,7 @@ function performSymbolLayout(args) {
         }
         let shapedIcon;
         let isSDFIcon = false;
-        if (feature.icon && feature.icon.name) {
+        if ((_a = feature.icon) === null || _a === void 0 ? void 0 : _a.name) {
             const image = args.imageMap[feature.icon.name];
             if (image) {
                 shapedIcon = shapeIcon(args.imagePositions[feature.icon.name], layout.get('icon-offset').evaluate(feature, {}, args.canonical), layout.get('icon-anchor').evaluate(feature, {}, args.canonical));
@@ -42627,7 +42671,7 @@ function performSymbolLayout(args) {
             }
         }
         const shapedText = getDefaultHorizontalShaping(shapedTextOrientations.horizontal) || shapedTextOrientations.vertical;
-        (_a = args.bucket).iconsInText || (_a.iconsInText = shapedText ? shapedText.iconsInText : false);
+        (_b = args.bucket).iconsInText || (_b.iconsInText = shapedText ? shapedText.iconsInText : false);
         if (shapedText || shapedIcon) {
             addFeature(args.bucket, feature, shapedTextOrientations, shapedIcon, args.imageMap, sizes, layoutTextSize, layoutIconSize, textOffset, isSDFIcon, args.canonical, args.subdivisionGranularity);
         }
@@ -42884,7 +42928,7 @@ function addSymbol(bucket, anchor, line, shapedTextOrientations, shapedIcon, ima
     // All measurements are in glyph metrics and later converted into pixels using proper font size "layoutTextSize"
     let collisionCircleDiameter = -1;
     const getCollisionCircleHeight = (feature, prevHeight) => {
-        if (feature && feature.circleDiameter)
+        if (feature === null || feature === void 0 ? void 0 : feature.circleDiameter)
             return Math.max(feature.circleDiameter, prevHeight);
         return prevHeight;
     };
@@ -43064,9 +43108,7 @@ const earthRadius = 6371008.8;
  * let ll = new LngLat(-123.9749, 40.7736);
  * ll.lng; // = -123.9749
  * ```
- * @see [Get coordinates of the mouse pointer](https://maplibre.org/maplibre-gl-js/docs/examples/mouse-position/)
- * @see [Display a popup](https://maplibre.org/maplibre-gl-js/docs/examples/popup/)
- * @see [Create a timeline animation](https://maplibre.org/maplibre-gl-js/docs/examples/timeline-animation/)
+ * @see [Get coordinates of the mouse pointer](https://maplibre.org/maplibre-gl-js/docs/examples/get-coordinates-of-the-mouse-pointer/)
  */
 class LngLat {
     /**
@@ -43141,8 +43183,7 @@ class LngLat {
         const lat1 = this.lat * rad;
         const lat2 = lngLat.lat * rad;
         const a = Math.sin(lat1) * Math.sin(lat2) + Math.cos(lat1) * Math.cos(lat2) * Math.cos((lngLat.lng - this.lng) * rad);
-        const maxMeters = earthRadius * Math.acos(Math.min(a, 1));
-        return maxMeters;
+        return earthRadius * Math.acos(Math.min(a, 1));
     }
     /**
      * Converts an array of two numbers or an object with `lng` and `lat` or `lon` and `lat` properties
@@ -43237,7 +43278,9 @@ function mercatorScale(lat) {
  * ```ts
  * let nullIsland = new MercatorCoordinate(0.5, 0.5, 0);
  * ```
- * @see [Add a custom style layer](https://maplibre.org/maplibre-gl-js/docs/examples/custom-style-layer/)
+ * @see [Add a custom style layer](https://maplibre.org/maplibre-gl-js/docs/examples/add-a-custom-style-layer/)
+ * @see [Add a 3D model using three.js](https://maplibre.org/maplibre-gl-js/docs/examples/add-a-3d-model-using-threejs/)
+ * @see [Add a simple custom layer on a globe](https://maplibre.org/maplibre-gl-js/docs/examples/add-a-simple-custom-layer-on-a-globe/)
  */
 class MercatorCoordinate {
     /**
@@ -43504,9 +43547,7 @@ class OverscaledTileID {
             return true;
         if (this.canonical.x > rhs.canonical.x)
             return false;
-        if (this.canonical.y < rhs.canonical.y)
-            return true;
-        return false;
+        return this.canonical.y < rhs.canonical.y;
     }
     wrapped() {
         return new OverscaledTileID(this.overscaledZ, 0, this.canonical.z, this.canonical.x, this.canonical.y);
@@ -43581,9 +43622,9 @@ function calculateTileKey(wrap, overscaledZ, z, x, y) {
     return (dim * dim * wrap + dim * y + x).toString(36) + z.toString(36) + overscaledZ.toString(36);
 }
 function getQuadkey(z, x, y) {
-    let quadkey = '', mask;
+    let quadkey = '';
     for (let i = z; i > 0; i--) {
-        mask = 1 << (i - 1);
+        const mask = 1 << (i - 1);
         quadkey += ((x & mask ? 1 : 0) + (y & mask ? 2 : 0));
     }
     return quadkey;
@@ -43674,7 +43715,9 @@ class WorkerTile {
             // options.glyphDependencies looks like: {"SomeFontName":{"10":true,"32":true}}
             // this line makes an object like: {"SomeFontName":[10,32]}
             const stacks = mapObject(options.glyphDependencies, (glyphs) => Object.keys(glyphs).map(Number));
-            this.inFlightDependencies.forEach((request) => request === null || request === void 0 ? void 0 : request.abort());
+            for (const request of this.inFlightDependencies) {
+                request === null || request === void 0 ? void 0 : request.abort();
+            }
             this.inFlightDependencies = [];
             let getGlyphsPromise = Promise.resolve({});
             if (Object.keys(stacks).length) {
@@ -44013,89 +44056,6 @@ class BoundedLRUCache {
     }
 }
 
-var PerformanceMarkers;
-(function (PerformanceMarkers) {
-    PerformanceMarkers["create"] = "create";
-    PerformanceMarkers["load"] = "load";
-    PerformanceMarkers["fullLoad"] = "fullLoad";
-})(PerformanceMarkers || (PerformanceMarkers = {}));
-let lastFrameTime = null;
-let frameTimes = [];
-const minFramerateTarget = 60;
-const frameTimeTarget = 1000 / minFramerateTarget;
-const loadTimeKey = 'loadTime';
-const fullLoadTimeKey = 'fullLoadTime';
-/**
- * Monitors and reports map performance metrics
- */
-const PerformanceUtils = {
-    /**
-    * Marks point in time of the map lifecycle.
-    */
-    mark(marker) {
-        performance.mark(marker);
-    },
-    /**
-    * Records the time of a new animation frame.
-    * Used internally for FPS calculation.
-    * @param currentTimestamp - The current timestamp provided by requestAnimationFrame.
-    */
-    recordStartOfFrameAt(currentTimestamp) {
-        if (lastFrameTime != null) {
-            const frameTime = currentTimestamp - lastFrameTime;
-            frameTimes.push(frameTime);
-        }
-        lastFrameTime = currentTimestamp;
-    },
-    resetRuntimeMetrics() {
-        lastFrameTime = null;
-        frameTimes = [];
-    },
-    /**
-    * @internal
-    * Clear browser performance entries associated with this monitor
-    */
-    clearInitializationMetrics() {
-        performance.clearMeasures(loadTimeKey);
-        performance.clearMeasures(fullLoadTimeKey);
-        for (const marker in PerformanceMarkers) {
-            performance.clearMarks(PerformanceMarkers[marker]);
-        }
-    },
-    /**
-     * Clears both the runtime and initialisation metrics
-     */
-    remove() {
-        this.resetRuntimeMetrics();
-        this.clearInitializationMetrics();
-    },
-    /**
-    * Calculates and returns the current performance metrics for this monitor instance.
-    * @returns An object containing various performance metrics.
-    */
-    getPerformanceMetrics() {
-        performance.measure(loadTimeKey, PerformanceMarkers.create, PerformanceMarkers.load);
-        performance.measure(fullLoadTimeKey, PerformanceMarkers.create, PerformanceMarkers.fullLoad);
-        const loadTimeMs = performance.getEntriesByName(loadTimeKey)[0].duration;
-        const fullLoadTimeMs = performance.getEntriesByName(fullLoadTimeKey)[0].duration;
-        const totalFramesCount = frameTimes.length;
-        const avgFrameTime = frameTimes.reduce((prev, curr) => prev + curr, 0) / totalFramesCount / 1000;
-        const averageFramesPerSecond = 1 / avgFrameTime;
-        // count frames that missed our framerate target
-        const virtualDroppedFramesCount = frameTimes
-            .filter((frameTime) => frameTime > frameTimeTarget)
-            .reduce((acc, curr) => {
-            return acc + (curr - frameTimeTarget) / frameTimeTarget;
-        }, 0);
-        return {
-            loadTimeMs,
-            fullLoadTimeMs,
-            averageFramesPerSecond,
-            virtualDroppedFramesCount,
-            totalFramesCount
-        };
-    }
-};
 /**
  * @internal
  * Safe wrapper for the performance resource timing API in web workers with graceful degradation
@@ -44238,7 +44198,7 @@ class VectorTileWorkerSource {
                 errorMessage += 'please make sure the data is not gzipped and that you have configured the relevant header in the server';
             }
             else {
-                errorMessage += `got error: ${ex.message}`;
+                errorMessage += `got error: ${ensureError(ex).message}`;
             }
             throw new Error(errorMessage);
         }
@@ -44341,9 +44301,10 @@ class VectorTileWorkerSource {
      * @returns the overzoomed tile and its raw data
      */
     _getOverzoomTile(params, maxZoomVectorTile) {
+        var _a;
         const { tileID, source, overzoomParameters } = params;
         const { maxZoomTileID } = overzoomParameters;
-        const cacheKey = `${maxZoomTileID.key}_${tileID.key}`;
+        const cacheKey = `${maxZoomTileID.key}_${tileID.key}_${(_a = params.request) === null || _a === void 0 ? void 0 : _a.url}`;
         const cachedOverzoomTile = this.overzoomedTileResultCache.get(cacheKey);
         if (cachedOverzoomTile) {
             return cachedOverzoomTile;
@@ -44417,14 +44378,14 @@ class RasterDEMTileWorkerSource {
                 new RGBAImage({ width, height }, yield getImageData(rawImageData, -1, -1, width, height)) :
                 rawImageData;
             const dem = new DEMData(uid, imagePixels, encoding, redFactor, greenFactor, blueFactor, baseShift);
-            this.loaded = this.loaded || {};
+            this.loaded || (this.loaded = {});
             this.loaded[uid] = dem;
             return dem;
         });
     }
     removeTile(params) {
         const loaded = this.loaded, uid = params.uid;
-        if (loaded && loaded[uid]) {
+        if (loaded === null || loaded === void 0 ? void 0 : loaded[uid]) {
             delete loaded[uid];
         }
     }
@@ -44660,8 +44621,7 @@ class GeoJSONWorkerSource {
         if (compiled.result === 'error') {
             throw new Error(compiled.value.map(err => `${err.key}: ${err.message}`).join(', '));
         }
-        const predicate = (feature) => compiled.value.evaluate({ zoom: 0 }, feature);
-        return predicate;
+        return (feature) => compiled.value.evaluate({ zoom: 0 }, feature);
     }
     removeSource(_params) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -44744,6 +44704,7 @@ class Worker {
         this.self.registerRTLTextPlugin = (rtlTextPlugin) => {
             rtlWorkerPlugin.setMethods(rtlTextPlugin);
         };
+        this.self.makeRequest = makeRequest;
         this.actor.registerMessageHandler("LDT" /* MessageType.loadDEMTile */, (mapId, params) => {
             return this._getDEMWorkerSource(mapId, params.source).loadTile(params);
         });
@@ -44775,9 +44736,8 @@ class Worker {
             return this._getWorkerSource(mapId, params.type, params.source).removeTile(params);
         });
         this.actor.registerMessageHandler("RS" /* MessageType.removeSource */, (mapId, params) => __awaiter(this, void 0, void 0, function* () {
-            if (!this.workerSources[mapId] ||
-                !this.workerSources[mapId][params.type] ||
-                !this.workerSources[mapId][params.type][params.source]) {
+            var _a, _b;
+            if (!((_b = (_a = this.workerSources[mapId]) === null || _a === void 0 ? void 0 : _a[params.type]) === null || _b === void 0 ? void 0 : _b[params.source])) {
                 return;
             }
             const worker = this.workerSources[mapId][params.type][params.source];
@@ -44839,22 +44799,17 @@ class Worker {
     }
     _syncRTLPluginState(mapId, incomingState) {
         return __awaiter(this, void 0, void 0, function* () {
-            const state = yield rtlWorkerPlugin.syncState(incomingState, this.self.importScripts);
-            return state;
+            return yield rtlWorkerPlugin.syncState(incomingState, this.self.importScripts);
         });
     }
     _getAvailableImages(mapId) {
         let availableImages = this.availableImages[mapId];
-        if (!availableImages) {
-            availableImages = [];
-        }
+        availableImages || (availableImages = []);
         return availableImages;
     }
     _getLayerIndex(mapId) {
         let layerIndexes = this.layerIndexes[mapId];
-        if (!layerIndexes) {
-            layerIndexes = this.layerIndexes[mapId] = new StyleLayerIndex();
-        }
+        layerIndexes || (layerIndexes = this.layerIndexes[mapId] = new StyleLayerIndex());
         return layerIndexes;
     }
     /**
@@ -44865,10 +44820,9 @@ class Worker {
      * @returns a new instance or a cached one
      */
     _getWorkerSource(mapId, sourceType, sourceName) {
-        if (!this.workerSources[mapId])
-            this.workerSources[mapId] = {};
-        if (!this.workerSources[mapId][sourceType])
-            this.workerSources[mapId][sourceType] = {};
+        var _a, _b;
+        (_a = this.workerSources)[mapId] || (_a[mapId] = {});
+        (_b = this.workerSources[mapId])[sourceType] || (_b[sourceType] = {});
         if (!this.workerSources[mapId][sourceType][sourceName]) {
             // use a wrapped actor so that we can attach a target mapId param
             // to any messages invoked by the WorkerSource, this is very important when there are multiple maps
@@ -44899,11 +44853,9 @@ class Worker {
      * @returns a new instance or a cached one
      */
     _getDEMWorkerSource(mapId, sourceType) {
-        if (!this.demWorkerSources[mapId])
-            this.demWorkerSources[mapId] = {};
-        if (!this.demWorkerSources[mapId][sourceType]) {
-            this.demWorkerSources[mapId][sourceType] = new RasterDEMTileWorkerSource();
-        }
+        var _a, _b;
+        (_a = this.demWorkerSources)[mapId] || (_a[mapId] = {});
+        (_b = this.demWorkerSources[mapId])[sourceType] || (_b[sourceType] = new RasterDEMTileWorkerSource());
         return this.demWorkerSources[mapId][sourceType];
     }
 }
